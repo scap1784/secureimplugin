@@ -1,7 +1,7 @@
 
-Verison 1.0.10.0 [??-05-2007]
+Verison 1.0.10.0 [07-06-2007]
 
-[+] new keyexchange method
+[*] fix PREF_UTF flag in messages
 
 
 Verison 1.0.9.37 [04-04-2007]

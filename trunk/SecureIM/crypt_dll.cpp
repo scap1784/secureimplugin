@@ -134,6 +134,9 @@ LPSTR encodeMsg(pUinKey ptr, LPARAM lParam) {
 	LPSTR szNewMsg = NULL;
 	LPSTR szOldMsg = (LPSTR) pccsd->lParam;
 
+	if(pccsd->wParam & PREF_UTF)
+		szNewMsg = encrypt(ptr,cpp_encodeU(ptr->cntx,szOldMsg));
+	else
 	if(pccsd->wParam & PREF_UNICODE)
 		szNewMsg = encrypt(ptr,cpp_encodeW(ptr->cntx,(LPWSTR)(szOldMsg+strlen(szOldMsg)+1)));
 	else

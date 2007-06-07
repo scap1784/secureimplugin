@@ -85,6 +85,7 @@ extern "C" {
  DLLEXPORT int   __cdecl cpp_init_keyp(int,LPCSTR); // make KeyP from password
  DLLEXPORT LPSTR __cdecl cpp_encodeA(int,LPCSTR); // encode ANSIz string
  DLLEXPORT LPSTR __cdecl cpp_encodeW(int,LPWSTR); // encode USC2z string
+ DLLEXPORT LPSTR __cdecl cpp_encodeU(int,LPCSTR); // encode UTF8z string
  DLLEXPORT LPSTR __cdecl cpp_decode(int,LPCSTR);  // decode as ANSIzUCS2z
  DLLEXPORT int   __cdecl cpp_encrypt_file(int,LPCSTR,LPCSTR); // encrypt file
  DLLEXPORT int   __cdecl cpp_decrypt_file(int,LPCSTR,LPCSTR); // decrypt file
