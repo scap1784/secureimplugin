@@ -19,6 +19,7 @@ BOOL loadlib(void) {
 	cpp.ikp = (_cpp_init_keyp) GetProcAddress(h, "cpp_init_keyp");
 	cpp.ea = (_cpp_encodeA) GetProcAddress(h, "cpp_encodeA");
 	cpp.ew = (_cpp_encodeW) GetProcAddress(h, "cpp_encodeW");
+	cpp.eu = (_cpp_encodeU) GetProcAddress(h, "cpp_encodeU");
 	cpp.daw = (_cpp_decode) GetProcAddress(h, "cpp_decode");
 	cpp.ef = (_cpp_encrypt_file) GetProcAddress(h, "cpp_encrypt_file");
 	cpp.df = (_cpp_decrypt_file) GetProcAddress(h, "cpp_decrypt_file");
@@ -68,7 +69,7 @@ BOOL loadlib(void) {
 	cpp.rsa_i  = (_rsa_init) GetProcAddress(h, "rsa_init");
 	cpp.rsa_d  = (_rsa_done) GetProcAddress(h, "rsa_done");
 
-	return (cpp_get_version()>=0x01000200);
+	return (cpp_get_version()>=0x01000201);
 }
 
 // EOF

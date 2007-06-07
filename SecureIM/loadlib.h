@@ -15,6 +15,7 @@ typedef int   (__cdecl * _cpp_calc_keyx) (int);
 typedef int   (__cdecl * _cpp_init_keyp) (int,LPCSTR);
 typedef LPSTR (__cdecl * _cpp_encodeA) (int,LPCSTR);
 typedef LPSTR (__cdecl * _cpp_encodeW) (int,LPWSTR);
+typedef LPSTR (__cdecl * _cpp_encodeU) (int,LPCSTR);
 typedef LPSTR (__cdecl * _cpp_decode) (int,LPCSTR);
 typedef int   (__cdecl * _cpp_encrypt_file) (int,LPCSTR,LPCSTR);
 typedef int   (__cdecl * _cpp_decrypt_file) (int,LPCSTR,LPCSTR);
@@ -75,6 +76,7 @@ typedef struct {
 	_cpp_init_keyp ikp;
 	_cpp_encodeA ea;
 	_cpp_encodeW ew;
+	_cpp_encodeU eu;
 	_cpp_decode daw;
 	_cpp_encrypt_file ef;
 	_cpp_decrypt_file df;
@@ -133,6 +135,7 @@ extern CRYPTOPP_INFO cpp;
 #define cpp_init_keyp		cpp.ikp
 #define cpp_encodeA			cpp.ea
 #define cpp_encodeW			cpp.ew
+#define cpp_encodeU			cpp.eu
 #define cpp_decode			cpp.daw
 #define cpp_encrypt_file	cpp.ef
 #define cpp_decrypt_file	cpp.df

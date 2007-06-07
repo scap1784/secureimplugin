@@ -165,6 +165,34 @@ LPSTR __cdecl cpp_encodeA(int context, LPCSTR msg) {
 	return szNewMsg;
 }
 
+// encode message from UTF8
+LPSTR __cdecl cpp_encodeU(int context, LPCSTR msg) {
+
+    pCNTX ptr = get_context_on_id(context);
+    if(!ptr) return NULL;
+	cpp_alloc_pdata(ptr); pSIMDATA p = (pSIMDATA) ptr->pdata;
+    if(!p->KeyX) { ptr->error = ERROR_NO_KEYX; return NULL; }
+
+	LPSTR szNewMsg = NULL;
+	LPSTR szOldMsg = (LPSTR) msg;
+
+	if(ptr->features & FEATURES_UTF8) {
+		// utf8 message: encrypt.
+		szNewMsg = cpp_encrypt(ptr, szOldMsg);
+	}
+	else {
+		// utf8 message: convert to ansi and encrypt.
+		WCHAR *wstring = utf8decode(szOldMsg);
+		int wlen = wcslen(wstring)+1;
+		szNewMsg = (LPSTR) mir_alloc(wlen*(sizeof(WCHAR)+2));
+		WideCharToMultiByte(CP_ACP, 0, wstring, -1, szNewMsg, wlen, 0, 0);
+		memcpy(szNewMsg+strlen(szNewMsg)+1, wstring, wlen*sizeof(WCHAR));
+		mir_free(wstring);
+	}
+
+	return szNewMsg;
+}
+
 // encode message from UNICODE into UTF8 if need
 LPSTR __cdecl cpp_encodeW(int context, LPWSTR msg) {
 
