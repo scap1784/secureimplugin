@@ -1,0 +1,77 @@
+#include "commonheaders.h"
+
+//Popup Messages
+LPCSTR sim001 = "SecureIM established...";
+LPCSTR sim002 = "Key exchange failed...";
+LPCSTR sim003 = "Key from disabled...";
+LPCSTR sim004 = "Sended back message received...";
+LPCSTR sim005 = "Sending back secure message...";
+LPCSTR sim006 = "SecureIM disabled...";
+LPCSTR sim007 = "Sending Key...";
+LPCSTR sim008 = "Key Received...";
+LPCSTR sim009 = "Sending Message...";
+LPCSTR sim010 = "Message Received...";
+LPCSTR sim011 = "Encrypting File:";
+LPCSTR sim012 = "Decrypting File:";
+LPCSTR sim013 = "Bad key received...";
+
+//Error Messages
+LPCSTR sim101 = "SecureIM: Error while decrypting the message.";
+LPCSTR sim102 = "SecureIM: Error while decrypting the message, bad message length.";
+LPCSTR sim103 = "SecureIM: Error while decrypting the message, bad message CRC.";
+LPCSTR sim104 = "User has not answered to key exchange !\nYour messages are still in SecureIM queue, do you want to send them Unencrypted now ?";
+LPCSTR sim105 = "SecureIM not enabled! You Must Enable SecureIM with this user...";
+LPCSTR sim106 = "Can't Send Encrypted Message !\nUser is offline now and his secure key has been expired, Do you want to send your message ?\nIt will be unencrypted !";
+LPCSTR sim107 = "SecureIM won't be loaded because cryptopp.dll is missing or wrong version !";
+LPCSTR sim108 = "SecureIM can't load PGP/GPG key! Check PGP/GPG settings!";
+LPCSTR sim109 = "SecureIM can't encrypt message! Check trust of PGP/GPG key!";
+LPCSTR sim110 = "Can't Send Encrypted Message !\nDo you want to send your message ?\nIt will be unencrypted !";
+
+//Options
+LPCSTR sim201 = "General";
+LPCSTR sim202 = "Protocols";
+LPCSTR sim203 = "Nickname";
+LPCSTR sim204 = "UIN/Email/Jid/...";
+LPCSTR sim205 = "Status";
+LPCSTR sim206 = "PSK";
+LPCSTR sim207 = "Always try";
+LPCSTR sim208 = "Enabled";
+LPCSTR sim209 = "Disabled";
+LPCSTR sim210 = "Name";
+LPCSTR sim211 = "Password is too short!";
+LPCSTR sim212 = "ON";
+LPCSTR sim213 = "Off";
+LPCSTR sim214 = "PGP";
+LPCSTR sim215 = "Key ID";
+LPCSTR sim216 = "Keyrings loaded.";
+LPCSTR sim217 = "Keyrings not loaded!";
+LPCSTR sim218 = "PGP SDK v%i.%i.%i found.";
+LPCSTR sim219 = "PGP SDK not found!";
+LPCSTR sim220 = "This version not supported!";
+LPCSTR sim221 = "(none)";
+LPCSTR sim222 = "Private key loaded.";
+LPCSTR sim223 = "Private key not loaded!";
+LPCSTR sim224 = "The new settings will become valid when you restart MirandaIM!";
+LPCSTR sim225 = "Keyrings disabled!";
+LPCSTR sim226 = "GPG";
+LPCSTR sim227 = "CP";
+LPCSTR sim228 = "ANSI";
+LPCSTR sim229 = "UTF8";
+
+//Context Menu
+LPCSTR sim301 = "Create SecureIM connection";
+LPCSTR sim302 = "Disable SecureIM connection";
+LPCSTR sim303 = "SecureIM status (disabled)";
+LPCSTR sim304 = "SecureIM status (enabled)";
+LPCSTR sim305 = "SecureIM status (always try)";
+LPCSTR sim306 = "Load PGP Key";
+LPCSTR sim307 = "Unload PGP Key";
+LPCSTR sim308 = "Load GPG Key";
+LPCSTR sim309 = "Unload GPG Key";
+
+//System messages
+LPCSTR sim401 = "SecureIM: Sorry, unable to decrypt this message due you have no PGP/GPG installed. Visit www.pgp.com or www.gnupg.org for more info.";
+LPCSTR sim402 = "SecureIM received unencryped message:\n";
+LPCSTR sim403 = "SecureIM received encryped message:\n";
+
+// EOF
