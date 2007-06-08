@@ -142,7 +142,8 @@ LPSTR encodeMsg(pUinKey ptr, LPARAM lParam) {
 	else
 		szNewMsg = encrypt(ptr,cpp_encodeA(ptr->cntx,szOldMsg));
 
-	pccsd->wParam &= ~PREF_UNICODE;
+	pccsd->wParam &= ~(PREF_UNICODE|PREF_UTF);
+//	pccsd->wParam &= ~PREF_UNICODE;
 
 	return szNewMsg;
 }
@@ -155,7 +156,7 @@ LPSTR decodeMsg(pUinKey ptr, LPARAM lParam, LPSTR szEncMsg) {
 	PROTORECVEVENT *ppre = (PROTORECVEVENT *)pccsd->lParam;
 
 	LPSTR szNewMsg = NULL;
-	LPSTR szOldMsg = cpp_decode(ptr->cntx, szEncMsg);
+	LPSTR szOldMsg = (pccsd->wParam&PREF_UTF)?cpp_decodeU(ptr->cntx,szEncMsg):cpp_decode(ptr->cntx,szEncMsg);
 
 	if(szOldMsg == NULL) {
 		ptr->decoded=false;
@@ -172,17 +173,23 @@ LPSTR decodeMsg(pUinKey ptr, LPARAM lParam, LPSTR szEncMsg) {
     		}
 			break;
 		}
-		ppre->flags &= ~PREF_UNICODE;
-		pccsd->wParam &= ~PREF_UNICODE;
+		ppre->flags &= ~(PREF_UNICODE|PREF_UTF);
+		pccsd->wParam &= ~(PREF_UNICODE|PREF_UTF);
 	}
 	else {
 		ptr->decoded=true;
-	    int olen = (strlen(szOldMsg)+1)*(sizeof(WCHAR)+1);
-		szNewMsg = (LPSTR) mir_alloc(olen);
-		memcpy(szNewMsg,szOldMsg,olen);
-
-		ppre->flags |= PREF_UNICODE;
-		pccsd->wParam |= PREF_UNICODE;
+		if( pccsd->wParam & PREF_UTF ) { // если протокол поддерживает utf8 - тогда отправляем в utf8
+			int olen = strlen(szOldMsg)+1;
+			szNewMsg = (LPSTR) mir_alloc(olen);
+			memcpy(szNewMsg,szOldMsg,olen);
+		}
+		else {
+			int olen = (strlen(szOldMsg)+1)*(sizeof(WCHAR)+1);
+			szNewMsg = (LPSTR) mir_alloc(olen);
+			memcpy(szNewMsg,szOldMsg,olen);
+			ppre->flags |= PREF_UNICODE;
+			pccsd->wParam |= PREF_UNICODE;
+		}
 	}
 	ppre->szMessage = szNewMsg;
 	return szNewMsg;

@@ -87,6 +87,7 @@ extern "C" {
  DLLEXPORT LPSTR __cdecl cpp_encodeW(int,LPWSTR); // encode USC2z string
  DLLEXPORT LPSTR __cdecl cpp_encodeU(int,LPCSTR); // encode UTF8z string
  DLLEXPORT LPSTR __cdecl cpp_decode(int,LPCSTR);  // decode as ANSIzUCS2z
+ DLLEXPORT LPSTR __cdecl cpp_decodeU(int,LPCSTR); // decode as UTF8z
  DLLEXPORT int   __cdecl cpp_encrypt_file(int,LPCSTR,LPCSTR); // encrypt file
  DLLEXPORT int   __cdecl cpp_decrypt_file(int,LPCSTR,LPCSTR); // decrypt file
  DLLEXPORT int   __cdecl cpp_get_features(int); // get features field from client

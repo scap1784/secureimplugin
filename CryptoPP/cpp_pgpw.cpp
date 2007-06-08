@@ -102,7 +102,7 @@ BOOL load_pgp_sdk(int type, int id)
 	pgpVer = 0;
 
 	if( isVista ){
-		sprintf(t,"%s\\pgpsdkw.tmp",TEMP);
+		sprintf(t,"%s\\pgpsdkw.dll",TEMP);
 		ExtractFile(t,type,id);
 		hpgpsdk = LoadLibraryA(t);
 	}
