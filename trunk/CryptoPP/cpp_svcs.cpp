@@ -257,6 +257,37 @@ LPSTR __cdecl cpp_decode(int context, LPCSTR szEncMsg) {
 	return szNewMsg;
 }
 
+// decode message return UTF8z
+LPSTR __cdecl cpp_decodeU(int context, LPCSTR szEncMsg) {
+
+    pCNTX ptr = get_context_on_id(context);
+    if(!ptr) return NULL;
+	cpp_alloc_pdata(ptr); pSIMDATA p = (pSIMDATA) ptr->pdata;
+    if(!p->KeyX) { ptr->error = ERROR_NO_KEYX; return NULL; }
+
+	LPSTR szNewMsg = NULL;
+	LPSTR szOldMsg = cpp_decrypt(ptr, szEncMsg);
+
+	if(szOldMsg) {
+		if(ptr->features & FEATURES_UTF8) {
+			// utf8 message: copy
+			int slen = strlen(szOldMsg)+1;
+			szNewMsg = (LPSTR) mir_alloc(slen);
+			memcpy(szNewMsg,szOldMsg,slen);
+		}
+		else {
+			// ansi message: convert to utf8
+			int slen = strlen(szOldMsg)+1;
+			LPWSTR wstring = (LPWSTR) alloca(slen*sizeof(WCHAR));
+			MultiByteToWideChar(CP_ACP, 0, szOldMsg, -1, wstring, slen*sizeof(WCHAR));
+			szNewMsg = utf8encode(wstring);
+		}
+	}
+	SAFE_FREE(ptr->tmp);
+	ptr->tmp = szNewMsg;
+	return szNewMsg;
+}
+
 int __cdecl cpp_encrypt_file(int context,LPCSTR file_in,LPCSTR file_out) {
 
     pCNTX ptr = get_context_on_id(context);

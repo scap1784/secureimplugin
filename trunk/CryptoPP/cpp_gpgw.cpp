@@ -107,7 +107,7 @@ int __cdecl gpg_init()
 {
 	int r; char t[MAX_PATH];
 	if( isVista ){
-		sprintf(t,"%s\\gnupgw.tmp",TEMP);
+		sprintf(t,"%s\\gnupgw.dll",TEMP);
 		ExtractFile(t,666,1);
 		hgpg = LoadLibraryA(t);
 	}

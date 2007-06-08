@@ -21,6 +21,7 @@ BOOL loadlib(void) {
 	cpp.ew = (_cpp_encodeW) GetProcAddress(h, "cpp_encodeW");
 	cpp.eu = (_cpp_encodeU) GetProcAddress(h, "cpp_encodeU");
 	cpp.daw = (_cpp_decode) GetProcAddress(h, "cpp_decode");
+	cpp.du = (_cpp_decodeU) GetProcAddress(h, "cpp_decodeU");
 	cpp.ef = (_cpp_encrypt_file) GetProcAddress(h, "cpp_encrypt_file");
 	cpp.df = (_cpp_decrypt_file) GetProcAddress(h, "cpp_decrypt_file");
 	cpp.gf = (_cpp_get_features) GetProcAddress(h, "cpp_get_features");

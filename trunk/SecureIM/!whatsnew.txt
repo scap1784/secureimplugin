@@ -1,5 +1,5 @@
 
-Verison 1.0.10.0 [07-06-2007]
+Verison 1.0.10.1 [08-06-2007]
 
 [*] fix PREF_UTF flag in messages
 

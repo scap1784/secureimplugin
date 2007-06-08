@@ -17,6 +17,7 @@ typedef LPSTR (__cdecl * _cpp_encodeA) (int,LPCSTR);
 typedef LPSTR (__cdecl * _cpp_encodeW) (int,LPWSTR);
 typedef LPSTR (__cdecl * _cpp_encodeU) (int,LPCSTR);
 typedef LPSTR (__cdecl * _cpp_decode) (int,LPCSTR);
+typedef LPSTR (__cdecl * _cpp_decodeU) (int,LPCSTR);
 typedef int   (__cdecl * _cpp_encrypt_file) (int,LPCSTR,LPCSTR);
 typedef int   (__cdecl * _cpp_decrypt_file) (int,LPCSTR,LPCSTR);
 typedef int   (__cdecl * _cpp_get_features) (int);
@@ -78,6 +79,7 @@ typedef struct {
 	_cpp_encodeW ew;
 	_cpp_encodeU eu;
 	_cpp_decode daw;
+	_cpp_decodeU du;
 	_cpp_encrypt_file ef;
 	_cpp_decrypt_file df;
 	_cpp_get_features gf;
@@ -137,6 +139,7 @@ extern CRYPTOPP_INFO cpp;
 #define cpp_encodeW			cpp.ew
 #define cpp_encodeU			cpp.eu
 #define cpp_decode			cpp.daw
+#define cpp_decodeU			cpp.du
 #define cpp_encrypt_file	cpp.ef
 #define cpp_decrypt_file	cpp.df
 #define cpp_get_features	cpp.gf
