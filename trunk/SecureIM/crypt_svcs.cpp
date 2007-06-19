@@ -475,6 +475,17 @@ int onRecvMsg(WPARAM wParam, LPARAM lParam) {
 }
 
 
+// SendMsgW handler
+int onSendMsgW(WPARAM wParam, LPARAM lParam) {
+	if(!lParam) return 0;
+
+    CCSDATA *ccs = (CCSDATA *) lParam;
+	ccs->wParam |= PREF_UNICODE;
+	
+	return onSendMsg(wParam, lParam);
+}
+
+
 // SendMsg handler
 int onSendMsg(WPARAM wParam, LPARAM lParam) {
 

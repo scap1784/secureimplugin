@@ -1,4 +1,9 @@
 
+Verison 1.0.10.2 [19-06-2007]
+
+[*] fix PREF_UTF flag in messages (new bug)
+
+
 Verison 1.0.10.1 [08-06-2007]
 
 [*] fix PREF_UTF flag in messages
