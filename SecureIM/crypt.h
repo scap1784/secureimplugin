@@ -148,6 +148,7 @@ void __cdecl sttWaitForExchange(LPVOID);
 
 // crypt_svcs.cpp
 int onRecvMsg(WPARAM,LPARAM);
+int onSendMsgW(WPARAM,LPARAM);
 int onSendMsg(WPARAM,LPARAM);
 int onSendFile(WPARAM,LPARAM);
 int onProtoAck(WPARAM,LPARAM);
