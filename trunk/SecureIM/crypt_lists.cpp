@@ -17,7 +17,8 @@ void loadSupportedProtocols() {
 	CallService(MS_PROTO_ENUMPROTOCOLS, (WPARAM)&numberOfProtocols, (LPARAM)&protos);
 
 	for (int i=0;i<numberOfProtocols;i++) {
-		if (protos[i]->type == PROTOTYPE_PROTOCOL && CallProtoService(protos[i]->szName,PS_GETCAPS,PFLAGNUM_2,0) && protos[i]->szName){
+//		if (protos[i]->type == PROTOTYPE_PROTOCOL && CallProtoService(protos[i]->szName,PS_GETCAPS,PFLAGNUM_2,0) && protos[i]->szName){
+		if (protos[i]->type == PROTOTYPE_PROTOCOL && protos[i]->szName){
 			int j = proto_cnt;
 		    proto_cnt++;
 			proto = (pSupPro) mir_realloc(proto,sizeof(SupPro)*proto_cnt);

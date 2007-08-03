@@ -1,4 +1,9 @@
 
+Verison 1.0.10.3 [03-08-2007]
+
+[*] change work with metacontacts (to work need disable sync subcontact history with metacontact)
+
+
 Verison 1.0.10.2 [19-06-2007]
 
 [*] fix PREF_UTF flag in messages (new bug)

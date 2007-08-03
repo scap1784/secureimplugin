@@ -22,6 +22,7 @@ BOOL bGPGloaded = false, bGPGkeyrings = false, bSavePass = false;
 BOOL bSFT, bSOM, bASI, bMCD, bSCM, bDGP, bAIP;
 BYTE bADV, bPGP, bGPG;
 CRITICAL_SECTION localQueueMutex;
+HANDLE hNetlibUser;
 
 
 PLUGININFO pluginInfo = {
@@ -162,6 +163,32 @@ wchar_t* a2u( const char* src )
 	MultiByteToWideChar( codepage, 0, src, -1, result, cbLen );
 	result[ cbLen ] = 0;
 	return result;
+}
+
+void InitNetlib() {
+	NETLIBUSER nl_user = {0};
+	nl_user.cbSize = sizeof(nl_user);
+	nl_user.szSettingsModule = (LPSTR)szModuleName;
+	nl_user.flags = NUF_OUTGOING | NUF_HTTPCONNS;
+	nl_user.szDescriptiveName = (LPSTR)szModuleName;
+
+	hNetlibUser = (HANDLE)CallService(MS_NETLIB_REGISTERUSER, 0, (LPARAM)&nl_user);
+}
+
+void DeinitNetlib() {
+	if(hNetlibUser)
+		CallService(MS_NETLIB_CLOSEHANDLE, (WPARAM)hNetlibUser, 0);
+}
+
+int Sent_NetLog(const char *fmt,...)
+{
+  va_list va;
+  char szText[1024];
+
+  va_start(va,fmt);
+  mir_vsnprintf(szText,sizeof(szText),fmt,va);
+  va_end(va);
+  return CallService(MS_NETLIB_LOG,(WPARAM)hNetlibUser,(LPARAM)szText);
 }
 
 // EOF
