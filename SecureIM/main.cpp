@@ -1,6 +1,5 @@
 #include "commonheaders.h"
 
-
 extern "C" BOOL APIENTRY DllMain(HINSTANCE hInst, DWORD dwReason, LPVOID) {
 	g_hInst = hInst;
 	if (dwReason == DLL_PROCESS_ATTACH) {
@@ -34,10 +33,10 @@ int Service_CreateIM(WPARAM wParam,LPARAM lParam){
 		CallService(MS_PROTO_ADDTOCONTACT, (WPARAM)wParam, (LPARAM)szModuleName);
 
 	WPARAM flags = 0;
-	if( isProtoMetaContacts((HANDLE)wParam) ) {
-		wParam = (WPARAM)getMostOnline((HANDLE)wParam);
-		flags = PREF_METANODB;
-	}
+//	if( isProtoMetaContacts((HANDLE)wParam) ) {
+//		wParam = (WPARAM)getMostOnline((HANDLE)wParam);
+//		flags = PREF_METANODB;
+//	}
 
 	CallContactService((HANDLE)wParam,PSS_MESSAGE,flags,(LPARAM)SIG_INIT);
 	return 1;
@@ -47,10 +46,10 @@ int Service_CreateIM(WPARAM wParam,LPARAM lParam){
 int Service_DisableIM(WPARAM wParam,LPARAM lParam) {
 
 	WPARAM flags = 0;
-	if( isProtoMetaContacts((HANDLE)wParam) ) {
-		wParam = (WPARAM)getMostOnline((HANDLE)wParam);
-		flags = PREF_METANODB;
-	}
+//	if( isProtoMetaContacts((HANDLE)wParam) ) {
+//		wParam = (WPARAM)getMostOnline((HANDLE)wParam);
+//		flags = PREF_METANODB;
+//	}
 
 	CallContactService((HANDLE)wParam,PSS_MESSAGE,flags,(LPARAM)SIG_DEIN);
 	return 1;
@@ -336,6 +335,8 @@ HANDLE AddSubItem(HANDLE rootid,LPCSTR name,int pos,int poppos,LPCSTR service,WP
 
 int onModulesLoaded(WPARAM wParam,LPARAM lParam) {
 
+	InitNetlib();
+
 	char version[512];
 	CallService(MS_SYSTEM_GETVERSIONTEXT, sizeof(version), (LPARAM)&version);
 	bCoreUnicode = strstr(version, "Unicode")!=0;
@@ -527,6 +528,9 @@ int onModulesLoaded(WPARAM wParam,LPARAM lParam) {
 	g_hCListIR = HookEvent(ME_CLIST_EXTRA_LIST_REBUILD, onExtraImageListRebuilding);
 	g_hCListIA = HookEvent(ME_CLIST_EXTRA_IMAGE_APPLY, onExtraImageApplying);
 
+//	g_hMC = HookEvent(ME_MC_SUBCONTACTSCHANGED, onMC);
+
+
     // updater plugin support
     if(ServiceExists(MS_UPDATE_REGISTERFL)) {
 		CallService(MS_UPDATE_REGISTERFL, (WPARAM)2445, (LPARAM)&pluginInfo);
@@ -586,6 +590,7 @@ int onSystemOKToExit(WPARAM wParam,LPARAM lParam) {
 	freeContactList();
 	freeSupportedProtocols();
 	free_rtfconv();
+	DeinitNetlib();
 	return 0;
 }
 

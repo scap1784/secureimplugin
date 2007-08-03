@@ -37,6 +37,7 @@
 #else
 #include <windows.h>
 #endif
+#include <winsock2.h>
 #include <commdlg.h>
 #include <commctrl.h>
 #include <io.h>
@@ -74,6 +75,7 @@
 #include "m_genmenu.h"
 #include "m_icolib.h"
 #include "m_message.h"
+#include "m_netlib.h"
 
 #endif
 
@@ -136,6 +138,7 @@ extern BOOL bGPGloaded, bGPGkeyrings, bSavePass;
 extern BOOL bSFT, bSOM, bASI, bMCD, bSCM, bDGP, bAIP;
 extern BYTE bADV, bPGP, bGPG;
 extern CRITICAL_SECTION localQueueMutex;
+extern HANDLE hNetlibUser;
 
 int onModulesLoaded(WPARAM,LPARAM);
 int onSystemOKToExit(WPARAM,LPARAM);
@@ -143,6 +146,9 @@ int onSystemOKToExit(WPARAM,LPARAM);
 char *DBGetString(HANDLE,const char *,const char *);
 char *DBGetStringDecode(HANDLE,const char *,const char *);
 int DBWriteStringEncode(HANDLE,const char *,const char *,const char *);
+void InitNetlib();
+void DeinitNetlib();
+int Sent_NetLog(const char *,...);
 /*
 int DBWriteString(HANDLE,const char *,const char *,const char *);
 int DBGetByte(HANDLE,const char *,const char *,int);

@@ -74,7 +74,7 @@ BYTE isContactSecured(HANDLE hContact) {
 		return 0;
     for(int j=0;j<clist_cnt;j++) {
 		if (clist[j].hContact == hContact && clist[j].szProto) {
-			if(strstr(clist[j].szProto,"MetaContacts")!=NULL) {
+/*			if(strstr(clist[j].szProto,"MetaContacts")!=NULL) {
 				for(int i=0;i<CallService(MS_MC_GETNUMCONTACTS,(WPARAM)hContact,0);i++) {
 					HANDLE hSubContact = (HANDLE)CallService(MS_MC_GETSUBCONTACT,(WPARAM)hContact,(LPARAM)i);
 					if(hSubContact) {
@@ -82,7 +82,7 @@ BYTE isContactSecured(HANDLE hContact) {
 						if(secured)	return secured;
 					}
 				}
-			}
+			}*/
 			if(cpp_keyx(clist[j].cntx)!=0) {
 				int features = cpp_get_features(clist[j].cntx);
 				if( features == 0)

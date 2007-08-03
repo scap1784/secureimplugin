@@ -1001,7 +1001,8 @@ void RefreshGeneralDlg(HWND hDlg) {
 
 	while (hContact) {
 
-		if (isSecureProtocol(hContact) && !isProtoMetaContacts(hContact) && !isChatRoom(hContact)) {
+//		if (isSecureProtocol(hContact) && !isProtoMetaContacts(hContact) && !isChatRoom(hContact)) {
+		if (isSecureProtocol(hContact) && !getMetaContact(hContact) && !isChatRoom(hContact)) {
 			// add proto for new users ...
 			if (!CallService(MS_PROTO_ISPROTOONCONTACT, (WPARAM)hContact, (LPARAM)szModuleName))
 				CallService(MS_PROTO_ADDTOCONTACT, (WPARAM)hContact, (LPARAM)szModuleName);
@@ -1086,7 +1087,8 @@ void RefreshPGPDlg(HWND hDlg, BOOL bRebuildLV) {
 
 	while (hContact) {
 
-		if (isSecureProtocol(hContact) && !isProtoMetaContacts(hContact) && !isChatRoom(hContact)) {
+//		if (isSecureProtocol(hContact) && !isProtoMetaContacts(hContact) && !isChatRoom(hContact)) {
+		if (isSecureProtocol(hContact) && !getMetaContact(hContact) && !isChatRoom(hContact)) {
 			// add proto for new users ...
 			if (!CallService(MS_PROTO_ISPROTOONCONTACT, (WPARAM)hContact, (LPARAM)szModuleName))
 				CallService(MS_PROTO_ADDTOCONTACT, (WPARAM)hContact, (LPARAM)szModuleName);
@@ -1150,7 +1152,8 @@ void RefreshGPGDlg(HWND hDlg, BOOL bRebuildLV) {
 
 	while (hContact) {
 
-		if (isSecureProtocol(hContact) && !isProtoMetaContacts(hContact) && !isChatRoom(hContact)) {
+//		if (isSecureProtocol(hContact) && !isProtoMetaContacts(hContact) && !isChatRoom(hContact)) {
+		if (isSecureProtocol(hContact) && !getMetaContact(hContact) && !isChatRoom(hContact)) {
 			// add proto for new users ...
 			if (!CallService(MS_PROTO_ISPROTOONCONTACT, (WPARAM)hContact, (LPARAM)szModuleName))
 				CallService(MS_PROTO_ADDTOCONTACT, (WPARAM)hContact, (LPARAM)szModuleName);
@@ -1211,7 +1214,8 @@ void ResetGeneralDlg(HWND hDlg) {
 
 	while (hContact) {
 
-		if (isSecureProtocol(hContact) && !isProtoMetaContacts(hContact) && !isChatRoom(hContact)) {
+//		if (isSecureProtocol(hContact) && !isProtoMetaContacts(hContact) && !isChatRoom(hContact)) {
+		if (isSecureProtocol(hContact) && !getMetaContact(hContact) && !isChatRoom(hContact)) {
 			// add proto for new users ...
 			if (!CallService(MS_PROTO_ISPROTOONCONTACT, (WPARAM)hContact, (LPARAM)szModuleName))
 				CallService(MS_PROTO_ADDTOCONTACT, (WPARAM)hContact, (LPARAM)szModuleName);
