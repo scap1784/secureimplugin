@@ -497,15 +497,15 @@ int onSendMsg(WPARAM wParam, LPARAM lParam) {
 	int ssig = getSecureSig((LPCSTR)pccsd->lParam);
 	int stat = getContactStatus(pccsd->hContact);
 //	BOOL isMC = isProtoMetaContacts(pccsd->hContact);
-//	HANDLE hMetaContact = getMetaContact(pccsd->hContact);
+	HANDLE hMetaContact = getMetaContact(pccsd->hContact);
 
 //	if(	isMC && ssig != -1 ) {
 //		pccsd->wParam |= PREF_METANODB;
 //	}
 
-//	if( hMetaContact ) {
-//		ptr = getUinKey(hMetaContact);
-//	}
+	if( hMetaContact ) {
+		ptr = getUinKey(hMetaContact);
+	}
 
 #ifdef _DEBUG
 	Sent_NetLog("onSent: %s",(LPSTR)pccsd->lParam);
@@ -515,7 +515,7 @@ int onSendMsg(WPARAM wParam, LPARAM lParam) {
 		ssig==SiG_GAME ||
 		isChatRoom(pccsd->hContact) ||
 //		isMC ||
-		getMetaContact(pccsd->hContact) ||
+		(hMetaContact && pccsd->wParam&PREF_METANODB) ||
 		stat == -1 ||
 		(ssig==-1 && ptr->sendQueue)
 		)
