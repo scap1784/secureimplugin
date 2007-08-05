@@ -91,21 +91,20 @@ int onRecvMsg(WPARAM wParam, LPARAM lParam) {
 	BOOL bPGP = isContactPGP(pccsd->hContact);
 	BOOL bGPG = isContactGPG(pccsd->hContact);
 
-	// pass any unhandled message
+	// pass any unchanged message
 	if (!ptr ||
 		ssig==SiG_GAME ||
 		!isSecureProtocol(pccsd->hContact) ||
 //		isProtoMetaContacts(pccsd->hContact) ||
+//		(getMetaContact(pccsd->hContact) && ssig!=SiG_ENON && ssig!=SiG_ENOF) ||
 		getMetaContact(pccsd->hContact) ||
 		isChatRoom(pccsd->hContact) ||
-		(ssig==SiG_NONE && !ptr->msgSplitted && !bSecured && !bPGP && !bGPG)
-		)
+		(ssig==SiG_NONE && !ptr->msgSplitted && !bSecured && !bPGP && !bGPG))
 		return CallService(MS_PROTO_CHAINRECV, wParam, lParam);
 
-	// drop messages: fake, unsigned or from invisible contacts
+	// drop message: fake, unsigned or from invisible contacts
 	if (isContactInvisible(pccsd->hContact) ||
-		ssig==SiG_FAKE
-		)
+		ssig==SiG_FAKE)
 		return 1;
 
 	// receive non-secure message in secure mode
@@ -197,7 +196,7 @@ int onRecvMsg(WPARAM wParam, LPARAM lParam) {
      	ppre->szMessage = szNewMsg;
 
 		// show decoded message
-		showPopUpRM(pccsd->hContact);
+		showPopUpRM(ptr->hContact);
 		SkinPlaySound("IncomingSecureMessage");
 		SAFE_FREE(ptr->msgSplitted);
 		int ret = CallService(MS_PROTO_CHAINRECV, wParam, lParam);
@@ -217,7 +216,7 @@ int onRecvMsg(WPARAM wParam, LPARAM lParam) {
     	LPSTR szOldMsg = NULL;
 
 		szOldMsg = exp->rsa_recv(ptr->cntx,szEncMsg);
-		if(!szOldMsg) { // не надо обрабатывать сообщение
+		if(!szOldMsg) { // don't handle it ...
 			SAFE_FREE(ptr->msgSplitted);
 			return 1;
 		}
@@ -233,7 +232,7 @@ int onRecvMsg(WPARAM wParam, LPARAM lParam) {
 				ptr->msgSplitted=mir_strdup(szEncMsg);
 				return 1; // don't display it ...
 			}
-			showPopUpRM(pccsd->hContact);
+			showPopUpRM(ptr->hContact);
 		}
 		else {
 			// reinit key exchange user has send an encrypted message and i have no key
@@ -255,7 +254,7 @@ int onRecvMsg(WPARAM wParam, LPARAM lParam) {
 			mir_free(keyToSend);
 
 			showPopUp(sim005,NULL,g_hPOP[POP_SECDIS],0);
-			showPopUpKS(pccsd->hContact);
+			showPopUpKS(ptr->hContact);
 
 			return 1;
 		}
@@ -271,7 +270,7 @@ int onRecvMsg(WPARAM wParam, LPARAM lParam) {
 		DBVARIANT dbv;
 		dbv.type = DBVT_BLOB;
 
-		if(	DBGetContactSetting(pccsd->hContact,szModuleName,"offlineKey",&dbv) == 0 ) {
+		if(	DBGetContactSetting(ptr->hContact,szModuleName,"offlineKey",&dbv) == 0 ) {
 			// if valid key is succefully retrieved
 			ptr->offlineKey = true;
 			InitKeyX(ptr,dbv.pbVal);
@@ -280,8 +279,8 @@ int onRecvMsg(WPARAM wParam, LPARAM lParam) {
 			// decrypting message
 			szPlainMsg = decodeMsg(ptr,lParam,szEncMsg);
 
-			showPopUpRM(pccsd->hContact);
-			ShowStatusIconNotify(pccsd->hContact);
+			showPopUpRM(ptr->hContact);
+			ShowStatusIconNotify(ptr->hContact);
 		}
 		else {
 			// exit and show messsage
@@ -296,7 +295,7 @@ int onRecvMsg(WPARAM wParam, LPARAM lParam) {
 			addMsg2Queue(ptr,pccsd->wParam,szPlainMsg);
 			mir_free(szPlainMsg);
 
-			showPopUpRM(pccsd->hContact);
+			showPopUpRM(ptr->hContact);
 			showPopUp(sim004,NULL,g_hPOP[POP_SECDIS],0);
 		}
 		return 1; // don't display it ...
@@ -309,8 +308,8 @@ int onRecvMsg(WPARAM wParam, LPARAM lParam) {
 		cpp_delete_context(ptr->cntx); ptr->cntx=0;
 
 //		DeinitMetaContact(pccsd->hContact);
-		showPopUpDC(pccsd->hContact);
-		ShowStatusIconNotify(pccsd->hContact);
+		showPopUpDC(ptr->hContact);
+		ShowStatusIconNotify(ptr->hContact);
 		return 1;
 	} break;
 
@@ -320,7 +319,7 @@ int onRecvMsg(WPARAM wParam, LPARAM lParam) {
 		switch(ssig) {
 		case SiG_KEYR: { // key3 message
 			// receive KeyB from user;
-			showPopUpKR(pccsd->hContact);
+			showPopUpKR(ptr->hContact);
 
 			// reinit key exchange if an old key from user is found
 			if (cpp_keyb(ptr->cntx)) {
@@ -335,8 +334,8 @@ int onRecvMsg(WPARAM wParam, LPARAM lParam) {
 				CallService(MS_PROTO_CHAINSEND, wParam, lParam);
 
 //				DeinitMetaContact(pccsd->hContact);
-				showPopUp(sim013,pccsd->hContact,g_hPOP[POP_SECDIS],0);
-				ShowStatusIconNotify(pccsd->hContact);
+				showPopUp(sim013,ptr->hContact,g_hPOP[POP_SECDIS],0);
+				ShowStatusIconNotify(ptr->hContact);
 				return 1;
 			}
 
@@ -353,8 +352,8 @@ int onRecvMsg(WPARAM wParam, LPARAM lParam) {
 				CallService(MS_PROTO_CHAINSEND, wParam, lParam);
 				mir_free(keyToSend);
 
-				waitForExchange(pccsd->hContact,ptr);
-				showPopUpKS(pccsd->hContact);
+				waitForExchange(ptr->hContact,ptr);
+				showPopUpKS(ptr->hContact);
 				return 1;
 			}
 
@@ -369,13 +368,13 @@ int onRecvMsg(WPARAM wParam, LPARAM lParam) {
 				CallService(MS_PROTO_CHAINSEND, wParam, lParam);
 				mir_free(keyToSend);
 
-				showPopUpKS(pccsd->hContact);
+				showPopUpKS(ptr->hContact);
 			}
 		} break;
 
 		case SiG_KEYA: { // keyA message
 			// receive KeyA from user;
-			showPopUpKR(pccsd->hContact);
+			showPopUpKR(ptr->hContact);
 
 			cpp_reset_context(ptr->cntx);
 			if(InitKeyB(ptr,szEncMsg)!=ERROR_NONE) {
@@ -387,8 +386,8 @@ int onRecvMsg(WPARAM wParam, LPARAM lParam) {
 				CallService(MS_PROTO_CHAINSEND, wParam, lParam);
 
 //				DeinitMetaContact(pccsd->hContact);
-				showPopUp(sim013,pccsd->hContact,g_hPOP[POP_SECDIS],0);
-				ShowStatusIconNotify(pccsd->hContact);
+				showPopUp(sim013,ptr->hContact,g_hPOP[POP_SECDIS],0);
+				ShowStatusIconNotify(ptr->hContact);
 				return 1;
 			}
 
@@ -404,7 +403,7 @@ int onRecvMsg(WPARAM wParam, LPARAM lParam) {
 
 		case SiG_KEYB: { // keyB message
 			// receive KeyB from user;
-			showPopUpKR(pccsd->hContact);
+			showPopUpKR(ptr->hContact);
 
 			// clear all and send DISA if received KeyB, and not exist KeyA or error on InitKeyB
 			if(!cpp_keya(ptr->cntx) || InitKeyB(ptr,szEncMsg)!=ERROR_NONE) {
@@ -416,8 +415,8 @@ int onRecvMsg(WPARAM wParam, LPARAM lParam) {
 				CallService(MS_PROTO_CHAINSEND, wParam, lParam);
 
 //				DeinitMetaContact(pccsd->hContact);
-				showPopUp(sim013,pccsd->hContact,g_hPOP[POP_SECDIS],0);
-				ShowStatusIconNotify(pccsd->hContact);
+				showPopUp(sim013,ptr->hContact,g_hPOP[POP_SECDIS],0);
+				ShowStatusIconNotify(ptr->hContact);
 
 				cpp_reset_context(ptr->cntx);
 				return 1;
@@ -428,8 +427,8 @@ int onRecvMsg(WPARAM wParam, LPARAM lParam) {
 
 		/* common part (CalcKeyX & SendQueue) */
 		//  calculate KeyX
-		if (cpp_keya(ptr->cntx) && cpp_keyb(ptr->cntx) && !cpp_keyx(ptr->cntx)) CalculateKeyX(ptr,pccsd->hContact);
-		ShowStatusIconNotify(pccsd->hContact);
+		if (cpp_keya(ptr->cntx) && cpp_keyb(ptr->cntx) && !cpp_keyx(ptr->cntx)) CalculateKeyX(ptr,ptr->hContact);
+		ShowStatusIconNotify(ptr->hContact);
 #ifdef _DEBUG
 		Sent_NetLog("Session established");
 #endif
@@ -444,7 +443,6 @@ int onRecvMsg(WPARAM wParam, LPARAM lParam) {
 #ifdef _DEBUG
 			Sent_NetLog("Sent message from queue: %s",ptrMessage->Message);
 #endif
-
 			LPSTR RsMsg = encodeMsg(ptr,(LPARAM)pccsd);
 
 			pccsd->lParam = (LPARAM)RsMsg;
@@ -460,7 +458,7 @@ int onRecvMsg(WPARAM wParam, LPARAM lParam) {
 		}
 		ptr->msgQueue = NULL;
 		LeaveCriticalSection(&localQueueMutex);
-		showPopUpSM(pccsd->hContact);
+		showPopUpSM(ptr->hContact);
 		SkinPlaySound("OutgoingSecureMessage");
 		return 1;
 		/* common part (CalcKeyX & SendQueue) */
@@ -499,23 +497,22 @@ int onSendMsg(WPARAM wParam, LPARAM lParam) {
 //	BOOL isMC = isProtoMetaContacts(pccsd->hContact);
 	HANDLE hMetaContact = getMetaContact(pccsd->hContact);
 
+	if( hMetaContact ) {
+		ptr = getUinKey(hMetaContact);
+	}
 //	if(	isMC && ssig != -1 ) {
 //		pccsd->wParam |= PREF_METANODB;
 //	}
 
-	if( hMetaContact ) {
-		ptr = getUinKey(hMetaContact);
-	}
-
 #ifdef _DEBUG
-	Sent_NetLog("onSent: %s",(LPSTR)pccsd->lParam);
+	Sent_NetLog("onSend: %s",(LPSTR)pccsd->lParam);
 #endif
 	// pass unhandled messages
 	if (!ptr ||
 		ssig==SiG_GAME ||
 		isChatRoom(pccsd->hContact) ||
 //		isMC ||
-		(hMetaContact && pccsd->wParam&PREF_METANODB) ||
+		(hMetaContact && (pccsd->wParam & PREF_METANODB)) ||
 		stat == -1 ||
 		(ssig==-1 && ptr->sendQueue)
 		)

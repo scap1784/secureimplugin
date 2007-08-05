@@ -197,9 +197,11 @@ int Service_GPGsetKey(WPARAM wParam, LPARAM lParam) {
 int onWindowEvent(WPARAM wParam, LPARAM lParam) {
 
 	MessageWindowEventData *mwd = (MessageWindowEventData *)lParam;
-	if(mwd->uType != MSG_WINDOW_EVT_OPEN) return 0;
-	
-	ShowStatusIcon(mwd->hContact);
+	if(mwd->uType == MSG_WINDOW_EVT_OPEN || mwd->uType == MSG_WINDOW_EVT_OPENING) {
+		ShowStatusIcon(mwd->hContact);
+		HANDLE hMetaContact = getMetaContact(mwd->hContact);
+		if( hMetaContact ) ShowStatusIcon(hMetaContact);
+	}
 	return 0;
 }
 

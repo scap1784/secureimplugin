@@ -70,8 +70,11 @@ BOOL isSecureProtocol(HANDLE hContact) {
 
 
 BYTE isContactSecured(HANDLE hContact) {
-	if (!clist_cnt)
-		return 0;
+	if (!clist_cnt) return 0;
+
+	HANDLE hMetaContact = getMetaContact(hContact);
+	if( hMetaContact ) hContact = hMetaContact;
+
     for(int j=0;j<clist_cnt;j++) {
 		if (clist[j].hContact == hContact && clist[j].szProto) {
 /*			if(strstr(clist[j].szProto,"MetaContacts")!=NULL) {
