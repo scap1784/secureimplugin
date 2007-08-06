@@ -33,10 +33,11 @@ int Service_CreateIM(WPARAM wParam,LPARAM lParam){
 		CallService(MS_PROTO_ADDTOCONTACT, (WPARAM)wParam, (LPARAM)szModuleName);
 
 	WPARAM flags = 0;
-//	if( isProtoMetaContacts((HANDLE)wParam) ) {
-//		wParam = (WPARAM)getMostOnline((HANDLE)wParam);
-//		flags = PREF_METANODB;
-//	}
+	HANDLE hMetaContact = getMetaContact((HANDLE)wParam);
+	if( hMetaContact ) {
+		wParam = (WPARAM)hMetaContact;
+		flags = PREF_METANODB;
+	}
 
 	CallContactService((HANDLE)wParam,PSS_MESSAGE,flags,(LPARAM)SIG_INIT);
 	return 1;
@@ -46,10 +47,11 @@ int Service_CreateIM(WPARAM wParam,LPARAM lParam){
 int Service_DisableIM(WPARAM wParam,LPARAM lParam) {
 
 	WPARAM flags = 0;
-//	if( isProtoMetaContacts((HANDLE)wParam) ) {
-//		wParam = (WPARAM)getMostOnline((HANDLE)wParam);
-//		flags = PREF_METANODB;
-//	}
+	HANDLE hMetaContact = getMetaContact((HANDLE)wParam);
+	if( hMetaContact ) {
+		wParam = (WPARAM)hMetaContact;
+		flags = PREF_METANODB;
+	}
 
 	CallContactService((HANDLE)wParam,PSS_MESSAGE,flags,(LPARAM)SIG_DEIN);
 	return 1;
@@ -199,8 +201,6 @@ int onWindowEvent(WPARAM wParam, LPARAM lParam) {
 	MessageWindowEventData *mwd = (MessageWindowEventData *)lParam;
 	if(mwd->uType == MSG_WINDOW_EVT_OPEN || mwd->uType == MSG_WINDOW_EVT_OPENING) {
 		ShowStatusIcon(mwd->hContact);
-		HANDLE hMetaContact = getMetaContact(mwd->hContact);
-		if( hMetaContact ) ShowStatusIcon(hMetaContact);
 	}
 	return 0;
 }

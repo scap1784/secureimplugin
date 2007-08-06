@@ -173,20 +173,32 @@ BOOL isContactNewPG(HANDLE hContact) {
 
 BOOL isContactPGP(HANDLE hContact) {
 	if(!bPGPloaded || (!bPGPkeyrings && !bPGPprivkey)) return false;
+	HANDLE hMetaContact = getMetaContact(hContact);
 	DBVARIANT dbv;
 	DBGetContactSetting(hContact,szModuleName,"pgp",&dbv);
 	BOOL r=(dbv.type!=0);
 	DBFreeVariant(&dbv);
+	if( hMetaContact ) {
+		DBGetContactSetting(hMetaContact,szModuleName,"pgp",&dbv);
+		r|=(dbv.type!=0);
+		DBFreeVariant(&dbv);
+	}
 	return r;
 }
 
 
 BOOL isContactGPG(HANDLE hContact) {
 	if(!bGPGloaded || !bGPGkeyrings) return false;
+	HANDLE hMetaContact = getMetaContact(hContact);
 	DBVARIANT dbv;
 	DBGetContactSetting(hContact,szModuleName,"gpg",&dbv);
 	BOOL r=(dbv.type!=0);
 	DBFreeVariant(&dbv);
+	if( hMetaContact ) {
+		DBGetContactSetting(hMetaContact,szModuleName,"gpg",&dbv);
+		r|=(dbv.type!=0);
+		DBFreeVariant(&dbv);
+	}
 	return r;
 }
 
