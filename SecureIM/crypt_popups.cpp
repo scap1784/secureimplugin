@@ -151,7 +151,6 @@ void ShowStatusIcon(HANDLE hContact,UINT mode) {
 		StatusIconData sid = {0};
 		sid.cbSize = sizeof(sid);
 		sid.szModule = (char*)szModuleName;
-		if( hMC ) hContact = hMC;
 		if( mode ); //sid.hIcon = CopyIcon(g_hIEC[mode]);
 		else		sid.flags = MBF_DISABLED;
 		if( isChatRoom(hContact) )
@@ -159,6 +158,8 @@ void ShowStatusIcon(HANDLE hContact,UINT mode) {
 //		sid.hIconDisabled = g_hIEC[IEC_OFF];
 //		sid.szTooltip = Translate("SecureIM");
 		CallService(MS_MSG_MODIFYICON, (WPARAM)hContact, (LPARAM)&sid);
+		if( hMC )
+		CallService(MS_MSG_MODIFYICON, (WPARAM)hMC, (LPARAM)&sid);
 	}
 }
 
