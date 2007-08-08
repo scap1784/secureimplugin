@@ -51,7 +51,7 @@ void __cdecl sttWaitForExchange( LPVOID param ) {
 	   		pWM ptrMessage = ptr->msgQueue;
    			while (ptrMessage) {
    				// send unencrypted messages
-   				CallContactService(ptr->hContact,PSS_MESSAGE,(WPARAM)ptrMessage->wParam,(LPARAM)ptrMessage->Message);
+   				CallContactService(ptr->hContact,PSS_MESSAGE,(WPARAM)ptrMessage->wParam|PREF_METANODB,(LPARAM)ptrMessage->Message);
    				mir_free(ptrMessage->Message);
    				pWM tmp = ptrMessage;
    				ptrMessage = ptrMessage->nextMessage;

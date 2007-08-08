@@ -28,8 +28,9 @@ struct waitingMessage {
 typedef waitingMessage* pWM;
 
 struct partitionMessage {
-	DWORD id;
+	int id;
 	LPSTR *message; // array of message parts
+	partitionMessage *nextMessage;
 };
 typedef partitionMessage* pPM;
 
@@ -38,7 +39,7 @@ struct UinKey {
 	HANDLE hContact;
 	char *szProto;	// protocol (ICQ,MSN...)
 	char *msgSplitted; // message to combine
-//	pPM msgPart;
+	pPM msgPart;	// parts of message
 	pWM msgQueue;	// last messages not sended or to resend;
 	BOOL sendQueue;
 	BOOL offlineKey;
