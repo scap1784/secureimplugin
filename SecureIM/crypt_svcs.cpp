@@ -118,6 +118,7 @@ int onRecvMsg(WPARAM wParam, LPARAM lParam) {
 			szPlainMsg = m_aastrcat(Translate(sim402),szEncMsg);
 		}
        	ppre->szMessage = szPlainMsg;
+     	pccsd->wParam |= PREF_SIMNOMETA;
 		int ret = CallService(MS_PROTO_CHAINRECV, wParam, lParam);
 		mir_free(szPlainMsg);
 		return ret;
@@ -147,10 +148,49 @@ int onRecvMsg(WPARAM wParam, LPARAM lParam) {
 	else {
 		SAFE_FREE(ptr->msgSplitted);
 	}
-/*	if(ssig==SiG_PART) {
+	//
+	if(ssig==SiG_PART) {
 		int msg_id,part_num,part_all;
 		sscanf(szEncMsg,"%4X%2X%2X",&msg_id,&part_num,&part_all);
-	}*/
+		//
+		pPM ppm = NULL, pm = ptr->msgPart;
+        if( !ptr->msgPart ) {
+			pm = ptr->msgPart = new partitionMessage;
+			pm->id = msg_id;
+			pm->message = new LPSTR[part_all];
+		}
+		else
+			while(pm) {
+				if( pm->id == msg_id ) break;
+				ppm = pm; pm = pm->nextMessage;
+			}
+		if(!pm) { // nothing to found
+			pm = ppm->nextMessage = new partitionMessage;
+			pm->id = msg_id;
+			pm->message = new LPSTR[part_all];
+		}
+		pm->message[part_num] = new char[strlen(szEncMsg)];
+		strcpy(pm->message[part_num],szEncMsg+8);
+		int len=0,i;
+		for( i=0; i<part_all; i++ ){
+			if(pm->message[i]==NULL) break;
+			len+=strlen(pm->message[i]);
+		}
+		if( i==part_all ) { // combine message
+			LPSTR tmp = (LPSTR)mir_alloc(len+1);
+			for( i=0; i<part_all; i++ ){
+				strcat(tmp,pm->message[i]);
+				delete pm->message[i];
+			}
+			szEncMsg = ppre->szMessage = tmp;
+			ssig = getSecureSig(tmp,&szEncMsg);
+			if(ppm) ppm->nextMessage = pm->nextMessage;
+			else 	ptr->msgPart = pm->nextMessage;
+			delete pm;
+		}
+		else
+			return 1;
+	}
 
 	// decrypt PGP/GPG message
 	if(ssig==SiG_PGPM &&
@@ -515,7 +555,7 @@ int onSendMsg(WPARAM wParam, LPARAM lParam) {
 
 	// encrypt PGP/GPG message
 	if(isContactPGP(ptr->hContact) || isContactGPG(ptr->hContact)) {
-
+/*
 		if(stat==ID_STATUS_OFFLINE) {
 			if (MessageBox(0,Translate(sim110),Translate(szModuleName),MB_YESNO|MB_ICONQUESTION)==IDNO) {
 				return returnNoError(pccsd->hContact);
@@ -523,7 +563,7 @@ int onSendMsg(WPARAM wParam, LPARAM lParam) {
 			// exit and send unencrypted message
 			return CallService(MS_PROTO_CHAINSEND, wParam, lParam);
 		}
-
+*/
 		if(!ptr->cntx) {
 			ptr->cntx = cpp_create_context((isContactGPG(ptr->hContact)?MODE_GPG:MODE_PGP) | ((DBGetContactSettingByte(ptr->hContact,szModuleName,"gpgANSI",0))?MODE_GPG_ANSI:0));
 			ptr->keyLoaded = 0;
@@ -554,30 +594,34 @@ int onSendMsg(WPARAM wParam, LPARAM lParam) {
 		pccsd->wParam &= ~PREF_UNICODE;
 		int ret;
 
-/*		if(stat==ID_STATUS_OFFLINE) {
-			char buffer[512];
+		if(stat==ID_STATUS_OFFLINE) {
+			char buffer[500];
 			int len = strlen(szNewMsg);
 			pccsd->lParam = (LPARAM) &buffer;
 			pccsd->szProtoService = PSS_MESSAGE;
 			szOldMsg = szNewMsg;
 			WORD msg_id = DBGetContactSettingWord(pccsd->hContact, szModuleName, "msgid", 0) + 1;
 			DBWriteContactSettingWord(pccsd->hContact, szModuleName, "msgid", msg_id);
-			int part_all = (len+399)/400;
+#define OFFLINE_PART_SIZE	400
+			int part_all = (len+OFFLINE_PART_SIZE-1)/OFFLINE_PART_SIZE;
 			for(int part_num=0;part_num<part_all;part_num++) {
-				int sz = (len>400)?400:len;
+				int sz = (len>OFFLINE_PART_SIZE)?OFFLINE_PART_SIZE:len;
 				sprintf(buffer,"%s%04X%02X%02X",SIG_PART,msg_id,part_num,part_all);
 				memcpy(&buffer[LEN_PART+8],szOldMsg,sz);
-				buffer[sz] = 0;
+				buffer[LEN_PART+8+sz] = 0;
+#ifdef _DEBUG
+				Sent_NetLog("Part: %s",buffer);
+#endif
 				ret = CallService(MS_PROTO_CHAINSEND, wParam, lParam);
 				szOldMsg += sz;
 				len -= sz;
 			}
 		}
-		else {*/
+		else {
 			pccsd->lParam = (LPARAM) szNewMsg;
 			pccsd->szProtoService = PSS_MESSAGE;
 			ret = CallService(MS_PROTO_CHAINSEND, wParam, lParam);
-//		}
+		}
 
 		showPopUpSM(ptr->hContact);
 		SkinPlaySound("OutgoingSecureMessage");
@@ -881,37 +925,34 @@ int onContactSettingChanged(WPARAM wParam,LPARAM lParam) {
 	if(!hContact || !ptr || stat==-1 || strcmp(cws->szSetting,"Status")) return 0;
 
 	HANDLE hMetaContact = getMetaContact(hContact);
-	if( hMetaContact )	ptr = getUinKey(hMetaContact);
+	if(hMetaContact) ptr = getUinKey(hMetaContact);
 
-	if (stat==ID_STATUS_OFFLINE && cpp_keyx(ptr->cntx)) {
-
-		cpp_delete_context(ptr->cntx); ptr->cntx=0;
-
-		if(hMetaContact) {
-			showPopUpDC(hMetaContact);
-			ShowStatusIconNotify(hMetaContact);
-//			hContact = getMostOnline(hMetaContact);
-//			if(hContact) {
-//				CallContactService(hContact,PSS_MESSAGE,0,(LPARAM)SIG_INIT);
-//			}
-			CallContactService(hMetaContact,PSS_MESSAGE,0,(LPARAM)SIG_INIT);
-		}
-		else {
-			showPopUpDC(hContact);
-			ShowStatusIconNotify(hContact);
+	if (stat==ID_STATUS_OFFLINE) { // go offline
+		if (cpp_keyx(ptr->cntx)) { // have active context
+			cpp_delete_context(ptr->cntx); ptr->cntx=0; // reset context
+			if(hMetaContact) { // is subcontact of metacontact
+				if ( !isContactPGP((HANDLE)wParam) && !isContactGPG((HANDLE)wParam) ) { // only for native SecureIM
+					showPopUpDC(hMetaContact);
+					ShowStatusIconNotify(hMetaContact);
+					if(getMostOnline(hMetaContact)) { // make handover
+						CallContactService(hMetaContact,PSS_MESSAGE,0,(LPARAM)SIG_INIT);
+					}
+				}
+			}
+			else { // is contact or metacontact (not subcontact)
+				showPopUpDC(hContact);	// show popup "Disabled"
+				ShowStatusIconNotify(hContact); // change icon in CL
+			}
 		}
 	}
-	else {
-		if(!hMetaContact) {
+	else { // go not offline
+		if(!hMetaContact) { // is contact or metacontact (not subcontact)
 			if (ptr->offlineKey) {
 				cpp_reset_context(ptr->cntx);
 				ptr->offlineKey = false;
 			}
-			ShowStatusIconNotify(hContact);
+			ShowStatusIconNotify(hContact); // change icon in CL
 		}
-//		else if(isDefaultSubContact(hContact) && !cpp_keyx(ptr->cntx) && isContactSecured(hMetaContact)) {
-//			CallContactService(hMetaContact,PSS_MESSAGE,0,(LPARAM)SIG_INIT);
-//		}
 	}
 	if(bADV) {
 		if(isContactPGP((HANDLE)wParam))
