@@ -800,6 +800,8 @@ int onSendFile(WPARAM wParam, LPARAM lParam) {
 		int i;
 		for(i=0;file[i];i++) {
 
+			if (strstr(file[i],".AESHELL")) continue;
+
 		    char *name = strrchr(file[i],'\\');
 		    if( !name ) name = file[i];
 		    else name++;
