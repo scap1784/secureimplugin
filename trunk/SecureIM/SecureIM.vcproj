@@ -186,6 +186,9 @@
 				RelativePath=".\crypt_popups.cpp">
 			</File>
 			<File
+				RelativePath=".\crypt_rsa.cpp">
+			</File>
+			<File
 				RelativePath=".\crypt_svcs.cpp">
 			</File>
 			<File

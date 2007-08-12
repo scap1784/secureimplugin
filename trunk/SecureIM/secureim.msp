@@ -99,6 +99,7 @@ extraResourceOptions=
 16=popupOptions.cpp
 17=rtfconv.cpp
 18=crypt_metacontacts.cpp
+19=crypt_rsa.cpp
 [Header]
 1=commonheaders.h
 2=crypt.h
