@@ -187,7 +187,7 @@ BOOL CALLBACK DlgProcOptionsGeneral(HWND hDlg, UINT wMsg, WPARAM wParam, LPARAM 
 
     static int iInit = TRUE;
 	static HIMAGELIST hLarge, hSmall;
-	int i;
+	int i,idx; pUinKey ptr;
 
 	HWND hLV = GetDlgItem(hDlg,IDC_STD_USERLIST);
 
@@ -203,7 +203,7 @@ BOOL CALLBACK DlgProcOptionsGeneral(HWND hDlg, UINT wMsg, WPARAM wParam, LPARAM 
 		  hLarge = ImageList_Create(GetSystemMetrics(SM_CXICON), GetSystemMetrics(SM_CYICON), iBmpDepth, 1, 1);
 		  hSmall = ImageList_Create(GetSystemMetrics(SM_CXSMICON), GetSystemMetrics(SM_CYSMICON), iBmpDepth, 1, 1);
 //		  COLORREF rgbTransparentColor;
-		  for (i = 0; i < 3; i++) {
+		  for (i = 0; i < ICO_CNT; i++) {
 //			  ImageList_AddMasked(himgl, hbmp, rgbTransparentColor);
 			  ImageList_AddIcon(hSmall, g_hICO[i]);
 			  ImageList_AddIcon(hLarge, g_hICO[i]);
@@ -212,19 +212,19 @@ BOOL CALLBACK DlgProcOptionsGeneral(HWND hDlg, UINT wMsg, WPARAM wParam, LPARAM 
 		  ListView_SetImageList(hLV, hSmall, LVSIL_SMALL);
 		  ListView_SetImageList(hLV, hLarge, LVSIL_NORMAL);
 
-		  static const char *szColHdr[] = { sim203, sim204, sim205, sim206 };
-		  static int iColWidth[] = { 150, 160, 65, 35 };
+		  static const char *szColHdr[] = { sim203, sim204, sim230, sim205, sim206 };
+		  static int iColWidth[] = { 150, 115, 45, 65, 35 };
 		  LVCOLUMN lvc;
 		  lvc.mask = LVCF_FMT | LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM;
 		  lvc.fmt = LVCFMT_LEFT;
-		  for (i = 0; i < 4; i++) {
+		  for (i = 0; i < 5; i++) {
 			  lvc.iSubItem = i;
 			  lvc.pszText = (LPSTR)szColHdr[i];
 			  lvc.cx = iColWidth[i];
 			  LV_InsertColumn(hLV, i, &lvc);
 		  }
 
-		  RefreshGeneralDlg(hDlg);
+		  RefreshGeneralDlg(hDlg,1);
 		  EnableWindow(hLV, true);
 //		  SendMessage(hLV, WM_SETREDRAW, TRUE, 0);
 
@@ -250,22 +250,40 @@ BOOL CALLBACK DlgProcOptionsGeneral(HWND hDlg, UINT wMsg, WPARAM wParam, LPARAM 
 		  	case ID_ALWAYS:
 		  	case ID_ENABLED:
 		  	case ID_DISABLED: {
-		  		int idx = ListView_GetSelectionMark(hLV);
-				if (getListViewContact(hLV,idx))
-					setListViewStatus(hLV,idx,(LOWORD(wParam) == ID_ALWAYS)?2:((LOWORD(wParam) == ID_DISABLED)?0:1));
+		  		idx = ListView_GetSelectionMark(hLV);
+		  		ptr = (pUinKey) getListViewParam(hLV,idx);
+				if (ptr) {
+					ptr->tstatus = LOWORD(wParam)-ID_DISABLED;
+					setListViewStatus(hLV,idx,ptr->tstatus);
+					setListViewIcon(hLV,idx,ptr);
+				}
+			}
+			break;
+
+		  	case ID_SIM_NATIVE:
+		  	case ID_SIM_PGP:
+		  	case ID_SIM_GPG:
+		  	case ID_SIM_RSAAES:
+		  	case ID_SIM_RSA: {
+		  		idx = ListView_GetSelectionMark(hLV);
+		  		ptr = (pUinKey) getListViewParam(hLV,idx);
+				if (ptr) {
+					ptr->tmode = LOWORD(wParam)-ID_SIM_NATIVE;
+					setListViewMode(hLV,idx,ptr->tmode);
+				}
 			}
 			break;
 
 		  	case ID_SETPSK: {
-		  		int idx = ListView_GetSelectionMark(hLV);
-		  		HANDLE hContact = getListViewContact(hLV,idx);
-				if (hContact) {
+		  		idx = ListView_GetSelectionMark(hLV);
+		  		ptr = (pUinKey) getListViewParam(hLV,idx);
+		  		if(ptr) {
 					char *buffer = (char*)mir_alloc(PSKSIZE+1);
-					getContactName(hContact, buffer);
+					getContactName(ptr->hContact, buffer);
 					int res = DialogBoxParam(g_hInst,MAKEINTRESOURCE(IDD_PSK),NULL,(DLGPROC)DlgProcSetPSK,(LPARAM)buffer);
 					if(res == IDOK) {
 						setListViewPSK(hLV,idx,1);
-					    DBWriteContactSettingString(hContact,szModuleName,"tPSK",buffer);
+					    DBWriteContactSettingString(ptr->hContact,szModuleName,"tPSK",buffer);
 					}
 					mir_free(buffer);
 				}
@@ -273,18 +291,18 @@ BOOL CALLBACK DlgProcOptionsGeneral(HWND hDlg, UINT wMsg, WPARAM wParam, LPARAM 
 			break;
 
 		  	case ID_DELPSK: {
-		  		int idx = ListView_GetSelectionMark(hLV);
-		  		HANDLE hContact = getListViewContact(hLV,idx);
-				if (hContact) {
+		  		idx = ListView_GetSelectionMark(hLV);
+		  		ptr = (pUinKey) getListViewParam(hLV,idx);
+		  		if(ptr) {
 					setListViewPSK(hLV,idx,0);
-					DBDeleteContactSetting(hContact, szModuleName, "tPSK");
+					DBDeleteContactSetting(ptr->hContact, szModuleName, "tPSK");
 				}
 		  	}
 		  	break;
 
 		  	case ID_UPDATE_CLIST: {
 				iInit = TRUE;
-				RefreshGeneralDlg(hDlg);
+				RefreshGeneralDlg(hDlg,0);
 				iInit = FALSE;
 				return TRUE;
 			}
@@ -343,20 +361,41 @@ BOOL CALLBACK DlgProcOptionsGeneral(HWND hDlg, UINT wMsg, WPARAM wParam, LPARAM 
                     switch(((LPNMHDR)lParam)->code) {
                     case NM_DBLCLK: {
 						if(LPNMLISTVIEW(lParam)->iSubItem == 2) {
-							int s = getListViewStatus(hLV,LPNMLISTVIEW(lParam)->iItem)+1;
-							if(s>2) s=0;
-							setListViewStatus(hLV,LPNMLISTVIEW(lParam)->iItem,s);
-							SendMessage(GetParent(hDlg), PSM_CHANGED, 0, 0);
+							idx = LPNMLISTVIEW(lParam)->iItem;
+		  					ptr = (pUinKey) getListViewParam(hLV,idx);
+							if (ptr) {
+								ptr->tmode++; if(ptr->tmode>2) ptr->tmode=0;
+								setListViewMode(hLV,idx,ptr->tmode);
+								setListViewIcon(hLV,idx,ptr);
+								SendMessage(GetParent(hDlg), PSM_CHANGED, 0, 0);
+							}
+						}
+						if(LPNMLISTVIEW(lParam)->iSubItem == 3) {
+							idx = LPNMLISTVIEW(lParam)->iItem;
+		  					ptr = (pUinKey) getListViewParam(hLV,idx);
+							if (ptr) {
+								ptr->tstatus++; if(ptr->tstatus>2) ptr->tstatus=0;
+								setListViewStatus(hLV,idx,ptr->tstatus);
+								setListViewIcon(hLV,idx,ptr);
+								SendMessage(GetParent(hDlg), PSM_CHANGED, 0, 0);
+							}
 						}
                     } break;
                     case NM_RCLICK: {
-						POINT p;
-						GetCursorPos(&p);
-						HMENU hMenu = LoadMenu(g_hInst, MAKEINTRESOURCE(IDM_CLIST));
-						CheckMenuItem(hMenu, ID_ENCRYPTION, MF_BYCOMMAND );
-						CallService(MS_LANGPACK_TRANSLATEMENU, (WPARAM)hMenu, 0);
-						TrackPopupMenu(GetSubMenu(hMenu, 0), TPM_LEFTALIGN | TPM_TOPALIGN, p.x, p.y, 0, hDlg, 0);
-						DestroyMenu(hMenu);
+		  				idx = ListView_GetSelectionMark(hLV);
+		  				ptr = (pUinKey) getListViewParam(hLV,idx);
+						if (ptr) {
+							POINT p; GetCursorPos(&p);
+							HMENU hMenu = LoadMenu(g_hInst, MAKEINTRESOURCE((ptr->tmode)?IDM_CLIST1:IDM_CLIST0));
+							CallService(MS_LANGPACK_TRANSLATEMENU, (WPARAM)hMenu, 0);
+							CheckMenuItem(hMenu, ID_SIM_NATIVE+ptr->tmode, MF_CHECKED );
+							if(!ptr->tmode) {
+								CheckMenuItem(hMenu, ID_DISABLED+ptr->tstatus, MF_CHECKED );
+							}
+							CheckMenuItem(hMenu, ID_ENCRYPTION, MF_BYCOMMAND );
+							TrackPopupMenu(GetSubMenu(hMenu, 0), TPM_LEFTALIGN | TPM_TOPALIGN, p.x, p.y, 0, hDlg, 0);
+							DestroyMenu(hMenu);
+						}
 					} break;
                     case LVN_COLUMNCLICK: {
                     	bChangeSortOrder = true;
@@ -790,6 +829,306 @@ BOOL CALLBACK DlgProcSetPSK(HWND hDlg,UINT uMsg,WPARAM wParam,LPARAM lParam) {
 }
 
 
+///////////////////
+// R E F R E S H //
+///////////////////
+
+
+void RefreshGeneralDlg(HWND hDlg, UINT iInit) {
+
+	char timeout[5];
+	UINT data,i;
+
+	// Key Exchange Timeout
+	data = DBGetContactSettingWord(0, szModuleName, "ket", 10);
+	itoa(data,timeout,10);
+	SetDlgItemText(hDlg,IDC_KET,timeout);
+
+	// Offline Key Timeout
+	data = DBGetContactSettingWord(0, szModuleName, "okt", 2);
+	itoa(data,timeout,10);
+	SetDlgItemText(hDlg,IDC_OKT,timeout);
+
+	GetFlags();
+
+	SendMessage(GetDlgItem(hDlg,IDC_SFT),BM_SETCHECK,(bSFT)?BST_CHECKED:BST_UNCHECKED,0L);
+	SendMessage(GetDlgItem(hDlg,IDC_SOM),BM_SETCHECK,(bSOM)?BST_CHECKED:BST_UNCHECKED,0L);
+	SendMessage(GetDlgItem(hDlg,IDC_ASI),BM_SETCHECK,(bASI)?BST_CHECKED:BST_UNCHECKED,0L);
+	SendMessage(GetDlgItem(hDlg,IDC_MCD),BM_SETCHECK,(bMCD)?BST_CHECKED:BST_UNCHECKED,0L);
+	SendMessage(GetDlgItem(hDlg,IDC_SCM),BM_SETCHECK,(bSCM)?BST_CHECKED:BST_UNCHECKED,0L);
+	SendMessage(GetDlgItem(hDlg,IDC_DGP),BM_SETCHECK,(bDGP)?BST_CHECKED:BST_UNCHECKED,0L);
+	SendMessage(GetDlgItem(hDlg,IDC_AIP),BM_SETCHECK,(bAIP)?BST_CHECKED:BST_UNCHECKED,0L);
+
+/*	// CList_classic
+	if(!ServiceExists(MS_CLIST_ADDSUBGROUPMENUITEM)) {
+		EnableWindow(GetDlgItem(hDlg,IDC_ASI),FALSE);
+		for(i=2;i<ADV_CNT;i++)
+			EnableWindow(GetDlgItem(hDlg,IDC_ADV1+i),FALSE);
+	}	
+*/
+	// Advanced
+	for(i=0;i<ADV_CNT;i++)
+		SendMessage(GetDlgItem(hDlg,IDC_ADV0+i),BM_SETCHECK,(i==bADV)?BST_CHECKED:BST_UNCHECKED,0L);
+
+	// Select {OFF,PGP,GPG}
+	SendMessage(GetDlgItem(hDlg,IDC_PGP),BM_SETCHECK,bPGP?BST_CHECKED:BST_UNCHECKED,0L);
+	SendMessage(GetDlgItem(hDlg,IDC_GPG),BM_SETCHECK,bGPG?BST_CHECKED:BST_UNCHECKED,0L);
+
+	// rebuild list of contacts
+	HWND hLV = GetDlgItem(hDlg,IDC_STD_USERLIST);
+	ListView_DeleteAllItems(hLV);
+
+	LVITEM lvi = {0};
+	lvi.mask = LVIF_TEXT | LVIF_IMAGE | LVIF_PARAM;
+
+	HANDLE hContact = (HANDLE)CallService(MS_DB_CONTACT_FINDFIRST, 0, 0);
+	char tmp[NAMSIZE];
+
+	while (hContact) {
+
+		if (isSecureProtocol(hContact) && !getMetaContact(hContact) && !isChatRoom(hContact)) {
+
+			pUinKey ptr = getUinKey(hContact);
+			if(!ptr) continue;
+
+			if( iInit ) {
+				ptr->tmode = ptr->mode;
+				ptr->tstatus = ptr->status;
+			}
+
+			DBVARIANT dbv;
+			DBGetContactSetting(hContact,szModuleName,"PSK",&dbv);
+			int psk=(dbv.type==DBVT_ASCIIZ);
+			DBFreeVariant(&dbv);
+
+			lvi.iItem++;
+			lvi.iImage = ptr->tstatus;
+			lvi.lParam = (LPARAM)ptr;
+
+			getContactName(hContact, tmp);
+			lvi.pszText = (LPSTR)&tmp;
+			int itemNum = LV_InsertItem(hLV, &lvi);
+
+			getContactUin(hContact, tmp);
+			LV_SetItemText(hLV, itemNum, 1, tmp);
+
+			setListViewMode(hLV, itemNum, ptr->tmode);
+			setListViewStatus(hLV, itemNum, ptr->tstatus);
+			setListViewPSK(hLV, itemNum, psk);
+			setListViewIcon(hLV, itemNum, ptr);
+		}
+		hContact = (HANDLE)CallService(MS_DB_CONTACT_FINDNEXT, (WPARAM)hContact, 0);
+	}
+	ListView_Sort(hLV,(LPARAM)0);
+}
+
+
+void RefreshProtoDlg(HWND hDlg) {
+
+	HWND hLV = GetDlgItem(hDlg,IDC_PROTO);
+	ListView_DeleteAllItems(hLV);
+
+	LVITEM lvi = {0};
+	lvi.mask = LVIF_TEXT | LVIF_PARAM;
+
+	for(int i=0;i<proto_cnt;i++) {
+		lvi.iItem = i+1;
+		lvi.pszText = proto[i].uniqueName;
+		lvi.lParam = (LPARAM)proto[i].uniqueName;
+		int itemNum = LV_InsertItemA(hLV, &lvi);
+		ListView_SetCheckState(hLV,itemNum,proto[i].inspecting);
+	}
+}
+
+
+void RefreshPGPDlg(HWND hDlg, BOOL bRebuildLV) {
+
+	int ver = pgp_get_version();
+	bPGP9 = (ver>=0x03050000);
+
+	EnableWindow(GetDlgItem(hDlg, IDC_SET_KEYRINGS), bUseKeyrings && !bPGP9);
+	EnableWindow(GetDlgItem(hDlg, IDC_LOAD_PRIVKEY), !bUseKeyrings);
+	SetDlgItemText(hDlg, IDC_PGP_PRIVKEY, bPGPprivkey?Translate(sim222):Translate(sim223));
+
+	if(bPGPloaded && ver) {
+		char pgpVerStr[64];
+		sprintf(pgpVerStr, Translate(sim218), ver >> 24, (ver >> 16) & 255, (ver >> 8) & 255);
+		SetDlgItemText(hDlg, IDC_PGP_SDK, pgpVerStr);
+	}
+	else {
+		SetDlgItemText(hDlg, IDC_PGP_SDK, Translate(sim219));
+	}
+    SetDlgItemText(hDlg, IDC_KEYRING_STATUS, !bUseKeyrings?Translate(sim225):((bPGP9)?Translate(sim220):(bPGPkeyrings?Translate(sim216):Translate(sim217))));
+
+	// Disable keyrings use
+	SendMessage(GetDlgItem(hDlg,IDC_NO_KEYRINGS),BM_SETCHECK,(bUseKeyrings)?BST_UNCHECKED:BST_CHECKED,0L);
+
+	if(!bRebuildLV) return;
+
+	// rebuild list of contacts
+	HWND hLV = GetDlgItem(hDlg,IDC_PGP_USERLIST);
+	ListView_DeleteAllItems(hLV);
+
+	LVITEM lvi = {0};
+	lvi.mask = LVIF_TEXT | LVIF_IMAGE | LVIF_PARAM;
+
+	HANDLE hContact = (HANDLE)CallService(MS_DB_CONTACT_FINDFIRST, 0, 0);
+	char tmp[NAMSIZE];
+
+	while (hContact) {
+
+		if (isSecureProtocol(hContact) && !getMetaContact(hContact) && !isChatRoom(hContact)) {
+
+			LPSTR szKeyID = DBGetString(hContact,szModuleName,"pgp_abbr");
+
+			lvi.iItem++;
+			lvi.iImage = (szKeyID!=0);
+			lvi.lParam = (LPARAM)hContact;
+
+			getContactName(hContact, tmp);
+			lvi.pszText = (LPSTR)&tmp;
+			int itemNum = LV_InsertItem(hLV, &lvi);
+
+			getContactUin(hContact, tmp);
+			LV_SetItemText(hLV, itemNum, 1, tmp);
+
+			LV_SetItemTextA(hLV, itemNum, 2, (szKeyID)?szKeyID:Translate(sim221));
+			SAFE_FREE(szKeyID);
+		}
+		hContact = (HANDLE)CallService(MS_DB_CONTACT_FINDNEXT, (WPARAM)hContact, 0);
+	}
+	ListView_Sort(hLV,(LPARAM)0x10);
+}
+
+
+void RefreshGPGDlg(HWND hDlg, BOOL bRebuildLV) {
+
+	LPSTR path;
+
+	path = DBGetString(0,szModuleName,"gpgExec");
+	if(path) {
+		SetDlgItemText(hDlg, IDC_GPGEXECUTABLE_EDIT, path);
+		mir_free(path);
+	}
+	path = DBGetString(0,szModuleName,"gpgHome");
+	if(path) {
+		SetDlgItemText(hDlg, IDC_GPGHOME_EDIT, path);
+		mir_free(path);
+	}
+	path = DBGetString(0,szModuleName,"gpgLog");
+	if(path) {
+		SetDlgItemText(hDlg, IDC_GPGLOGFILE_EDIT, path);
+		mir_free(path);
+	}
+	// Log to file checkbox
+	SendMessage(GetDlgItem(hDlg,IDC_LOGGINGON_CBOX),BM_SETCHECK,(DBGetContactSettingByte(0, szModuleName, "gpgLogFlag",0))?BST_CHECKED:BST_UNCHECKED,0L);
+	SendMessage(GetDlgItem(hDlg,IDC_SAVEPASS_CBOX),BM_SETCHECK,(bSavePass)?BST_CHECKED:BST_UNCHECKED,0L);
+
+	if(!bRebuildLV) return;
+
+	// rebuild list of contacts
+	HWND hLV = GetDlgItem(hDlg,IDC_GPG_USERLIST);
+	ListView_DeleteAllItems(hLV);
+
+	LVITEM lvi = {0};
+	lvi.mask = LVIF_TEXT | LVIF_IMAGE | LVIF_PARAM;
+
+	HANDLE hContact = (HANDLE)CallService(MS_DB_CONTACT_FINDFIRST, 0, 0);
+	char tmp[NAMSIZE];
+
+	while (hContact) {
+
+		if (isSecureProtocol(hContact) && !getMetaContact(hContact) && !isChatRoom(hContact)) {
+
+			LPSTR szKeyID = DBGetString(hContact,szModuleName,"gpg");
+
+			lvi.iItem++;
+			lvi.iImage = (szKeyID!=0);
+			lvi.lParam = (LPARAM)hContact;
+
+			getContactName(hContact, tmp);
+			lvi.pszText = (LPSTR)&tmp;
+			int itemNum = LV_InsertItem(hLV, &lvi);
+
+			getContactUin(hContact, tmp);
+			LV_SetItemText(hLV, itemNum, 1, tmp);
+
+			LV_SetItemTextA(hLV, itemNum, 2, (szKeyID)?szKeyID:Translate(sim221));
+			LV_SetItemTextA(hLV, itemNum, 3, (DBGetContactSettingByte(hContact,szModuleName,"gpgANSI",0))?Translate(sim228):Translate(sim229));
+			SAFE_FREE(szKeyID);
+		}
+		hContact = (HANDLE)CallService(MS_DB_CONTACT_FINDNEXT, (WPARAM)hContact, 0);
+	}
+	ListView_Sort(hLV,(LPARAM)0x20);
+}
+
+
+///////////////
+// R E S E T //
+///////////////
+
+
+void ResetGeneralDlg(HWND hDlg) {
+
+	SetDlgItemText(hDlg,IDC_KET,"10");
+	SetDlgItemText(hDlg,IDC_OKT,"2");
+
+	SendMessage(GetDlgItem(hDlg,IDC_SFT),BM_SETCHECK,BST_UNCHECKED,0L);
+	SendMessage(GetDlgItem(hDlg,IDC_SOM),BM_SETCHECK,BST_UNCHECKED,0L);
+	SendMessage(GetDlgItem(hDlg,IDC_ASI),BM_SETCHECK,BST_UNCHECKED,0L);
+	SendMessage(GetDlgItem(hDlg,IDC_MCD),BM_SETCHECK,BST_UNCHECKED,0L);
+	SendMessage(GetDlgItem(hDlg,IDC_SCM),BM_SETCHECK,BST_UNCHECKED,0L);
+	SendMessage(GetDlgItem(hDlg,IDC_DGP),BM_SETCHECK,BST_UNCHECKED,0L);
+	SendMessage(GetDlgItem(hDlg,IDC_AIP),BM_SETCHECK,BST_UNCHECKED,0L);
+
+	for(int i=0;i<ADV_CNT;i++)
+		SendMessage(GetDlgItem(hDlg,IDC_ADV1+i),BM_SETCHECK,(i==0)?BST_CHECKED:BST_UNCHECKED,0L);
+
+	// rebuild list of contacts
+	HWND hLV = GetDlgItem(hDlg,IDC_STD_USERLIST);
+	ListView_DeleteAllItems(hLV);
+
+	LVITEM lvi = {0};
+	lvi.mask = LVIF_TEXT | LVIF_IMAGE | LVIF_PARAM;
+
+	HANDLE hContact = (HANDLE)CallService(MS_DB_CONTACT_FINDFIRST, 0, 0);
+	char tmp[NAMSIZE];
+
+	while (hContact) {
+
+		if (isSecureProtocol(hContact) && !getMetaContact(hContact) && !isChatRoom(hContact)) {
+
+			pUinKey ptr = getUinKey(hContact);
+			if(!ptr) continue;
+
+			ptr->tmode=0;
+			ptr->tstatus=1;
+
+			lvi.iItem++;
+			lvi.iImage = ptr->tstatus;
+			lvi.lParam = (LPARAM)ptr;
+
+			getContactName(hContact, tmp);
+			lvi.pszText = (LPSTR)&tmp;
+			int itemNum = LV_InsertItem(hLV, &lvi);
+
+			getContactUin(hContact, tmp);
+			LV_SetItemText(hLV, itemNum, 1, tmp);
+
+			setListViewMode(hLV, itemNum, ptr->tmode);
+			setListViewStatus(hLV, itemNum, ptr->tstatus);
+			setListViewPSK(hLV, itemNum, 0);
+			setListViewIcon(hLV, itemNum, ptr);
+		}
+		hContact = (HANDLE)CallService(MS_DB_CONTACT_FINDNEXT, (WPARAM)hContact, 0);
+	}
+}
+
+
+void ResetProtoDlg(HWND hDlg) {
+}
+
+
 ///////////////
 // A P P L Y //
 ///////////////
@@ -856,19 +1195,26 @@ void ApplyGeneralSettings(HWND hDlg) {
 	HWND hLV = GetDlgItem(hDlg,IDC_STD_USERLIST);
 	i = ListView_GetNextItem(hLV,(UINT)-1,LVNI_ALL);
 	while(i!=-1) {
-		HANDLE hcontact = getListViewContact(hLV,i);
-		int status = getListViewStatus(hLV,i);
-		if(status==1)	DBDeleteContactSetting(hcontact, szModuleName, "StatusID");
-		else 			DBWriteContactSettingByte(hcontact, szModuleName, "StatusID", status);
+		pUinKey ptr = (pUinKey)getListViewParam(hLV,i);
+		if(!ptr) continue;
+		if(ptr->mode!=ptr->tmode) {
+			ptr->mode = ptr->tmode;
+			DBWriteContactSettingByte(ptr->hContact, szModuleName, "mode", ptr->mode);
+		}
+		if(ptr->status!=ptr->tstatus) {
+			ptr->status = ptr->tstatus;
+			if(ptr->status==1)	DBDeleteContactSetting(ptr->hContact, szModuleName, "StatusID");
+			else 				DBWriteContactSettingByte(ptr->hContact, szModuleName, "StatusID", ptr->status);
+		}
 		if(getListViewPSK(hLV,i)) {
-			char *tmp = DBGetString(hcontact,szModuleName,"tPSK");
-		    DBWriteContactSettingString(hcontact, szModuleName, "PSK", tmp);
+			char *tmp = DBGetString(ptr->hContact,szModuleName,"tPSK");
+		    DBWriteContactSettingString(ptr->hContact, szModuleName, "PSK", tmp);
 		    mir_free(tmp);
 		}
 		else {
-			DBDeleteContactSetting(hcontact, szModuleName, "PSK");
+			DBDeleteContactSetting(ptr->hContact, szModuleName, "PSK");
 		}
-		DBDeleteContactSetting(hcontact, szModuleName, "tPSK");
+		DBDeleteContactSetting(ptr->hContact, szModuleName, "tPSK");
 		i = ListView_GetNextItem(hLV,i,LVNI_ALL);
 	}
 }
@@ -944,305 +1290,6 @@ void ApplyGPGSettings(HWND hDlg) {
 }
 
 
-///////////////////
-// R E F R E S H //
-///////////////////
-
-
-void RefreshGeneralDlg(HWND hDlg) {
-
-	char timeout[5];
-	UINT data,i;
-
-	// Key Exchange Timeout
-	data = DBGetContactSettingWord(0, szModuleName, "ket", 10);
-	itoa(data,timeout,10);
-	SetDlgItemText(hDlg,IDC_KET,timeout);
-
-	// Offline Key Timeout
-	data = DBGetContactSettingWord(0, szModuleName, "okt", 2);
-	itoa(data,timeout,10);
-	SetDlgItemText(hDlg,IDC_OKT,timeout);
-
-	GetFlags();
-
-	SendMessage(GetDlgItem(hDlg,IDC_SFT),BM_SETCHECK,(bSFT)?BST_CHECKED:BST_UNCHECKED,0L);
-	SendMessage(GetDlgItem(hDlg,IDC_SOM),BM_SETCHECK,(bSOM)?BST_CHECKED:BST_UNCHECKED,0L);
-	SendMessage(GetDlgItem(hDlg,IDC_ASI),BM_SETCHECK,(bASI)?BST_CHECKED:BST_UNCHECKED,0L);
-	SendMessage(GetDlgItem(hDlg,IDC_MCD),BM_SETCHECK,(bMCD)?BST_CHECKED:BST_UNCHECKED,0L);
-	SendMessage(GetDlgItem(hDlg,IDC_SCM),BM_SETCHECK,(bSCM)?BST_CHECKED:BST_UNCHECKED,0L);
-	SendMessage(GetDlgItem(hDlg,IDC_DGP),BM_SETCHECK,(bDGP)?BST_CHECKED:BST_UNCHECKED,0L);
-	SendMessage(GetDlgItem(hDlg,IDC_AIP),BM_SETCHECK,(bAIP)?BST_CHECKED:BST_UNCHECKED,0L);
-
-/*	// CList_classic
-	if(!ServiceExists(MS_CLIST_ADDSUBGROUPMENUITEM)) {
-		EnableWindow(GetDlgItem(hDlg,IDC_ASI),FALSE);
-		for(i=2;i<ADV_CNT;i++)
-			EnableWindow(GetDlgItem(hDlg,IDC_ADV1+i),FALSE);
-	}	
-*/
-	// Advanced
-	for(i=0;i<ADV_CNT;i++)
-		SendMessage(GetDlgItem(hDlg,IDC_ADV0+i),BM_SETCHECK,(i==bADV)?BST_CHECKED:BST_UNCHECKED,0L);
-
-	// Select {OFF,PGP,GPG}
-	SendMessage(GetDlgItem(hDlg,IDC_PGP),BM_SETCHECK,bPGP?BST_CHECKED:BST_UNCHECKED,0L);
-	SendMessage(GetDlgItem(hDlg,IDC_GPG),BM_SETCHECK,bGPG?BST_CHECKED:BST_UNCHECKED,0L);
-
-	// rebuild list of contacts
-	HWND hLV = GetDlgItem(hDlg,IDC_STD_USERLIST);
-	ListView_DeleteAllItems(hLV);
-
-	LVITEM lvi = {0};
-	lvi.mask = LVIF_TEXT | LVIF_IMAGE | LVIF_PARAM;
-
-	HANDLE hContact = (HANDLE)CallService(MS_DB_CONTACT_FINDFIRST, 0, 0);
-	char tmp[NAMSIZE];
-
-	while (hContact) {
-
-//		if (isSecureProtocol(hContact) && !isProtoMetaContacts(hContact) && !isChatRoom(hContact)) {
-		if (isSecureProtocol(hContact) && !getMetaContact(hContact) && !isChatRoom(hContact)) {
-			// add proto for new users ...
-			if (!CallService(MS_PROTO_ISPROTOONCONTACT, (WPARAM)hContact, (LPARAM)szModuleName))
-				CallService(MS_PROTO_ADDTOCONTACT, (WPARAM)hContact, (LPARAM)szModuleName);
-
-			int status = DBGetContactSettingByte(hContact, szModuleName, "StatusID",1);
-			DBVARIANT dbv;
-			DBGetContactSetting(hContact,szModuleName,"PSK",&dbv);
-			int psk=(dbv.type==DBVT_ASCIIZ);
-			DBFreeVariant(&dbv);
-
-			lvi.iItem++;
-			lvi.iImage = status;
-			lvi.lParam = (LPARAM)hContact;
-
-			getContactName(hContact, tmp);
-			lvi.pszText = (LPSTR)&tmp;
-			int itemNum = LV_InsertItem(hLV, &lvi);
-
-			getContactUin(hContact, tmp);
-			LV_SetItemText(hLV, itemNum, 1, tmp);
-
-			setListViewStatus(hLV, itemNum, status);
-			setListViewPSK(hLV, itemNum, psk);
-		}
-		hContact = (HANDLE)CallService(MS_DB_CONTACT_FINDNEXT, (WPARAM)hContact, 0);
-	}
-	ListView_Sort(hLV,(LPARAM)0);
-}
-
-
-void RefreshProtoDlg(HWND hDlg) {
-
-	HWND hLV = GetDlgItem(hDlg,IDC_PROTO);
-	ListView_DeleteAllItems(hLV);
-
-	LVITEM lvi = {0};
-	lvi.mask = LVIF_TEXT | LVIF_PARAM;
-
-	for(int i=0;i<proto_cnt;i++) {
-		lvi.iItem = i+1;
-		lvi.pszText = proto[i].uniqueName;
-		lvi.lParam = (LPARAM)proto[i].uniqueName;
-		int itemNum = LV_InsertItemA(hLV, &lvi);
-		ListView_SetCheckState(hLV,itemNum,proto[i].inspecting);
-	}
-}
-
-
-void RefreshPGPDlg(HWND hDlg, BOOL bRebuildLV) {
-
-	int ver = pgp_get_version();
-	bPGP9 = (ver>=0x03050000);
-
-	EnableWindow(GetDlgItem(hDlg, IDC_SET_KEYRINGS), bUseKeyrings && !bPGP9);
-	EnableWindow(GetDlgItem(hDlg, IDC_LOAD_PRIVKEY), !bUseKeyrings);
-	SetDlgItemText(hDlg, IDC_PGP_PRIVKEY, bPGPprivkey?Translate(sim222):Translate(sim223));
-
-	if(bPGPloaded && ver) {
-		char pgpVerStr[64];
-		sprintf(pgpVerStr, Translate(sim218), ver >> 24, (ver >> 16) & 255, (ver >> 8) & 255);
-		SetDlgItemText(hDlg, IDC_PGP_SDK, pgpVerStr);
-	}
-	else {
-		SetDlgItemText(hDlg, IDC_PGP_SDK, Translate(sim219));
-	}
-    SetDlgItemText(hDlg, IDC_KEYRING_STATUS, !bUseKeyrings?Translate(sim225):((bPGP9)?Translate(sim220):(bPGPkeyrings?Translate(sim216):Translate(sim217))));
-
-	// Disable keyrings use
-	SendMessage(GetDlgItem(hDlg,IDC_NO_KEYRINGS),BM_SETCHECK,(bUseKeyrings)?BST_UNCHECKED:BST_CHECKED,0L);
-
-	if(!bRebuildLV) return;
-
-	// rebuild list of contacts
-	HWND hLV = GetDlgItem(hDlg,IDC_PGP_USERLIST);
-	ListView_DeleteAllItems(hLV);
-
-	LVITEM lvi = {0};
-	lvi.mask = LVIF_TEXT | LVIF_IMAGE | LVIF_PARAM;
-
-	HANDLE hContact = (HANDLE)CallService(MS_DB_CONTACT_FINDFIRST, 0, 0);
-	char tmp[NAMSIZE];
-
-	while (hContact) {
-
-//		if (isSecureProtocol(hContact) && !isProtoMetaContacts(hContact) && !isChatRoom(hContact)) {
-		if (isSecureProtocol(hContact) && !getMetaContact(hContact) && !isChatRoom(hContact)) {
-			// add proto for new users ...
-			if (!CallService(MS_PROTO_ISPROTOONCONTACT, (WPARAM)hContact, (LPARAM)szModuleName))
-				CallService(MS_PROTO_ADDTOCONTACT, (WPARAM)hContact, (LPARAM)szModuleName);
-
-			LPSTR szKeyID = DBGetString(hContact,szModuleName,"pgp_abbr");
-
-			lvi.iItem++;
-			lvi.iImage = (szKeyID!=0);
-			lvi.lParam = (LPARAM)hContact;
-
-			getContactName(hContact, tmp);
-			lvi.pszText = (LPSTR)&tmp;
-			int itemNum = LV_InsertItem(hLV, &lvi);
-
-			getContactUin(hContact, tmp);
-			LV_SetItemText(hLV, itemNum, 1, tmp);
-
-			LV_SetItemTextA(hLV, itemNum, 2, (szKeyID)?szKeyID:Translate(sim221));
-			SAFE_FREE(szKeyID);
-		}
-		hContact = (HANDLE)CallService(MS_DB_CONTACT_FINDNEXT, (WPARAM)hContact, 0);
-	}
-	ListView_Sort(hLV,(LPARAM)0x10);
-}
-
-
-void RefreshGPGDlg(HWND hDlg, BOOL bRebuildLV) {
-
-	LPSTR path;
-
-	path = DBGetString(0,szModuleName,"gpgExec");
-	if(path) {
-		SetDlgItemText(hDlg, IDC_GPGEXECUTABLE_EDIT, path);
-		mir_free(path);
-	}
-	path = DBGetString(0,szModuleName,"gpgHome");
-	if(path) {
-		SetDlgItemText(hDlg, IDC_GPGHOME_EDIT, path);
-		mir_free(path);
-	}
-	path = DBGetString(0,szModuleName,"gpgLog");
-	if(path) {
-		SetDlgItemText(hDlg, IDC_GPGLOGFILE_EDIT, path);
-		mir_free(path);
-	}
-	// Log to file checkbox
-	SendMessage(GetDlgItem(hDlg,IDC_LOGGINGON_CBOX),BM_SETCHECK,(DBGetContactSettingByte(0, szModuleName, "gpgLogFlag",0))?BST_CHECKED:BST_UNCHECKED,0L);
-	SendMessage(GetDlgItem(hDlg,IDC_SAVEPASS_CBOX),BM_SETCHECK,(bSavePass)?BST_CHECKED:BST_UNCHECKED,0L);
-
-	if(!bRebuildLV) return;
-
-	// rebuild list of contacts
-	HWND hLV = GetDlgItem(hDlg,IDC_GPG_USERLIST);
-	ListView_DeleteAllItems(hLV);
-
-	LVITEM lvi = {0};
-	lvi.mask = LVIF_TEXT | LVIF_IMAGE | LVIF_PARAM;
-
-	HANDLE hContact = (HANDLE)CallService(MS_DB_CONTACT_FINDFIRST, 0, 0);
-	char tmp[NAMSIZE];
-
-	while (hContact) {
-
-//		if (isSecureProtocol(hContact) && !isProtoMetaContacts(hContact) && !isChatRoom(hContact)) {
-		if (isSecureProtocol(hContact) && !getMetaContact(hContact) && !isChatRoom(hContact)) {
-			// add proto for new users ...
-			if (!CallService(MS_PROTO_ISPROTOONCONTACT, (WPARAM)hContact, (LPARAM)szModuleName))
-				CallService(MS_PROTO_ADDTOCONTACT, (WPARAM)hContact, (LPARAM)szModuleName);
-
-			LPSTR szKeyID = DBGetString(hContact,szModuleName,"gpg");
-
-			lvi.iItem++;
-			lvi.iImage = (szKeyID!=0);
-			lvi.lParam = (LPARAM)hContact;
-
-			getContactName(hContact, tmp);
-			lvi.pszText = (LPSTR)&tmp;
-			int itemNum = LV_InsertItem(hLV, &lvi);
-
-			getContactUin(hContact, tmp);
-			LV_SetItemText(hLV, itemNum, 1, tmp);
-
-			LV_SetItemTextA(hLV, itemNum, 2, (szKeyID)?szKeyID:Translate(sim221));
-			LV_SetItemTextA(hLV, itemNum, 3, (DBGetContactSettingByte(hContact,szModuleName,"gpgANSI",0))?Translate(sim228):Translate(sim229));
-			SAFE_FREE(szKeyID);
-		}
-		hContact = (HANDLE)CallService(MS_DB_CONTACT_FINDNEXT, (WPARAM)hContact, 0);
-	}
-	ListView_Sort(hLV,(LPARAM)0x20);
-}
-
-
-///////////////
-// R E S E T //
-///////////////
-
-
-void ResetGeneralDlg(HWND hDlg) {
-
-	SetDlgItemText(hDlg,IDC_KET,"10");
-	SetDlgItemText(hDlg,IDC_OKT,"2");
-
-	SendMessage(GetDlgItem(hDlg,IDC_SFT),BM_SETCHECK,BST_UNCHECKED,0L);
-	SendMessage(GetDlgItem(hDlg,IDC_SOM),BM_SETCHECK,BST_UNCHECKED,0L);
-	SendMessage(GetDlgItem(hDlg,IDC_ASI),BM_SETCHECK,BST_UNCHECKED,0L);
-	SendMessage(GetDlgItem(hDlg,IDC_MCD),BM_SETCHECK,BST_UNCHECKED,0L);
-	SendMessage(GetDlgItem(hDlg,IDC_SCM),BM_SETCHECK,BST_UNCHECKED,0L);
-	SendMessage(GetDlgItem(hDlg,IDC_DGP),BM_SETCHECK,BST_UNCHECKED,0L);
-	SendMessage(GetDlgItem(hDlg,IDC_AIP),BM_SETCHECK,BST_UNCHECKED,0L);
-
-	for(int i=0;i<ADV_CNT;i++)
-		SendMessage(GetDlgItem(hDlg,IDC_ADV1+i),BM_SETCHECK,(i==0)?BST_CHECKED:BST_UNCHECKED,0L);
-
-	// rebuild list of contacts
-	HWND hLV = GetDlgItem(hDlg,IDC_STD_USERLIST);
-	ListView_DeleteAllItems(hLV);
-
-	LVITEM lvi = {0};
-	lvi.mask = LVIF_TEXT | LVIF_IMAGE | LVIF_PARAM;
-
-	HANDLE hContact = (HANDLE)CallService(MS_DB_CONTACT_FINDFIRST, 0, 0);
-	char tmp[NAMSIZE];
-
-	while (hContact) {
-
-//		if (isSecureProtocol(hContact) && !isProtoMetaContacts(hContact) && !isChatRoom(hContact)) {
-		if (isSecureProtocol(hContact) && !getMetaContact(hContact) && !isChatRoom(hContact)) {
-			// add proto for new users ...
-			if (!CallService(MS_PROTO_ISPROTOONCONTACT, (WPARAM)hContact, (LPARAM)szModuleName))
-				CallService(MS_PROTO_ADDTOCONTACT, (WPARAM)hContact, (LPARAM)szModuleName);
-
-			lvi.iItem++;
-			lvi.iImage = 1;
-			lvi.lParam = (LPARAM)hContact;
-
-			getContactName(hContact, tmp);
-			lvi.pszText = (LPSTR)&tmp;
-			int itemNum = LV_InsertItem(hLV, &lvi);
-
-			getContactUin(hContact, tmp);
-			LV_SetItemText(hLV, itemNum, 1, tmp);
-
-			setListViewStatus(hLV, itemNum, 1);
-			setListViewPSK(hLV, itemNum, 0);
-		}
-		hContact = (HANDLE)CallService(MS_DB_CONTACT_FINDNEXT, (WPARAM)hContact, 0);
-	}
-}
-
-
-void ResetProtoDlg(HWND hDlg) {
-}
-
-
 ///////////////
 // O T H E R //
 ///////////////
@@ -1258,36 +1305,36 @@ LPARAM getListViewParam(HWND hLV, UINT iItem) {
 }
 
 
-UINT getListViewStatus(HWND hLV, UINT iItem) {
+void setListViewIcon(HWND hLV, UINT iItem, pUinKey ptr) {
 
 	LVITEM lvi = {0};
 	lvi.iItem = iItem;
+	lvi.iImage = (ptr->tmode)?(ptr->tmode+ICO_PGPKEY-1):ptr->tstatus;
 	lvi.mask = LVIF_IMAGE;
-	ListView_GetItem(hLV, &lvi);
-	return lvi.iImage;
+	ListView_SetItem(hLV, &lvi);
 }
 
 
-void setListViewStatus(HWND hLV, UINT iItem, UINT iImage) {
+void setListViewMode(HWND hLV, UINT iItem, UINT iMode) {
 
-	LVITEM lvi = {0};
-	lvi.iItem = iItem;
-	lvi.iImage = iImage;
-	lvi.mask = LVIF_IMAGE;
-	ListView_SetItem(hLV, &lvi);
-	// change status text
-	char szKeyID[128];
-	if (iImage==2)		strncpy(szKeyID, Translate(sim207), sizeof(szKeyID));
-	else if (iImage==1)	strncpy(szKeyID, Translate(sim208), sizeof(szKeyID));
-	else if (iImage==0)	strncpy(szKeyID, Translate(sim209), sizeof(szKeyID));
-	LV_SetItemTextA(hLV, iItem, 2, szKeyID);
+	char tmp[128];
+	strncpy(tmp, Translate(sim231[iMode]), sizeof(tmp));
+	LV_SetItemTextA(hLV, iItem, 2, tmp);
+}
+
+
+void setListViewStatus(HWND hLV, UINT iItem, UINT iStatus) {
+
+	char tmp[128];
+	strncpy(tmp, Translate(sim232[iStatus]), sizeof(tmp));
+	LV_SetItemTextA(hLV, iItem, 3, tmp);
 }
 
 
 UINT getListViewPSK(HWND hLV, UINT iItem) {
 
 	char szPSK[128];
-	LV_GetItemTextA(hLV, iItem, 3, szPSK, sizeof(szPSK));
+	LV_GetItemTextA(hLV, iItem, 4, szPSK, sizeof(szPSK));
 	return strncmp(szPSK, Translate(sim212), sizeof(szPSK))==0;
 }
 
@@ -1298,7 +1345,7 @@ void setListViewPSK(HWND hLV, UINT iItem, UINT iStatus) {
 	char szPSK[128];
 	if (iStatus)	strncpy(szPSK, Translate(sim212), sizeof(szPSK));
 	else 			strncpy(szPSK, Translate(sim213), sizeof(szPSK));
-	LV_SetItemTextA(hLV, iItem, 3, szPSK);
+	LV_SetItemTextA(hLV, iItem, 4, szPSK);
 }
 
 
@@ -1313,14 +1360,22 @@ int CALLBACK CompareFunc(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort) {
 	}
 
 	switch(lParamSort){
-	case 0x01:
+	case 0x01: {
+		getContactNameA(pUinKey(lParam1)->hContact, t1);
+		getContactNameA(pUinKey(lParam2)->hContact, t2);
+		return strncmp(t1,t2,NAMSIZE)*m;
+	} break;
 	case 0x11:
 	case 0x21: {
 		getContactNameA((HANDLE)lParam1, t1);
 		getContactNameA((HANDLE)lParam2, t2);
 		return strncmp(t1,t2,NAMSIZE)*m;
 	} break;
-	case 0x02:
+	case 0x02: {
+		getContactUinA(pUinKey(lParam1)->hContact, t1);
+		getContactUinA(pUinKey(lParam2)->hContact, t2);
+		return strncmp(t1,t2,NAMSIZE)*m;
+	} break;
 	case 0x12:
 	case 0x22: {
 		getContactUinA((HANDLE)lParam1, t1);
@@ -1328,8 +1383,8 @@ int CALLBACK CompareFunc(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort) {
 		return strncmp(t1,t2,NAMSIZE)*m;
 	} break;
 	case 0x03: {
-		s = DBGetContactSettingByte((HANDLE)lParam1, szModuleName, "StatusID",1);
-		d = DBGetContactSettingByte((HANDLE)lParam2, szModuleName, "StatusID",1);
+		s = pUinKey(lParam1)->tmode;
+		d = pUinKey(lParam2)->tmode;
 		return (s-d)*m;
 	} break;
 	case 0x13: {
@@ -1359,10 +1414,15 @@ int CALLBACK CompareFunc(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort) {
 		return (s-d)*m;
 	} break;
 	case 0x04: {
-		DBGetContactSetting((HANDLE)lParam1,szModuleName,"PSK",&dbv1);
+		s = pUinKey(lParam1)->tstatus;
+		d = pUinKey(lParam2)->tstatus;
+		return (s-d)*m;
+	} break;
+	case 0x05: {
+		DBGetContactSetting(pUinKey(lParam1)->hContact,szModuleName,"PSK",&dbv1);
 		s=(dbv1.type==DBVT_ASCIIZ);
 		DBFreeVariant(&dbv1);
-		DBGetContactSetting((HANDLE)lParam2,szModuleName,"PSK",&dbv2);
+		DBGetContactSetting(pUinKey(lParam2)->hContact,szModuleName,"PSK",&dbv2);
 		d=(dbv2.type==DBVT_ASCIIZ);
 		DBFreeVariant(&dbv2);
 		return (s-d)*m;

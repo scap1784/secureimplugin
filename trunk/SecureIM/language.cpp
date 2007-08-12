@@ -34,9 +34,6 @@ LPCSTR sim203 = "Nickname";
 LPCSTR sim204 = "UIN/Email/Jid/...";
 LPCSTR sim205 = "Status";
 LPCSTR sim206 = "PSK";
-LPCSTR sim207 = "Always try";
-LPCSTR sim208 = "Enabled";
-LPCSTR sim209 = "Disabled";
 LPCSTR sim210 = "Name";
 LPCSTR sim211 = "Password is too short!";
 LPCSTR sim212 = "ON";
@@ -57,6 +54,9 @@ LPCSTR sim226 = "GPG";
 LPCSTR sim227 = "CP";
 LPCSTR sim228 = "ANSI";
 LPCSTR sim229 = "UTF8";
+LPCSTR sim230 = "Mode";
+LPCSTR sim231[] = { "Native", "PGP", "GPG", "RSA/AES", "RSA" };
+LPCSTR sim232[] = { "Disabled", "Enabled", "Always try" };
 
 //Context Menu
 LPCSTR sim301 = "Create SecureIM connection";

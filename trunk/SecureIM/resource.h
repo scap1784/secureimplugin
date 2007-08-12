@@ -24,7 +24,14 @@
 #define ID_DELPSK                       115
 #define ID_UPDATE_CLIST                 116
 #define ID_UPDATE_PROTO                 117
-#define IDM_CLIST                    	118
+#define IDM_CLIST0                    	118
+#define IDM_CLIST1                    	119
+
+#define ID_SIM_NATIVE					120
+#define ID_SIM_PGP                      121
+#define ID_SIM_GPG                      122
+#define ID_SIM_RSAAES                   123
+#define ID_SIM_RSA                      124
 
 #define IDD_OPTIONSTAB                  501
 #define IDD_TAB_GENERAL                 502

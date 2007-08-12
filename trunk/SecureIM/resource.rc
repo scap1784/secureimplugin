@@ -199,10 +199,18 @@ IDI_PGPKEY              ICON                    "icons\\pgp.ico"
 // Menu
 //
 
-IDM_CLIST MENU 
+IDM_CLIST0 MENU 
 BEGIN
     POPUP ""
     BEGIN
+        POPUP "Mode"
+        BEGIN
+            MENUITEM "Native SecureIM", ID_SIM_NATIVE
+            MENUITEM "PGP SecureIM", ID_SIM_PGP
+            MENUITEM "GPG SecureIM", ID_SIM_GPG
+//            MENUITEM "RSA/AES SecureIM", ID_SIM_RSAAES
+//            MENUITEM "RSA SecureIM", ID_SIM_RSA
+        END
         POPUP "Status"
         BEGIN
             MENUITEM "Always Try to Establish Secure IM", ID_ALWAYS
@@ -213,6 +221,22 @@ BEGIN
         BEGIN
             MENUITEM "Set key", ID_SETPSK
             MENUITEM "Delete key", ID_DELPSK
+        END
+    END
+END
+
+
+IDM_CLIST1 MENU 
+BEGIN
+    POPUP ""
+    BEGIN
+        POPUP "Mode"
+        BEGIN
+            MENUITEM "Native SecureIM", ID_SIM_NATIVE
+            MENUITEM "PGP SecureIM", ID_SIM_PGP
+            MENUITEM "GPG SecureIM", ID_SIM_GPG
+//            MENUITEM "RSA/AES SecureIM", ID_SIM_RSAAES
+//            MENUITEM "RSA SecureIM", ID_SIM_RSA
         END
     END
 END
