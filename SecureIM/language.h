@@ -37,9 +37,6 @@ extern LPCSTR sim203;
 extern LPCSTR sim204;
 extern LPCSTR sim205;
 extern LPCSTR sim206;
-extern LPCSTR sim207;
-extern LPCSTR sim208;
-extern LPCSTR sim209;
 extern LPCSTR sim210;
 extern LPCSTR sim211;
 extern LPCSTR sim212;
@@ -60,6 +57,9 @@ extern LPCSTR sim226;
 extern LPCSTR sim227;
 extern LPCSTR sim228;
 extern LPCSTR sim229;
+extern LPCSTR sim230;
+extern LPCSTR sim231[];
+extern LPCSTR sim232[];
 
 //Context Menu
 extern LPCSTR sim301;

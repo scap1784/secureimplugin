@@ -1,8 +1,9 @@
 
-Verison 1.0.10.3 [03-08-2007]
+Verison 1.0.10.3 [12-08-2007]
 
 [*] change work with metacontacts (to work need disable sync subcontact history with metacontact)
 [*] fix secure filesend over metacontact
+[+] new features in options dialog
 
 
 Verison 1.0.10.2 [19-06-2007]

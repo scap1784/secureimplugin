@@ -9,7 +9,7 @@
 
 #define ADV_CNT		8
 #define IEC_CNT		9
-#define ICO_CNT		3
+#define ICO_CNT		5
 #define POP_CNT		6
 #define ALL_CNT		(IEC_CNT+ICO_CNT+POP_CNT)
 
@@ -109,6 +109,8 @@ const SIG signs[] = {
 #define ICO_DISKEY 	0x00
 #define ICO_ENAKEY	0x01
 #define ICO_TRYKEY	0x02
+#define ICO_PGPKEY	0x03
+#define ICO_GPGKEY	0x04
 
 #define POP_RECVKEY	0x00
 #define POP_SENDKEY	0x01
@@ -134,9 +136,11 @@ const ICONS icons[] = {
 	{IDI_YELLOWKEY,	TBL_IEC, IEC_ON_MID,	"sim_mid", "Connection Established (ver >= 1.0.5.0)"},
 	{IDI_PGPKEY,	TBL_IEC, IEC_PGP,		"sim_pgp", "PGP Key"},
 	{IDI_GPGKEY,	TBL_IEC, IEC_GPG,		"sim_gpg", "GPG Key"},
-	{IDI_DISKEY,	TBL_ICO, ICO_DISKEY,	"sim_dis", "Disabled"},
-	{IDI_ENAKEY,	TBL_ICO, ICO_ENAKEY,	"sim_ena", "Enabled"},
-	{IDI_TRYKEY,	TBL_ICO, ICO_TRYKEY,	"sim_try", "Always Try"},
+	{IDI_DISKEY,	TBL_ICO, ICO_DISKEY,	"sim_dis", "flag Disabled"},
+	{IDI_ENAKEY,	TBL_ICO, ICO_ENAKEY,	"sim_ena", "flag Enabled"},
+	{IDI_TRYKEY,	TBL_ICO, ICO_TRYKEY,	"sim_try", "flag Always Try"},
+	{IDI_PGPKEY,	TBL_ICO, ICO_PGPKEY,	"sim_pgpk", "flag PGP Key"},
+	{IDI_GPGKEY,	TBL_ICO, ICO_GPGKEY,	"sim_gpgk", "flag GPG Key"},
 	{IDI_LOCK,		TBL_POP, POP_SECMSR,	"sim_msr", "Recv Secured MSG (popup)"},
 	{IDI_LOCK,		TBL_POP, POP_SECMSS,	"sim_mss", "Send Secured MSG (popup)"},
 	{IDI_BLUEKEY,	TBL_POP, POP_RECVKEY,	"sim_rk", "Recv Key (popup)"},

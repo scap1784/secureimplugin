@@ -59,13 +59,10 @@ pSupPro getSupPro(HANDLE hContact) {
 }
 
 
-// load contactlist in the list of secureIM users
-void loadContactList() {
+// add contact in the list of secureIM users
+void addinContactList(HANDLE hContact) {
 
-    freeContactList();
-
-	HANDLE hContact = (HANDLE)CallService(MS_DB_CONTACT_FINDFIRST, 0, 0);
-    while (hContact) {
+    if (hContact) {
     	LPSTR szProto = (LPSTR) CallService(MS_PROTO_GETCONTACTBASEPROTO, (WPARAM)hContact, 0);
 		if ( szProto && isSecureProtocol(hContact) ) {
 			if (!CallService(MS_PROTO_ISPROTOONCONTACT, (WPARAM)hContact, (LPARAM)szModuleName))
@@ -76,7 +73,29 @@ void loadContactList() {
 			ZeroMemory(&clist[j],sizeof(UinKey));
 			clist[j].hContact = hContact;
 			clist[j].szProto = szProto;
+			clist[j].mode = DBGetContactSettingByte(hContact, szModuleName, "mode", 99);
+			if( clist[j].mode == 99 ) {
+				if( isContactPGP(hContact) ) clist[j].mode = 1;
+				else
+				if( isContactGPG(hContact) ) clist[j].mode = 2;
+				else
+				clist[j].mode = 0;
+				DBWriteContactSettingByte(hContact, szModuleName, "mode", clist[j].mode);
+			}
+			clist[j].status = DBGetContactSettingByte(hContact, szModuleName, "StatusID", 1);
 		}
+	}
+}
+
+
+// load contactlist in the list of secureIM users
+void loadContactList() {
+
+    freeContactList();
+
+	HANDLE hContact = (HANDLE)CallService(MS_DB_CONTACT_FINDFIRST, 0, 0);
+    while (hContact) {
+    	addinContactList(hContact);
 		hContact = (HANDLE)CallService(MS_DB_CONTACT_FINDNEXT, (WPARAM)hContact, 0);
 	}
 }

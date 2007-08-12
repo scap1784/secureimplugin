@@ -70,7 +70,11 @@ int Service_Status(WPARAM wParam, LPARAM lParam) {
     case 0:
     case 1:
     case 2:
-		DBWriteContactSettingByte((HANDLE)wParam, szModuleName, "StatusID", (BYTE)lParam);
+		pUinKey ptr = getUinKey((HANDLE)wParam);
+		if(ptr) {
+			ptr->status=(BYTE)lParam;
+			DBWriteContactSettingByte((HANDLE)wParam, szModuleName, "StatusID", (BYTE)lParam);
+		}
 		break;
     }
 
@@ -504,15 +508,15 @@ int onModulesLoaded(WPARAM wParam,LPARAM lParam) {
 
 	if(ServiceExists(MS_CLIST_ADDSUBGROUPMENUITEM)) {
 	    g_hMenu[2] = AddMenuItem(sim303,110002,NULL,NULL,CMIF_ROOTPOPUP);
-	    g_hMenu[3] = AddSubItem(g_hMenu[2],sim209,110003,110002,MODULENAME"/SIM_ST_DIS");
-	    g_hMenu[4] = AddSubItem(g_hMenu[2],sim208,110004,110002,MODULENAME"/SIM_ST_ENA");
-	    g_hMenu[5] = AddSubItem(g_hMenu[2],sim207,110005,110002,MODULENAME"/SIM_ST_TRY");
+	    g_hMenu[3] = AddSubItem(g_hMenu[2],sim232[0],110003,110002,MODULENAME"/SIM_ST_DIS");
+	    g_hMenu[4] = AddSubItem(g_hMenu[2],sim232[1],110004,110002,MODULENAME"/SIM_ST_ENA");
+	    g_hMenu[5] = AddSubItem(g_hMenu[2],sim232[2],110005,110002,MODULENAME"/SIM_ST_TRY");
 	}
 	else {
 	    g_hMenu[2] = 0;
-	    g_hMenu[3] = AddMenuItem(sim209,110003,NULL,MODULENAME"/SIM_ST_DIS");
-	    g_hMenu[4] = AddMenuItem(sim208,110004,NULL,MODULENAME"/SIM_ST_ENA");
-	    g_hMenu[5] = AddMenuItem(sim207,110005,NULL,MODULENAME"/SIM_ST_TRY");
+	    g_hMenu[3] = AddMenuItem(sim232[0],110003,NULL,MODULENAME"/SIM_ST_DIS");
+	    g_hMenu[4] = AddMenuItem(sim232[1],110004,NULL,MODULENAME"/SIM_ST_ENA");
+	    g_hMenu[5] = AddMenuItem(sim232[2],110005,NULL,MODULENAME"/SIM_ST_TRY");
 	}
 
     if(bPGPloaded) {

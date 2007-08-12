@@ -38,6 +38,8 @@ typedef partitionMessage* pPM;
 struct UinKey {
 	HANDLE hContact;
 	char *szProto;	// protocol (ICQ,MSN...)
+	BYTE mode,tmode;		// mode: Native,PGP,GPG,RSA/AES,RSA [0..4]
+	BYTE status,tstatus;	// status: Disabled,Enabled,Always [0..2] for Native mode
 	char *msgSplitted; // message to combine
 	pPM msgPart;	// parts of message
 	pWM msgQueue;	// last messages not sended or to resend;
@@ -87,6 +89,7 @@ extern int clist_cnt;
 // crypt_lists.cpp
 void loadContactList();
 void freeContactList();
+void addinContactList(HANDLE);
 void loadSupportedProtocols();
 void freeSupportedProtocols();
 pSupPro getSupPro(HANDLE);

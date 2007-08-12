@@ -125,7 +125,7 @@ int onRecvMsg(WPARAM wParam, LPARAM lParam) {
 	}
 
 	// received non-pgp secure message from disabled contact
-	if (!bPGP && !bGPG && DBGetContactSettingByte(pccsd->hContact, szModuleName, "StatusID", 1)==0) {
+	if (!bPGP && !bGPG && ptr->status==0) {
 		// tell to the other side that we have the plugin disabled with him
 		pccsd->lParam = (LPARAM) SIG_DISA;
 		pccsd->szProtoService = PSS_MESSAGE;
@@ -630,7 +630,7 @@ int onSendMsg(WPARAM wParam, LPARAM lParam) {
 	}
 
 	// get contact SecureIM status
-	int stid = DBGetContactSettingByte(ptr->hContact, szModuleName, "StatusID", 1);
+	int stid = ptr->status;
 
 	// SecureIM connection with this contact is disabled
 	if (stid==STATUS_DISABLED) {
@@ -968,7 +968,7 @@ int onContactSettingChanged(WPARAM wParam,LPARAM lParam) {
 
 int onContactAdded(WPARAM wParam,LPARAM lParam) {
 
-	CallService(MS_PROTO_ADDTOCONTACT, (WPARAM)wParam, (LPARAM)szModuleName);
+    addinContactList((HANDLE)wParam);
 	return 0;
 }
 
@@ -979,6 +979,7 @@ static LPCSTR states[] = {sim303,sim304,sim305};
 int onRebuildContactMenu(WPARAM wParam,LPARAM lParam) {
 
 	HANDLE hContact = (HANDLE)wParam;
+	pUinKey ptr = getUinKey(hContact);
 	UINT i;
 
 	CLISTMENUITEM mi = {0};
@@ -987,7 +988,7 @@ int onRebuildContactMenu(WPARAM wParam,LPARAM lParam) {
 	ShowStatusIconNotify(hContact);
 
 	// check offline/online
-	if(getUinKey(hContact)==NULL) {
+	if(!ptr) {
 		// hide menu bars
 		mi.flags = CMIM_FLAGS | CMIF_NOTOFFLINE | CMIF_HIDDEN;
 		for(i=0;i<(sizeof(g_hMenu)/sizeof(g_hMenu[0]));i++) {
@@ -1007,60 +1008,54 @@ int onRebuildContactMenu(WPARAM wParam,LPARAM lParam) {
 	BOOL isSecured = isContactSecured(hContact);
 	BOOL isChat = isChatRoom(hContact);
 
-	if ( !isSecureProto || isPGP || isGPG || isChat || !isClientMiranda(hContact) || getMetaContact(hContact) ) {
-		// hide menu bars
-		mi.flags = CMIM_FLAGS | CMIF_NOTOFFLINE | CMIF_HIDDEN;
-		for(i=0;i<(sizeof(g_hMenu)/sizeof(g_hMenu[0]));i++) {
-			if( g_hMenu[i] )
-				CallService(MS_CLIST_MODIFYMENUITEM,(WPARAM)g_hMenu[i],(LPARAM)&mi);
-		}
+	// hide all menu bars
+	mi.flags = CMIM_FLAGS | CMIF_NOTOFFLINE | CMIF_HIDDEN;
+	for(i=0;i<(sizeof(g_hMenu)/sizeof(g_hMenu[0]));i++) {
+		if( g_hMenu[i] )
+			CallService(MS_CLIST_MODIFYMENUITEM,(WPARAM)g_hMenu[i],(LPARAM)&mi);
 	}
-	else {
-		// create secureim connection
-		mi.flags = CMIM_FLAGS | (CMIF_NOTOFFLINE | ((!isSecured) ? (0) : (CMIF_HIDDEN)));
-		CallService(MS_CLIST_MODIFYMENUITEM,(WPARAM)g_hMenu[0],(LPARAM)&mi);
-		// disable secureim connection
-		mi.flags = CMIM_FLAGS | (CMIF_NOTOFFLINE | ((!isSecured) ? (CMIF_HIDDEN) : (0)));
-		CallService(MS_CLIST_MODIFYMENUITEM,(WPARAM)g_hMenu[1],(LPARAM)&mi);
+
+	if ( isSecureProto && !isChat && !ptr->mode && isClientMiranda(hContact) && !getMetaContact(hContact) ) {
+		// Native
+		mi.flags = CMIM_FLAGS | CMIF_NOTOFFLINE;
+		if( !isSecured ) {
+			// create secureim connection
+			CallService(MS_CLIST_MODIFYMENUITEM,(WPARAM)g_hMenu[0],(LPARAM)&mi);
+		}
+		else {
+			// disable secureim connection
+			CallService(MS_CLIST_MODIFYMENUITEM,(WPARAM)g_hMenu[1],(LPARAM)&mi);
+		}
 		// set status menu
-		if(!bSCM) {
-			mi.flags = CMIM_FLAGS | CMIF_HIDDEN;
+		if(bSCM) {
+			mi.flags = CMIM_FLAGS;
 			for(i=2;i<=5;i++) {
 				if(g_hMenu[i])
 					CallService(MS_CLIST_MODIFYMENUITEM,(WPARAM)g_hMenu[i],(LPARAM)&mi);
 			}
-		}
-		else
-		if(!isPGP && !isGPG && !isChat && bSCM && isClientMiranda(hContact)) {
-			UINT status = DBGetContactSettingByte(hContact, szModuleName, "StatusID", 1);
 
-			mi.flags = CMIM_FLAGS | CMIM_NAME | CMIM_ICON;
-			mi.hIcon = g_hICO[status];
-			mi.pszName = (char*)states[status];
-			CallService(MS_CLIST_MODIFYMENUITEM,(WPARAM)g_hMenu[2],(LPARAM)&mi);
+    		mi.flags = CMIM_FLAGS | CMIM_NAME | CMIM_ICON;
+    		mi.hIcon = g_hICO[ptr->status];
+    		mi.pszName = (char*)states[ptr->status];
+    		CallService(MS_CLIST_MODIFYMENUITEM,(WPARAM)g_hMenu[2],(LPARAM)&mi);
 
-			mi.flags = CMIM_FLAGS | CMIM_ICON;
-			for(i=0;i<3;i++) {
-				mi.hIcon = (i == status) ? g_hICO[status] : NULL;
-				CallService(MS_CLIST_MODIFYMENUITEM,(WPARAM)g_hMenu[3+i],(LPARAM)&mi);
-			}
+    		mi.flags = CMIM_FLAGS | CMIM_ICON;
+    		for(i=0;i<3;i++) {
+    			mi.hIcon = (i == ptr->status) ? g_hICO[ptr->status] : NULL;
+    			CallService(MS_CLIST_MODIFYMENUITEM,(WPARAM)g_hMenu[3+i],(LPARAM)&mi);
+    		}
 		}
 	}
 
-	if( isSecureProto && !isChat ) {
-		if( bPGPloaded ) {
-			mi.flags = CMIM_FLAGS | CMIF_HIDDEN;
-			CallService(MS_CLIST_MODIFYMENUITEM,(WPARAM)g_hMenu[6],(LPARAM)&mi);
-			CallService(MS_CLIST_MODIFYMENUITEM,(WPARAM)g_hMenu[7],(LPARAM)&mi);
+	if( isSecureProto && !isChat && ptr->mode ) {
+		// PGP, GPG, RSA/AES, RSA
+		if( ptr->mode==1 && bPGPloaded ) {
 			if((bPGPkeyrings || bPGPprivkey) && !isGPG) {
 				mi.flags = CMIM_FLAGS;
 				CallService(MS_CLIST_MODIFYMENUITEM,(WPARAM)g_hMenu[isPGP+6],(LPARAM)&mi);
 			}
 		}
-		if( bGPGloaded ) {
-			mi.flags = CMIM_FLAGS | CMIF_HIDDEN;
-			CallService(MS_CLIST_MODIFYMENUITEM,(WPARAM)g_hMenu[8],(LPARAM)&mi);
-			CallService(MS_CLIST_MODIFYMENUITEM,(WPARAM)g_hMenu[9],(LPARAM)&mi);
+		if( ptr->mode==2 && bGPGloaded ) {
 			if(bGPGkeyrings && !isPGP) {
 				mi.flags = CMIM_FLAGS;
 				CallService(MS_CLIST_MODIFYMENUITEM,(WPARAM)g_hMenu[isGPG+8],(LPARAM)&mi);
