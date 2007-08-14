@@ -37,16 +37,16 @@ typedef partitionMessage* pPM;
 // memory struct for keys
 struct UinKey {
 	HANDLE hContact;
-	char *szProto;	// protocol (ICQ,MSN...)
+	char *szProto;		// protocol (ICQ,MSN...)
 	BYTE mode,tmode;		// mode: Native,PGP,GPG,RSA/AES,RSA [0..4]
-	BYTE status,tstatus;	// status: Disabled,Enabled,Always [0..2] for Native mode
-	char *msgSplitted; // message to combine
-	pPM msgPart;	// parts of message
-	pWM msgQueue;	// last messages not sended or to resend;
+	BYTE status,tstatus;	// status: Disabled,Enabled,AlwaysTry [0..2] for Native mode
+	char *msgSplitted;	// message to combine
+	pPM msgPart;		// parts of message
+	pWM msgQueue;		// last messages not sended or to resend;
 	BOOL sendQueue;
 	BOOL offlineKey;
 	BOOL waitForExchange;
-	BOOL decoded; // false on decode error
+	BOOL decoded;	// false on decode error
 	short features;
 	int cntx;		// crypto context
 	BYTE keyLoaded; // 1-PGP, 2-GPG

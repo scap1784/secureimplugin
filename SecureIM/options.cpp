@@ -167,11 +167,11 @@ BOOL CALLBACK OptionsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) 
                switch (((LPNMHDR)lParam)->code) {
                   case PSN_APPLY: {
                         tci.mask = TCIF_PARAM;
-                        int count = TabCtrl_GetItemCount(GetDlgItem(hwnd,IDC_OPTIONSTAB));
-                        for (int i=0;i<count;i++) {
-                           TabCtrl_GetItem(GetDlgItem(hwnd,IDC_OPTIONSTAB),i,&tci);
-                           SendMessage((HWND)tci.lParam,WM_NOTIFY,0,lParam);
-                        }
+                        int cnt = TabCtrl_GetItemCount(GetDlgItem(hwnd,IDC_OPTIONSTAB));
+						for (int i=0;i<cnt;i++) {
+							TabCtrl_GetItem(GetDlgItem(hwnd,IDC_OPTIONSTAB),i,&tci);
+							SendMessage((HWND)tci.lParam,WM_NOTIFY,0,lParam);
+						}
                   }
                   break;
                }
@@ -372,8 +372,8 @@ BOOL CALLBACK DlgProcOptionsGeneral(HWND hDlg, UINT wMsg, WPARAM wParam, LPARAM 
 						iInit = TRUE;
 						ApplyGeneralSettings(hDlg);
 						RefreshContactListIcons();
-		                SendMessage(GetParent(hDlg),WM_COMMAND,ID_UPDATE_PLIST,0);
-		                SendMessage(GetParent(hDlg),WM_COMMAND,ID_UPDATE_GLIST,0);
+//		                SendMessage(GetParent(hDlg),WM_COMMAND,ID_UPDATE_PLIST,0);
+//		                SendMessage(GetParent(hDlg),WM_COMMAND,ID_UPDATE_GLIST,0);
 						iInit = FALSE;
 					}
 				}
@@ -490,8 +490,8 @@ BOOL CALLBACK DlgProcOptionsProto(HWND hDlg, UINT wMsg, WPARAM wParam, LPARAM lP
 						RefreshProtoDlg(hDlg);
 						RefreshContactListIcons();
 		                SendMessage(GetParent(hDlg),WM_COMMAND,ID_UPDATE_CLIST,0);
-		                SendMessage(GetParent(hDlg),WM_COMMAND,ID_UPDATE_PLIST,0);
-		                SendMessage(GetParent(hDlg),WM_COMMAND,ID_UPDATE_GLIST,0);
+//		                SendMessage(GetParent(hDlg),WM_COMMAND,ID_UPDATE_PLIST,0);
+//		                SendMessage(GetParent(hDlg),WM_COMMAND,ID_UPDATE_GLIST,0);
 						iInit = FALSE;
 					}
 				}
@@ -629,7 +629,7 @@ BOOL CALLBACK DlgProcOptionsPGP(HWND hDlg, UINT wMsg, WPARAM wParam, LPARAM lPar
 						iInit = TRUE;
 						ApplyPGPSettings(hDlg);
 						RefreshPGPDlg(hDlg,FALSE);
-		                SendMessage(GetParent(hDlg),WM_COMMAND,ID_UPDATE_CLIST,0);
+//		                SendMessage(GetParent(hDlg),WM_COMMAND,ID_UPDATE_CLIST,0);
 						iInit = FALSE;
 					}
 				}
@@ -789,7 +789,7 @@ BOOL CALLBACK DlgProcOptionsGPG(HWND hDlg, UINT wMsg, WPARAM wParam, LPARAM lPar
 						iInit = TRUE;
 						ApplyGPGSettings(hDlg);
 						RefreshGPGDlg(hDlg,FALSE);
-		                SendMessage(GetParent(hDlg),WM_COMMAND,ID_UPDATE_CLIST,0);
+//		                SendMessage(GetParent(hDlg),WM_COMMAND,ID_UPDATE_CLIST,0);
 						iInit = FALSE;
 					}
 				}
