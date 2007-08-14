@@ -11,7 +11,7 @@ void ApplyGeneralSettings(HWND);
 void ApplyProtoSettings(HWND);
 void ApplyPGPSettings(HWND);
 void ApplyGPGSettings(HWND);
-void RefreshGeneralDlg(HWND,UINT);
+void RefreshGeneralDlg(HWND,BOOL);
 void RefreshProtoDlg(HWND);
 void RefreshPGPDlg(HWND,BOOL);
 void RefreshGPGDlg(HWND,BOOL);
