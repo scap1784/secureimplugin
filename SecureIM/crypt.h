@@ -50,6 +50,7 @@ struct UinKey {
 	short features;
 	int cntx;		// crypto context
 	BYTE keyLoaded; // 1-PGP, 2-GPG
+	BYTE gpgMode,tgpgMode; // 0-UTF8,1-ANSI
 	char *lastFileRecv;
 	char *lastFileSend;
 	char **fileSend;
