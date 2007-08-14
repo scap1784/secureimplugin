@@ -83,6 +83,7 @@ void addinContactList(HANDLE hContact) {
 				DBWriteContactSettingByte(hContact, szModuleName, "mode", clist[j].mode);
 			}
 			clist[j].status = DBGetContactSettingByte(hContact, szModuleName, "StatusID", 1);
+			clist[j].gpgMode = DBGetContactSettingByte(hContact, szModuleName, "gpgANSI", 0);
 		}
 	}
 }
