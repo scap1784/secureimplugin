@@ -295,8 +295,8 @@ BOOL CALLBACK DlgProcOptionsGeneral(HWND hDlg, UINT wMsg, WPARAM wParam, LPARAM 
 			break;
 
 		  	case ID_SETPSK: {
-		  		idx = ListView_GetSelectionMark(hLV);
-		  		ptr = (pUinKey) getListViewParam(hLV,idx);
+				idx = ListView_GetSelectionMark(hLV);
+				ptr = (pUinKey) getListViewParam(hLV,idx);
 		  		if(ptr) {
 					char *buffer = (char*)mir_alloc(PSKSIZE+1);
 					getContactName(ptr->hContact, buffer);
@@ -835,15 +835,17 @@ BOOL CALLBACK DlgProcSetPSK(HWND hDlg,UINT uMsg,WPARAM wParam,LPARAM lParam) {
     static char *buffer;
 	switch(uMsg) {
 	case WM_INITDIALOG: {
+		TranslateDialogDefault(hDlg);
 		SendDlgItemMessage(hDlg,IDC_EDIT1,EM_LIMITTEXT,PSKSIZE,0);
-		SetDlgItemText(hDlg,IDC_EDIT2,(LPCSTR)lParam);
+		if( bCoreUnicode )	SetDlgItemTextW(hDlg,IDC_EDIT2,(LPWSTR)lParam);
+		else				SetDlgItemTextA(hDlg,IDC_EDIT2,(LPCSTR)lParam);
 		buffer = (LPSTR)lParam;
-        return (TRUE);
+		return (TRUE);
 	}
 	case WM_COMMAND: {
 		switch(LOWORD(wParam)) {
 		case IDOK: {
-			int len = GetDlgItemText(hDlg,IDC_EDIT1,buffer,PSKSIZE+1);
+			int len = GetDlgItemTextA(hDlg,IDC_EDIT1,buffer,PSKSIZE+1);
 			if(len<8) {
 				MessageBox(hDlg,Translate(sim211),Translate(szModuleName),MB_OK|MB_ICONEXCLAMATION);
 				return TRUE;
