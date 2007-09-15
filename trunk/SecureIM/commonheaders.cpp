@@ -139,7 +139,7 @@ void SetFlags() {
 
 char* u2a( const wchar_t* src )
 {
-	int codepage = CallService( MS_LANGPACK_GETCODEPAGE, 0, 0 );
+	int codepage = ServiceExists(MS_LANGPACK_GETCODEPAGE)?CallService( MS_LANGPACK_GETCODEPAGE, 0, 0 ):CP_ACP;
 
 	int cbLen = WideCharToMultiByte( codepage, 0, src, -1, NULL, 0, NULL, NULL );
 	char* result = ( char* )mir_alloc( cbLen+1 );
@@ -153,7 +153,7 @@ char* u2a( const wchar_t* src )
 
 wchar_t* a2u( const char* src )
 {
-	int codepage = CallService( MS_LANGPACK_GETCODEPAGE, 0, 0 );
+	int codepage = ServiceExists(MS_LANGPACK_GETCODEPAGE)?CallService( MS_LANGPACK_GETCODEPAGE, 0, 0 ):CP_ACP;
 
 	int cbLen = MultiByteToWideChar( codepage, 0, src, -1, NULL, 0 );
 	wchar_t* result = ( wchar_t* )mir_alloc( sizeof( wchar_t )*(cbLen+1));
