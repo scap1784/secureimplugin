@@ -34,7 +34,7 @@ LPSTR InitKeyA(pUinKey ptr,int features) {
 	LPSTR keyToSend = (LPSTR) mir_alloc(slen+tlen+1);
 
 	memcpy(keyToSend,keysig,slen);
-	memcpy(keyToSend+slen,pub_text,tlen);
+	memcpy(keyToSend+slen,pub_text,tlen+1);
 
 	return keyToSend;
 }
@@ -121,7 +121,7 @@ LPSTR encrypt(pUinKey ptr, LPCSTR szEncMsg) {
 
 	LPSTR szMsg = (LPSTR) mir_alloc(clen+slen+1);
 	memcpy(szMsg, szSig, slen);
-	memcpy(szMsg+slen, szEncMsg, clen);
+	memcpy(szMsg+slen, szEncMsg, clen+1);
 
 	return szMsg;
 }

@@ -249,8 +249,6 @@ int Load(PLUGINLINK *link) {
 	}
 
 	// get memoryManagerInterface address
-	//memoryManagerInterface.cbSize=sizeof(struct MM_INTERFACE);
-	//CallService(MS_SYSTEM_GET_MMI,0,(LPARAM)&memoryManagerInterface);
 	mir_getMMI(&memoryManagerInterface);
 
 	// load crypo++ dll
