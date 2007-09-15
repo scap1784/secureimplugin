@@ -1,48 +1,13 @@
 #include "commonheaders.h"
 
 
-void m_check(void *ptr, const char *module) {
-    if(ptr==NULL) {
-    	char buffer[128];
-    	strcpy(buffer,module);
-    	strcat(buffer,": NULL pointer detected !");
-		MessageBox(0,buffer,szModuleName,MB_OK|MB_ICONSTOP);
-#ifdef _MSC_VER
-		__asm{ int 3 };
-#endif		
-		exit(1);
-    }
-}
-
-
-void *m_alloc(size_t size) {
-    void *ptr = memoryManagerInterface.mmi_malloc(size);
-    m_check(ptr,"m_alloc");
-   	ZeroMemory(ptr,size);
-	return ptr;
-}
-
-
-void m_free(void *ptr) {
-//    m_check(ptr,"m_free");
-    if(ptr) memoryManagerInterface.mmi_free(ptr);
-}
-
-
-void *m_realloc(void *ptr,size_t size) {
-    ptr = memoryManagerInterface.mmi_realloc(ptr,size);
-    m_check(ptr,"m_realloc");
-	return ptr;
-}
-
-
 void *operator new(size_t sz) {
-	return m_alloc(sz);
+	return mir_alloc(sz);
 }
 
 
 void operator delete(void *p) {
-	m_free(p);
+	mir_free(p);
 }
 
 
@@ -53,16 +18,6 @@ void *operator new[](size_t size) {
 
 void operator delete[](void * p) {
 	operator delete(p);
-}
-
-
-char *m_strdup(const char *str) {
-    if(str==NULL) return NULL;
-//    m_check((void*)str,"m_strdup");
-    int len = strlen(str)+1;
-	char *dup = (char*) m_alloc(len);
-	memcpy((void*)dup,(void*)str,len);
-	return dup;
 }
 
 
