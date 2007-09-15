@@ -23,10 +23,11 @@ int getSecureSig(LPCSTR szMsg, LPSTR *szPlainMsg=NULL) {
 }
 
 
-// set wiat flag and run thread
-void waitForExchange(HANDLE hContact, pUinKey ptr) {
+// set wait flag and run thread
+void waitForExchange(pUinKey ptr) {
+	if(ptr->waitForExchange) return;
 	ptr->waitForExchange = true;
-	forkthread(sttWaitForExchange, 0, new TWaitForExchange( hContact ));
+	forkthread(sttWaitForExchange, 0, new TWaitForExchange( ptr->hContact ));
 }
 
 
@@ -393,7 +394,7 @@ int onRecvMsg(WPARAM wParam, LPARAM lParam) {
 				CallService(MS_PROTO_CHAINSEND, wParam, lParam);
 				mir_free(keyToSend);
 
-				waitForExchange(ptr->hContact,ptr);
+				waitForExchange(ptr);
 				showPopUpKS(ptr->hContact);
 				return 1;
 			}
@@ -772,7 +773,7 @@ int onSendMsg(WPARAM wParam, LPARAM lParam) {
 	  			CallService(MS_PROTO_CHAINSEND, wParam, lParam);
 	  			mir_free(keyToSend);
 
-				waitForExchange(ptr->hContact,ptr);
+				waitForExchange(ptr);
 
 	  			showPopUpKS(pccsd->hContact);
 	  			ShowStatusIconNotify(pccsd->hContact);
