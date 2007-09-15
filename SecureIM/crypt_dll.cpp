@@ -28,8 +28,8 @@ LPSTR InitKeyA(pUinKey ptr,int features) {
 	else
 		keysig = (LPSTR)SIG_KEY3;
 
-	int tlen = strlen(pub_text);
 	int slen = strlen(keysig);
+	int tlen = strlen(pub_text);
 
 	LPSTR keyToSend = (LPSTR) mir_alloc(slen+tlen+1);
 
