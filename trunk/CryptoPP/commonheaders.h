@@ -28,6 +28,8 @@
 
 // Miranda API
 #define _STATIC
+#define MIRANDA_VER 0x0700
+#define mir_snprintf _snprintf
 #include "newpluginapi.h"
 #include "m_plugins.h"
 #include "m_system.h"
