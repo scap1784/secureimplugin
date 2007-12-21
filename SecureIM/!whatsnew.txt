@@ -1,4 +1,9 @@
 
+Verison 1.0.10.4 [21-12-2007]
+
+[*] fix double UTF8 encoding in PGP/GPG messages
+
+
 Verison 1.0.10.3 [15-09-2007]
 
 [*] change work with metacontacts (to work need disable sync subcontact history with metacontact)

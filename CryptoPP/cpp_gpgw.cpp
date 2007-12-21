@@ -233,12 +233,12 @@ LPSTR __cdecl gpg_encodeA(int context, LPCSTR szPlainMsg)
     if(!p->gpgKeyID) { ptr->error = ERROR_NO_GPG_KEY; return NULL; }
 
 	// ansi message: convert to unicode->utf-8 and encrypt.
-	int slen = strlen(szPlainMsg)+1;
 	LPSTR szUtfMsg;
-	if( ptr->mode & MODE_GPG_ANSI ) {
+	if( ptr->mode & MODE_GPG_ANSI || is_utf8_string(szPlainMsg) ) {
 		szUtfMsg = mir_strdup(szPlainMsg);
 	}
 	else {
+		int slen = strlen(szPlainMsg)+1;
 		LPWSTR wstring = (LPWSTR) alloca(slen*sizeof(WCHAR));
 		MultiByteToWideChar(CP_ACP, 0, szPlainMsg, -1, wstring, slen*sizeof(WCHAR));
 		szUtfMsg = utf8encode(wstring);

@@ -246,10 +246,16 @@ LPSTR __cdecl pgp_encodeA(int context, LPCSTR szPlainMsg)
 	if(!p->pgpKeyID && !p->pgpKey) { ptr->error = ERROR_NO_PGP_KEY; return NULL; }
 
 	// ansi message: convert to unicode->utf-8 and encrypt.
-	int slen = strlen(szPlainMsg)+1;
-	LPWSTR wstring = (LPWSTR) alloca(slen*sizeof(WCHAR));
-	MultiByteToWideChar(CP_ACP, 0, szPlainMsg, -1, wstring, slen*sizeof(WCHAR));
-	LPSTR szUtfMsg = utf8encode(wstring);
+	LPSTR szUtfMsg;
+	if( is_utf8_string(szPlainMsg) ) {
+		szUtfMsg = mir_strdup(szPlainMsg);
+	}
+	else {
+		int slen = strlen(szPlainMsg)+1;
+		LPWSTR wstring = (LPWSTR) alloca(slen*sizeof(WCHAR));
+		MultiByteToWideChar(CP_ACP, 0, szPlainMsg, -1, wstring, slen*sizeof(WCHAR));
+		szUtfMsg = utf8encode(wstring);
+	}
 	// encrypt
 	LPSTR szNewMsg = pgp_encrypt(ptr, szUtfMsg);
 	mir_free(szUtfMsg);

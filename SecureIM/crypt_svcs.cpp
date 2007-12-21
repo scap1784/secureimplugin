@@ -218,8 +218,8 @@ int onRecvMsg(WPARAM wParam, LPARAM lParam) {
 
 		if(!szOldMsg) { // error while decrypting message, send error
 			SAFE_FREE(ptr->msgSplitted);
-			ppre->flags &= ~PREF_UNICODE;
-			pccsd->wParam &= ~PREF_UNICODE;
+			ppre->flags &= ~(PREF_UNICODE|PREF_UTF);
+			pccsd->wParam &= ~(PREF_UNICODE|PREF_UTF);
 	     	ppre->szMessage = Translate(sim401);
 			return CallService(MS_PROTO_CHAINRECV, wParam, lParam);
 		}
@@ -227,6 +227,9 @@ int onRecvMsg(WPARAM wParam, LPARAM lParam) {
    	    int olen = (strlen(szOldMsg)+1)*(sizeof(WCHAR)+1);
 		szNewMsg = (LPSTR) mir_alloc(olen);
 		memcpy(szNewMsg,szOldMsg,olen);
+
+   		ppre->flags &= ~PREF_UTF;
+   		pccsd->wParam &= ~PREF_UTF;
 
    		ppre->flags |= PREF_UNICODE;
    		pccsd->wParam |= PREF_UNICODE;
@@ -929,6 +932,8 @@ int onContactSettingChanged(WPARAM wParam,LPARAM lParam) {
 
 	HANDLE hMetaContact = getMetaContact(hContact);
 	if(hMetaContact) ptr = getUinKey(hMetaContact);
+
+	if(!ptr) return 0;
 
 	if (stat==ID_STATUS_OFFLINE) { // go offline
 		if (cpp_keyx(ptr->cntx)) { // have active context
