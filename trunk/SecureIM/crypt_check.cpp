@@ -129,9 +129,21 @@ BOOL isProtoSmallPackets(HANDLE hContact) {
 	if (!clist_cnt) return false;
     for(int j=0;j<clist_cnt;j++) {
 		if (clist[j].hContact == hContact && clist[j].szProto) {
-			return  strstr(clist[j].szProto,"IRC")!=NULL ||
-					strstr(clist[j].szProto,"WinPopup")!=NULL ||
-					strstr(clist[j].szProto,"VyChat")!=NULL;
+			if (strstr(clist[j].szProto,"MetaContacts")!=NULL) {
+				HANDLE hSubContact;
+				char *proto = 0;
+
+				hSubContact = (HANDLE)CallService(MS_MC_GETMOSTONLINECONTACT,(WPARAM)hContact,0);
+				proto = (char *)CallService(MS_PROTO_GETCONTACTBASEPROTO, (WPARAM)hSubContact, 0);
+				return  strstr(proto,"IRC")!=NULL ||
+						strstr(proto,"WinPopup")!=NULL ||
+						strstr(proto,"VyChat")!=NULL;
+			}
+			else {
+				return  strstr(clist[j].szProto,"IRC")!=NULL ||
+						strstr(clist[j].szProto,"WinPopup")!=NULL ||
+						strstr(clist[j].szProto,"VyChat")!=NULL;
+			}
 		}
 	}
 	return false;

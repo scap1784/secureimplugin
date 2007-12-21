@@ -2,6 +2,7 @@
 Verison 1.0.10.4 [21-12-2007]
 
 [*] fix double UTF8 encoding in PGP/GPG messages
+[*] applied patch from Garthower (MetaContacts & IRC protocol)
 
 
 Verison 1.0.10.3 [15-09-2007]
