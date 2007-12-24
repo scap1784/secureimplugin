@@ -1,4 +1,9 @@
 
+Verison 1.0.10.6 [24-12-2007]
+
+[*] some code rewrite
+
+
 Verison 1.0.10.5 [24-12-2007]
 
 [*] fix Load/Unload keys for PGP/GPG

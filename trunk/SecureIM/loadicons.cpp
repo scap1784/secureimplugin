@@ -97,7 +97,7 @@ void InitIcons(void)
 	}
 
 	if(ServiceExists(MS_SKIN2_ADDICON)) {
-		hIcoLibIconsChanged = HookEvent(ME_SKIN2_ICONSCHANGED, ReloadIcons);
+		g_hHook[iHook++] = HookEvent(ME_SKIN2_ICONSCHANGED, ReloadIcons);
 	}
 }
 

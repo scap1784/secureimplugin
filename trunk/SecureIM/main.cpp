@@ -288,22 +288,22 @@ int Load(PLUGINLINK *link) {
 	CallService(MS_PROTO_REGISTERMODULE, 0, (LPARAM)&pd);
 
 	// hook events
-	hModulesLoaded = HookEvent(ME_SYSTEM_MODULESLOADED,onModulesLoaded);
-	hSystemOKToExit = HookEvent(ME_SYSTEM_OKTOEXIT,onSystemOKToExit); 
+	g_hHook[iHook++] = HookEvent(ME_SYSTEM_MODULESLOADED,onModulesLoaded);
+	g_hHook[iHook++] = HookEvent(ME_SYSTEM_OKTOEXIT,onSystemOKToExit); 
 
-	CreateServiceFunction(MODULENAME"/IsContactSecured", Service_IsContactSecured);
 	g_hEvent[0] = CreateHookableEvent(MODULENAME"/Disabled");
 	g_hEvent[1] = CreateHookableEvent(MODULENAME"/Established");
 
-	CreateServiceFunction(MODULENAME"/SIM_EST",Service_CreateIM);
-	CreateServiceFunction(MODULENAME"/SIM_DIS",Service_DisableIM);
-	CreateServiceFunction(MODULENAME"/SIM_ST_DIS",Service_Status0);
-	CreateServiceFunction(MODULENAME"/SIM_ST_ENA",Service_Status1);
-	CreateServiceFunction(MODULENAME"/SIM_ST_TRY",Service_Status2);
-	CreateServiceFunction(MODULENAME"/SIM_PGP_SET",Service_PGPsetKey);
-	CreateServiceFunction(MODULENAME"/SIM_PGP_DEL",Service_PGPdelKey);
-	CreateServiceFunction(MODULENAME"/SIM_GPG_SET",Service_GPGsetKey);
-	CreateServiceFunction(MODULENAME"/SIM_GPG_DEL",Service_GPGdelKey);
+	g_hService[iService++] = CreateServiceFunction(MODULENAME"/IsContactSecured", Service_IsContactSecured);
+	g_hService[iService++] = CreateServiceFunction(MODULENAME"/SIM_EST",Service_CreateIM);
+	g_hService[iService++] = CreateServiceFunction(MODULENAME"/SIM_DIS",Service_DisableIM);
+	g_hService[iService++] = CreateServiceFunction(MODULENAME"/SIM_ST_DIS",Service_Status0);
+	g_hService[iService++] = CreateServiceFunction(MODULENAME"/SIM_ST_ENA",Service_Status1);
+	g_hService[iService++] = CreateServiceFunction(MODULENAME"/SIM_ST_TRY",Service_Status2);
+	g_hService[iService++] = CreateServiceFunction(MODULENAME"/SIM_PGP_SET",Service_PGPsetKey);
+	g_hService[iService++] = CreateServiceFunction(MODULENAME"/SIM_PGP_DEL",Service_PGPdelKey);
+	g_hService[iService++] = CreateServiceFunction(MODULENAME"/SIM_GPG_SET",Service_GPGsetKey);
+	g_hService[iService++] = CreateServiceFunction(MODULENAME"/SIM_GPG_DEL",Service_GPGdelKey);
 
 	return 0;
 }
@@ -488,18 +488,18 @@ int onModulesLoaded(WPARAM wParam,LPARAM lParam) {
 	SkinAddNewSound("OutgoingSecureMessage","Outgoing Secure Message","Sounds\\oSecureMessage.wav");
 
 	// hook init options
-	hSysOpt = HookEvent(ME_OPT_INITIALISE, onRegisterOptions);
+	g_hHook[iHook++] = HookEvent(ME_OPT_INITIALISE, onRegisterOptions);
 	if(bPopupExists)
-	hPopOpt = HookEvent(ME_OPT_INITIALISE, onRegisterPopOptions);
-	hProtoAck = HookEvent(ME_PROTO_ACK, onProtoAck);
-	hContactSettingChanged = HookEvent(ME_DB_CONTACT_SETTINGCHANGED, onContactSettingChanged);
-	hContactAdded = HookEvent(ME_DB_CONTACT_ADDED, onContactAdded);
+	g_hHook[iHook++] = HookEvent(ME_OPT_INITIALISE, onRegisterPopOptions);
+	g_hHook[iHook++] = HookEvent(ME_PROTO_ACK, onProtoAck);
+	g_hHook[iHook++] = HookEvent(ME_DB_CONTACT_SETTINGCHANGED, onContactSettingChanged);
+	g_hHook[iHook++] = HookEvent(ME_DB_CONTACT_ADDED, onContactAdded);
 
 	// hook message transport
-	CreateProtoServiceFunction(szModuleName, PSR_MESSAGE, onRecvMsg);
-	CreateProtoServiceFunction(szModuleName, PSS_MESSAGE, onSendMsg);
-	CreateProtoServiceFunction(szModuleName, PSS_MESSAGE"W", onSendMsgW);
-	CreateProtoServiceFunction(szModuleName, PSS_FILE, onSendFile);
+	g_hService[iService++] = CreateProtoServiceFunction(szModuleName, PSR_MESSAGE, onRecvMsg);
+	g_hService[iService++] = CreateProtoServiceFunction(szModuleName, PSS_MESSAGE, onSendMsg);
+	g_hService[iService++] = CreateProtoServiceFunction(szModuleName, PSS_MESSAGE"W", onSendMsgW);
+	g_hService[iService++] = CreateProtoServiceFunction(szModuleName, PSS_FILE, onSendFile);
 
 	// create a menu item for creating a secure im connection to the user.
     g_hMenu[0] = AddMenuItem(sim301,110000,g_hIEC[IEC_SHIELD],MODULENAME"/SIM_EST",CMIF_NOTOFFLINE);
@@ -529,9 +529,9 @@ int onModulesLoaded(WPARAM wParam,LPARAM lParam) {
     }
 
 	// hook events
-    g_hRebuildMenu = HookEvent(ME_CLIST_PREBUILDCONTACTMENU, onRebuildContactMenu);
-	g_hCListIR = HookEvent(ME_CLIST_EXTRA_LIST_REBUILD, onExtraImageListRebuilding);
-	g_hCListIA = HookEvent(ME_CLIST_EXTRA_IMAGE_APPLY, onExtraImageApplying);
+    g_hHook[iHook++] = HookEvent(ME_CLIST_PREBUILDCONTACTMENU, onRebuildContactMenu);
+	g_hHook[iHook++] = HookEvent(ME_CLIST_EXTRA_LIST_REBUILD, onExtraImageListRebuilding);
+	g_hHook[iHook++] = HookEvent(ME_CLIST_EXTRA_IMAGE_APPLY, onExtraImageApplying);
 
 //	g_hMC = HookEvent(ME_MC_SUBCONTACTSCHANGED, onMC);
 
@@ -555,8 +555,8 @@ int onModulesLoaded(WPARAM wParam,LPARAM lParam) {
 		CallService(MS_MSG_ADDICON, 0, (LPARAM)&sid);
 
 		// hook the window events so that we can can change the status of the icon
-		g_hEventWindow = HookEvent(ME_MSG_WINDOWEVENT, onWindowEvent);
-		g_hEventIconPressed = HookEvent(ME_MSG_ICONPRESSED, onIconPressed);
+		g_hHook[iHook++] = HookEvent(ME_MSG_WINDOWEVENT, onWindowEvent);
+		g_hHook[iHook++] = HookEvent(ME_MSG_ICONPRESSED, onIconPressed);
 	}
 
 	return 0;
@@ -576,22 +576,10 @@ int onSystemOKToExit(WPARAM wParam,LPARAM lParam) {
 	if(bPGPloaded) pgp_done();
 	if(bGPGloaded) gpg_done();
 	rsa_done();
-	if(hIcoLibIconsChanged) UnhookEvent(hIcoLibIconsChanged);
-	UnhookEvent(g_hEventIconPressed);
-	UnhookEvent(g_hEventWindow);
-	UnhookEvent(g_hRebuildMenu);
-	UnhookEvent(g_hCListIA);
-	UnhookEvent(g_hCListIR);
-	UnhookEvent(hContactAdded);
-	UnhookEvent(hContactSettingChanged);
-	UnhookEvent(hProtoAck);
-	if(bPopupExists) UnhookEvent(hPopOpt);
-	UnhookEvent(hSysOpt);
-	UnhookEvent(hSystemOKToExit);
-	UnhookEvent(hModulesLoaded);
+	while(iHook--) UnhookEvent(g_hHook[iHook]);
+	while(iService--) DestroyServiceFunction(g_hService[iService]);
 	DestroyHookableEvent(g_hEvent[0]);
 	DestroyHookableEvent(g_hEvent[1]);
-//	DestroyServiceFunction(compClientServ);
 	freeContactList();
 	freeSupportedProtocols();
 	free_rtfconv();

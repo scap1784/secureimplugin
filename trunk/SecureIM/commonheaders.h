@@ -126,10 +126,8 @@ extern "C" {
 
 }
 
-extern HANDLE hModulesLoaded, hSystemOKToExit, hIcoLibIconsChanged;
-extern HANDLE hContactSettingChanged, hContactAdded, hProtoAck, hSysOpt, hPopOpt;
-extern HANDLE g_hRebuildMenu, g_hEventWindow, g_hEventIconPressed;
-extern HANDLE g_hEvent[2], g_hCListIR, g_hCListIA, g_hMenu[10];
+extern HANDLE g_hEvent[2], g_hMenu[10], g_hService[14], g_hHook[13];
+extern int iService, iHook;
 extern HICON g_hIcon[ALL_CNT], g_hICO[ICO_CNT], g_hIEC[IEC_CNT], g_hPOP[POP_CNT];
 extern IconExtraColumn g_IEC[IEC_CNT];
 extern int iBmpDepth;

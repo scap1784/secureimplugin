@@ -9,10 +9,8 @@ const char *szModuleName = MODULENAME;
 char TEMP[MAX_PATH];
 int  TEMP_SIZE = 0;
 
-HANDLE hModulesLoaded, hSystemOKToExit, hIcoLibIconsChanged;
-HANDLE hContactSettingChanged, hContactAdded, hProtoAck, hSysOpt, hPopOpt;
-HANDLE g_hRebuildMenu, g_hEventWindow, g_hEventIconPressed;
-HANDLE g_hEvent[2], g_hCListIR, g_hCListIA, g_hMenu[10];
+HANDLE g_hEvent[2], g_hMenu[10], g_hService[14], g_hHook[13];
+int iService=0, iHook=0;
 HICON g_hIcon[ALL_CNT], g_hICO[ICO_CNT], g_hIEC[IEC_CNT], g_hPOP[POP_CNT];
 IconExtraColumn g_IEC[IEC_CNT];
 int iBmpDepth;
