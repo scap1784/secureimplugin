@@ -234,6 +234,7 @@ int onRecvMsg(WPARAM wParam, LPARAM lParam) {
    		ppre->flags |= PREF_UNICODE;
    		pccsd->wParam |= PREF_UNICODE;
 
+		// receive encrypted message in non-encrypted mode
 		if(!isContactPGP(pccsd->hContact) && !isContactGPG(pccsd->hContact)) {
 			mir_free(szNewMsg);
 			szNewMsg = m_awstrcat(Translate(sim403),szNewMsg);
