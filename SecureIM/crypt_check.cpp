@@ -186,44 +186,48 @@ BOOL isContactNewPG(HANDLE hContact) {
 BOOL isContactPGP(HANDLE hContact) {
 	if(!bPGPloaded || (!bPGPkeyrings && !bPGPprivkey)) return false;
 	if (!clist_cnt) return false;
+	HANDLE hMetaContact = getMetaContact(hContact);
+   	if( hMetaContact ) hContact = hMetaContact;
     for(int j=0;j<clist_cnt;j++) {
-		if (clist[j].hContact == hContact)
-			return (clist[j].mode==1);
+		if (clist[j].hContact == hContact && clist[j].mode==1) {
+//        	HANDLE hMetaContact = getMetaContact(hContact);
+        	DBVARIANT dbv;
+        	DBGetContactSetting(hContact,szModuleName,"pgp",&dbv);
+        	BOOL r=(dbv.type!=0);
+        	DBFreeVariant(&dbv);
+//        	if( hMetaContact ) {
+//        		DBGetContactSetting(hMetaContact,szModuleName,"pgp",&dbv);
+//        		r|=(dbv.type!=0);
+//        		DBFreeVariant(&dbv);
+//        	}
+        	return r;
+		}
 	}
 	return false;
-/*	HANDLE hMetaContact = getMetaContact(hContact);
-	DBVARIANT dbv;
-	DBGetContactSetting(hContact,szModuleName,"pgp",&dbv);
-	BOOL r=(dbv.type!=0);
-	DBFreeVariant(&dbv);
-	if( hMetaContact ) {
-		DBGetContactSetting(hMetaContact,szModuleName,"pgp",&dbv);
-		r|=(dbv.type!=0);
-		DBFreeVariant(&dbv);
-	}
-	return r;*/
 }
 
 
 BOOL isContactGPG(HANDLE hContact) {
 	if(!bGPGloaded || !bGPGkeyrings) return false;
 	if (!clist_cnt) return false;
+	HANDLE hMetaContact = getMetaContact(hContact);
+   	if( hMetaContact ) hContact = hMetaContact;
     for(int j=0;j<clist_cnt;j++) {
-		if (clist[j].hContact == hContact)
-			return (clist[j].mode==2);
+		if (clist[j].hContact == hContact && clist[j].mode==2) {
+//        	HANDLE hMetaContact = getMetaContact(hContact);
+        	DBVARIANT dbv;
+        	DBGetContactSetting(hContact,szModuleName,"gpg",&dbv);
+        	BOOL r=(dbv.type!=0);
+        	DBFreeVariant(&dbv);
+//        	if( hMetaContact ) {
+//       		DBGetContactSetting(hMetaContact,szModuleName,"gpg",&dbv);
+//        		r|=(dbv.type!=0);
+//        		DBFreeVariant(&dbv);
+//        	}
+        	return r;
+		}
 	}
 	return false;
-/*	HANDLE hMetaContact = getMetaContact(hContact);
-	DBVARIANT dbv;
-	DBGetContactSetting(hContact,szModuleName,"gpg",&dbv);
-	BOOL r=(dbv.type!=0);
-	DBFreeVariant(&dbv);
-	if( hMetaContact ) {
-		DBGetContactSetting(hMetaContact,szModuleName,"gpg",&dbv);
-		r|=(dbv.type!=0);
-		DBFreeVariant(&dbv);
-	}
-	return r;*/
 }
 
 

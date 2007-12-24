@@ -1,4 +1,9 @@
 
+Verison 1.0.10.5 [24-12-2007]
+
+[*] fix Load/Unload keys for PGP/GPG
+
+
 Verison 1.0.10.4 [21-12-2007]
 
 [*] fix double UTF8 encoding in PGP/GPG messages
