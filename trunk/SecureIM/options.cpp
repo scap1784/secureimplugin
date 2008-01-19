@@ -2,6 +2,7 @@
 
 #define PSKSIZE 4096
 BOOL bChangeSortOrder = false;
+const char *szAdvancedIcons[] = {"None", "Email", "Protocol", "SMS", "Advanced 1", "Advanced 2", "Web", "Client", "VisMode", "Advanced 6", "Advanced 7"};
 
 
 void TC_InsertItem(HWND hwnd, WPARAM wparam, TCITEM *tci) {
@@ -237,11 +238,14 @@ BOOL CALLBACK DlgProcOptionsGeneral(HWND hDlg, UINT wMsg, WPARAM wParam, LPARAM 
 		  LVCOLUMN lvc;
 		  lvc.mask = LVCF_FMT | LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM;
 		  lvc.fmt = LVCFMT_LEFT;
-		  for (i = 0; i < 5; i++) {
+		  for (i = 0; i < SIZEOF(szColHdr); i++) {
 			  lvc.iSubItem = i;
 			  lvc.pszText = (LPSTR)szColHdr[i];
 			  lvc.cx = iColWidth[i];
 			  LV_InsertColumn(hLV, i, &lvc);
+		  }
+		  for (i = 0; i < SIZEOF(szAdvancedIcons); i++) {
+			SendMessage(GetDlgItem(hDlg, IDC_ADVICON), CB_ADDSTRING, 0, (LPARAM) Translate(szAdvancedIcons[i]));
 		  }
 
 		  RefreshGeneralDlg(hDlg,TRUE);
@@ -355,6 +359,7 @@ BOOL CALLBACK DlgProcOptionsGeneral(HWND hDlg, UINT wMsg, WPARAM wParam, LPARAM 
 		  	case IDC_SCM:
 		  	case IDC_DGP:
 		  	case IDC_OKT:
+		  	case IDC_ADVICON:
 				break;
 
 			default:
@@ -544,7 +549,7 @@ BOOL CALLBACK DlgProcOptionsPGP(HWND hDlg, UINT wMsg, WPARAM wParam, LPARAM lPar
 		  LVCOLUMN lvc;
 		  lvc.mask = LVCF_FMT | LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM;
 		  lvc.fmt = LVCFMT_LEFT;
-		  for (i = 0; i < 3; i++) {
+		  for (i = 0; i < SIZEOF(szColHdr); i++) {
 			  lvc.iSubItem = i;
 			  lvc.pszText = (LPSTR)szColHdr[i];
 			  lvc.cx = iColWidth[i];
@@ -692,7 +697,7 @@ BOOL CALLBACK DlgProcOptionsGPG(HWND hDlg, UINT wMsg, WPARAM wParam, LPARAM lPar
 		  LVCOLUMN lvc;
 		  lvc.mask = LVCF_FMT | LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM;
 		  lvc.fmt = LVCFMT_LEFT;
-		  for (i = 0; i < 4; i++) {
+		  for (i = 0; i < SIZEOF(szColHdr); i++) {
 			  lvc.iSubItem = i;
 			  lvc.pszText = (LPSTR)szColHdr[i];
 			  lvc.cx = iColWidth[i];
@@ -877,7 +882,7 @@ BOOL CALLBACK DlgProcSetPSK(HWND hDlg,UINT uMsg,WPARAM wParam,LPARAM lParam) {
 void RefreshGeneralDlg(HWND hDlg, BOOL iInit) {
 
 	char timeout[5];
-	UINT data,i;
+	UINT data;
 
 	// Key Exchange Timeout
 	data = DBGetContactSettingWord(0, szModuleName, "ket", 10);
@@ -907,8 +912,9 @@ void RefreshGeneralDlg(HWND hDlg, BOOL iInit) {
 	}	
 */
 	// Advanced
-	for(i=0;i<ADV_CNT;i++)
-		SendMessage(GetDlgItem(hDlg,IDC_ADV0+i),BM_SETCHECK,(i==bADV)?BST_CHECKED:BST_UNCHECKED,0L);
+//	for(i=0;i<ADV_CNT;i++)
+//		SendMessage(GetDlgItem(hDlg,IDC_ADV0+i),BM_SETCHECK,(i==bADV)?BST_CHECKED:BST_UNCHECKED,0L);
+	SendMessage(GetDlgItem(hDlg, IDC_ADVICON), CB_SETCURSEL, bADV, 0);
 
 	// Select {OFF,PGP,GPG}
 	SendMessage(GetDlgItem(hDlg,IDC_PGP),BM_SETCHECK,bPGP?BST_CHECKED:BST_UNCHECKED,0L);
@@ -1121,8 +1127,9 @@ void ResetGeneralDlg(HWND hDlg) {
 	SendMessage(GetDlgItem(hDlg,IDC_DGP),BM_SETCHECK,BST_UNCHECKED,0L);
 	SendMessage(GetDlgItem(hDlg,IDC_AIP),BM_SETCHECK,BST_UNCHECKED,0L);
 
-	for(int i=0;i<ADV_CNT;i++)
-		SendMessage(GetDlgItem(hDlg,IDC_ADV1+i),BM_SETCHECK,(i==0)?BST_CHECKED:BST_UNCHECKED,0L);
+//	for(int i=0;i<ADV_CNT;i++)
+//		SendMessage(GetDlgItem(hDlg,IDC_ADV1+i),BM_SETCHECK,(i==0)?BST_CHECKED:BST_UNCHECKED,0L);
+	SendMessage(GetDlgItem(hDlg, IDC_ADVICON), CB_SETCURSEL, 0, 0);
 
 	// rebuild list of contacts
 	HWND hLV = GetDlgItem(hDlg,IDC_STD_USERLIST);
@@ -1200,16 +1207,18 @@ void ApplyGeneralSettings(HWND hDlg) {
 	bSCM = (SendMessage(GetDlgItem(hDlg, IDC_SCM),BM_GETCHECK,0L,0L)==BST_CHECKED);
 	bDGP = (SendMessage(GetDlgItem(hDlg, IDC_DGP),BM_GETCHECK,0L,0L)==BST_CHECKED);
 	bAIP = (SendMessage(GetDlgItem(hDlg, IDC_AIP),BM_GETCHECK,0L,0L)==BST_CHECKED);
+	bADV = (BYTE)SendMessage(GetDlgItem(hDlg, IDC_ADVICON), CB_GETCURSEL, 0, 0);
 
 	// Advanced
-	for(i=0;i<ADV_CNT;i++)
-	   if(SendMessage(GetDlgItem(hDlg, IDC_ADV0+i),BM_GETCHECK,0L,0L)==BST_CHECKED) {
-			bADV = i;
-			break;
-	   }
+//	for(i=0;i<ADV_CNT;i++)
+//	   if(SendMessage(GetDlgItem(hDlg, IDC_ADV0+i),BM_GETCHECK,0L,0L)==BST_CHECKED) {
+//			bADV = i;
+//			break;
+//	   }
 
 	// update extraicon position
-	g_IEC[0].ColumnType = EXTRA_ICON_ADV1 + bADV - 1;
+//	g_IEC[0].ColumnType = EXTRA_ICON_ADV1 + bADV - 1;
+	g_IEC[0].ColumnType = bADV;
 	for(i=0;i<IEC_CNT;i++){
 		if(i) g_IEC[i].ColumnType = g_IEC[0].ColumnType;
 	}

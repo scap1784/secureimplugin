@@ -90,6 +90,7 @@
 #define IDC_DGP                         1044
 #define IDC_OKT                         1045
 #define IDC_AIP                         1046
+#define IDC_ADVICON                     1047
 
 #define IDC_NO_PGP                      1100
 #define IDC_PGP                         1101

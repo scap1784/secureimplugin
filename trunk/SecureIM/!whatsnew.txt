@@ -1,4 +1,9 @@
 
+Verison 1.0.10.7 [19-01-2008]
+
+[*] change select contact list icon slot
+
+
 Verison 1.0.10.6 [24-12-2007]
 
 [*] some code rewrite

@@ -192,7 +192,8 @@ void RefreshContactListIcons(void) {
 		ShowStatusIcon(hContact,0);
 		hContact = (HANDLE)CallService(MS_DB_CONTACT_FINDNEXT, (WPARAM)hContact, 0);
 	}
-	g_IEC[0].ColumnType = EXTRA_ICON_ADV1 + bADV - 1;
+//	g_IEC[0].ColumnType = EXTRA_ICON_ADV1 + bADV - 1;
+	g_IEC[0].ColumnType = bADV;
 	for(int i=1;i<IEC_CNT;i++){
 		g_IEC[i].ColumnType = g_IEC[0].ColumnType;
 	}

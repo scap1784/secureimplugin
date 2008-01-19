@@ -475,7 +475,8 @@ int onModulesLoaded(WPARAM wParam,LPARAM lParam) {
 	loadContactList();
 
 	// init adv? icons
-	g_IEC[0].ColumnType = EXTRA_ICON_ADV1 + bADV - 1;
+//	g_IEC[0].ColumnType = EXTRA_ICON_ADV1 + bADV - 1;
+	g_IEC[0].ColumnType = bADV;
 	for(int i=0;i<IEC_CNT;i++){
 		g_IEC[i].cbSize		= sizeof(g_IEC[i]);
 		if(i)
