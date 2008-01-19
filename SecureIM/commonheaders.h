@@ -51,11 +51,16 @@
   ListView_SetItemState(hwndLV, i, INDEXTOSTATEIMAGEMASK((fCheck)?2:1), LVIS_STATEIMAGEMASK)
 #endif
 
+#ifndef SIZEOF
+#define SIZEOF(X) (sizeof(X)/sizeof(X[0]))
+#endif
+
 #ifndef M_API_H__
 #define M_API_H__
 
 // Miranda API
 #include "newpluginapi.h"
+#include "m_stdhdr.h"
 #include "m_plugins.h"
 #include "m_system.h"
 #include "m_database.h"
