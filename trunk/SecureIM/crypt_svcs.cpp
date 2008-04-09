@@ -730,12 +730,13 @@ int onSendMsg(WPARAM wParam, LPARAM lParam) {
 		if (ptr->cntx) {
 			cpp_delete_context(ptr->cntx); ptr->cntx=0;
 
+			pccsd->wParam |= PREF_METANODB;
 			CallService(MS_PROTO_CHAINSEND, wParam, lParam);
 
 			showPopUpDC(pccsd->hContact);
 			ShowStatusIconNotify(pccsd->hContact);
 		}
-		return 1;
+		return returnNoError(pccsd->hContact);
 	}
 
 	if (cpp_keya(ptr->cntx) && cpp_keyb(ptr->cntx) && !cpp_keyx(ptr->cntx)) CalculateKeyX(ptr,ptr->hContact);
@@ -744,9 +745,29 @@ int onSendMsg(WPARAM wParam, LPARAM lParam) {
 	// if cryptokey exist
 	if (cpp_keyx(ptr->cntx)) {
 
+	    if( !hMetaContact && isProtoMetaContacts(pccsd->hContact) && (DBGetContactSettingByte(NULL, "MetaContacts", "SubcontactHistory", 1) == 1)) {
+			// add sent event to subcontact
+    		DBEVENTINFO dbei; HANDLE hC = getMostOnline(pccsd->hContact);
+			ZeroMemory(&dbei, sizeof(dbei));
+			dbei.cbSize = sizeof(dbei);
+			dbei.szModule = (char *)CallService(MS_PROTO_GETCONTACTBASEPROTO, (WPARAM)hC, 0);
+			dbei.flags = DBEF_SENT;
+			dbei.timestamp = time(NULL);
+			dbei.eventType = EVENTTYPE_MESSAGE;
+			if(pccsd->wParam & PREF_RTL) dbei.flags |= DBEF_RTL;
+			if(pccsd->wParam & PREF_UTF) dbei.flags |= DBEF_UTF;
+			dbei.cbBlob = strlen((char *)pccsd->lParam) + 1;
+			if ( pccsd->wParam & PREF_UNICODE )
+				dbei.cbBlob *= ( sizeof( wchar_t )+1 );
+			dbei.pBlob = (PBYTE)pccsd->lParam;
+
+			CallService(MS_DB_EVENT_ADD, (WPARAM)hC, (LPARAM)&dbei);
+	    }
+
 		LPSTR szNewMsg = encodeMsg(ptr,(LPARAM)pccsd);
 
 		pccsd->lParam = (LPARAM) szNewMsg;
+		pccsd->wParam |= PREF_METANODB;
 		pccsd->szProtoService = PSS_MESSAGE;
 		int ret = CallService(MS_PROTO_CHAINSEND, wParam, lParam);
 
@@ -771,8 +792,8 @@ int onSendMsg(WPARAM wParam, LPARAM lParam) {
 				Sent_NetLog("Sending KEY3: %s", keyToSend);
 #endif
 
-	  			pccsd->wParam &= ~PREF_UNICODE;
-	  			pccsd->lParam = (LPARAM) keyToSend;
+				pccsd->wParam &= ~PREF_UNICODE; pccsd->wParam |= PREF_METANODB;
+                pccsd->lParam = (LPARAM) keyToSend;
 	  			pccsd->szProtoService = PSS_MESSAGE;
 	  			CallService(MS_PROTO_CHAINSEND, wParam, lParam);
 	  			mir_free(keyToSend);

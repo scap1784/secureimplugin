@@ -1,4 +1,9 @@
 
+Verison 1.0.10.8 [09-04-2008]
+
+[*] fix store subcontact history in metacontacts (only with today meta svn)
+
+
 Verison 1.0.10.7 [19-01-2008]
 
 [*] change select contact list icon slot

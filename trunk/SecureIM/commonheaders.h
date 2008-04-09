@@ -45,6 +45,7 @@
 #include <stdlib.h>
 #include <shlwapi.h>
 #include <process.h>
+#include <time.h>
 
 #ifndef ListView_SetCheckState
 #define ListView_SetCheckState(hwndLV, i, fCheck) \
