@@ -118,8 +118,8 @@ int rsa_get_keypair(short mode, PBYTE privKey, int* privKeyLen, PBYTE pubKey, in
     pCNTX ptr = get_context_on_id((mode&MODE_RSA_4096)?-3:-2);
 	pRSAPRIV r = (pRSAPRIV) ptr->pdata;
 
-	*privKeyLen = r->priv_k.length(); r->priv_k.copy((char*)privKey, *privKeyLen);
-	*pubKeyLen = r->pub_k.length(); r->pub_k.copy((char*)pubKey, *pubKeyLen);
+	*privKeyLen = r->priv_k.length(); if(privKey) r->priv_k.copy((char*)privKey, *privKeyLen);
+	*pubKeyLen = r->pub_k.length(); if(pubKey) r->pub_k.copy((char*)pubKey, *pubKeyLen);
 
 	return 1;
 }
