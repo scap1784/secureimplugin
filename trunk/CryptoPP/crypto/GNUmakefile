@@ -1,11 +1,6 @@
-# can't use -fno-rtti yet because it causes problems with exception handling in GCC 2.95.2
-CXXFLAGS = -g
-# Uncomment the following two lines to do a release build.
-# Note that you must define NDEBUG for your own application if you define it for Crypto++.
-# Make sure you run the validation tests and test your own program thoroughly
-# after turning on -O3. The GCC optimizer may have bugs that cause it to generate incorrect code.
-# Try removing -fdata-sections if you get "undefined external reference" errors.
-# CXXFLAGS = -O3 -DNDEBUG -ffunction-sections -fdata-sections
+CXXFLAGS = -DNDEBUG -g -O2
+# the following options reduce code size, but breaks link or makes link very slow on some systems
+# CXXFLAGS += -ffunction-sections -fdata-sections
 # LDFLAGS += -Wl,--gc-sections
 ARFLAGS = -cr	# ar needs the dash on OpenBSD
 RANLIB = ranlib
@@ -27,15 +22,28 @@ endif
 
 ifeq ($(ISX86),1)
 
-GCC33ORLATER = $(shell $(CXX) -v 2>&1 | $(EGREP) -c "gcc version (3.[3-9]|[4-9])")
-GAS210ORLATER = $(shell echo "" | $(AS) -v 2>&1 | $(EGREP) -c "GNU assembler version (2.[1-9][0-9]|[3-9])")
+GCC34_OR_LATER = $(shell $(CXX) --version 2>&1 | $(EGREP) -c "\(GCC\) (3.[4-9]|[4-9])")
+GCC42_OR_LATER = $(shell $(CXX) --version 2>&1 | $(EGREP) -c "\(GCC\) (4.[2-9]|[5-9])")
+INTEL_COMPILER = $(shell $(CXX) --version 2>&1 | $(EGREP) -c "\(ICC\)")
+GAS210_OR_LATER = $(shell echo "" | $(AS) -v 2>&1 | $(EGREP) -c "GNU assembler version (2.[1-9][0-9]|[3-9])")
 
-ifeq ($(GCC33ORLATER) $(ISMINGW),1 0)	# MINGW32 is missing the memalign function
-CXXFLAGS += -msse2
+ifneq ($(GCC34_OR_LATER) $(INTEL_COMPILER),0 0)
+ifneq ($(GCC42_OR_LATER),0)
+CXXFLAGS += -march=native -mtune=native
+else
+# -msse2 is in GCC 3.3, but it causes internal compiler error on salsa.cpp,
+# so don't use it unless we're at GCC 3.4 or later
+# actually, we're not using SSE2 intrinsics anymore, and -msse2 causes invalid instructions on non-SSE2 CPUs
+# CXXFLAGS += -msse2
+endif
 endif
 
-ifeq ($(GAS210ORLATER),0)	# .intel_syntax wasn't supported until GNU assembler 2.10
-CXXFLAGS += -DCRYPTOPP_DISABLE_X86ASM
+ifeq ($(GAS210_OR_LATER),0)	# .intel_syntax wasn't supported until GNU assembler 2.10
+CXXFLAGS += -DCRYPTOPP_DISABLE_ASM
+else
+ifeq ($(UNAME),SunOS)
+CXXFLAGS += -Wa,--divide	# allow use of "/" operator
+endif
 endif
 
 endif
@@ -47,9 +55,7 @@ endif
 ifeq ($(UNAME),)	# for DJGPP, where uname doesn't exist
 CXXFLAGS += -mbnu210
 else
-ifneq ($(CXX),CC)	# don't use -pipe with CC (Solaris native C++ compiler)
 CXXFLAGS += -pipe
-endif
 endif
 
 ifeq ($(UNAME),Linux)
@@ -60,7 +66,6 @@ ifeq ($(UNAME),Darwin)
 AR = libtool
 ARFLAGS = -static -o
 CXX = c++
-CXXFLAGS += -D__pic__
 IS_GCC2 = $(shell $(CXX) -v 2>&1 | $(EGREP) -c gcc-932)
 ifeq ($(IS_GCC2),1)
 CXXFLAGS += -fno-coalesce-templates -fno-coalesce-static-vtables
@@ -71,6 +76,14 @@ endif
 
 ifeq ($(UNAME),SunOS)
 LDLIBS += -lnsl -lsocket
+ifeq ($(CXX),CC)	# override flags for CC (Solaris native C++ compiler)
+CXXFLAGS = -DNDEBUG -O -g -native
+LDFLAGS =
+ifeq ($(ISX86),1)
+# SSE2 intrinsics should work in Sun Studio 12, but we're not using SSE2 intrinsics anymore
+# CXXFLAGS += -xarch=sse2 -D__SSE2__
+endif
+endif
 endif
 
 SRCS = $(wildcard *.cpp)

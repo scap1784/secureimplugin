@@ -4,20 +4,20 @@
 	classes that provide a uniform interface to this library.
 */
 
-/*!	\mainpage <a href="http://www.cryptopp.com">Crypto++</a><sup><small>&reg;</small></sup> Library 5.4 Reference Manual
+/*!	\mainpage <a href="http://www.cryptopp.com">Crypto++</a><sup><small>&reg;</small></sup> Library 5.5.2 Reference Manual
 <dl>
 <dt>Abstract Base Classes<dd>
 	cryptlib.h
 <dt>Symmetric Ciphers<dd>
 	SymmetricCipherDocumentation
 <dt>Hash Functions<dd>
-	HAVAL, MD2, MD4, MD5, PanamaHash, RIPEMD160, RIPEMD320, RIPEMD128, RIPEMD256, SHA1, SHA224, SHA256, SHA384, SHA512, Tiger, Whirlpool
+	SHA1, SHA224, SHA256, SHA384, SHA512, Tiger, Whirlpool, RIPEMD160, RIPEMD320, RIPEMD128, RIPEMD256, Weak1::MD2, Weak1::MD4, Weak1::MD5
 <dt>Non-Cryptographic Checksums<dd>
 	CRC32, Adler32
 <dt>Message Authentication Codes<dd>
-	#MD5MAC, XMACC, HMAC, CBC_MAC, DMAC, PanamaMAC, TTMAC
+	VMAC, HMAC, CBC_MAC, DMAC, TTMAC
 <dt>Random Number Generators<dd>
-	NullRNG(), LC_RNG, RandomPool, BlockingRng, NonblockingRng, AutoSeededRandomPool, AutoSeededX917RNG
+	NullRNG(), LC_RNG, RandomPool, BlockingRng, NonblockingRng, AutoSeededRandomPool, AutoSeededX917RNG, DefaultAutoSeededRNG
 <dt>Password-based Cryptography<dd>
 	PasswordBasedKeyDerivationFunction
 <dt>Public Key Cryptosystems<dd>
@@ -35,9 +35,9 @@
 <dt>Compression<dd>
 	Deflator, Inflator, Gzip, Gunzip, ZlibCompressor, ZlibDecompressor
 <dt>Input Source Classes<dd>
-	StringSource, FileSource, SocketSource, WindowsPipeSource, RandomNumberSource
+	StringSource, ArraySource, FileSource, SocketSource, WindowsPipeSource, RandomNumberSource
 <dt>Output Sink Classes<dd>
-	StringSinkTemplate, ArraySink, FileSink, SocketSink, WindowsPipeSink
+	StringSinkTemplate, ArraySink, FileSink, SocketSink, WindowsPipeSink, RandomNumberSink
 <dt>Filter Wrappers<dd>
 	StreamTransformationFilter, HashFilter, HashVerificationFilter, SignerFilter, SignatureVerificationFilter
 <dt>Binary to Text Encoders and Decoders<dd>
@@ -61,7 +61,7 @@ In the FIPS 140-2 validated DLL version of Crypto++, only the following implemen
 <dt>Message Authentication Codes (replace template parameter H with one of the hash functions above)<dd>
 	HMAC\<H\>, CBC_MAC\<DES_EDE2\>, CBC_MAC\<DES_EDE3\>
 <dt>Random Number Generators<dd>
-	AutoSeededX917RNG\<DES_EDE3\>
+	DefaultAutoSeededRNG (AutoSeededX917RNG\<AES\>)
 <dt>Key Agreement<dd>
 	#DH
 <dt>Public Key Cryptosystems<dd>
@@ -84,6 +84,8 @@ NAMESPACE_BEGIN(CryptoPP)
 
 // forward declarations
 class Integer;
+class RandomNumberGenerator;
+class BufferedTransformation;
 
 //! used to specify a direction for a cipher to operate in (encrypt or decrypt)
 enum CipherDir {ENCRYPTION,	DECRYPTION};
@@ -351,6 +353,8 @@ public:
 class CRYPTOPP_DLL CRYPTOPP_NO_VTABLE SimpleKeyingInterface
 {
 public:
+	virtual ~SimpleKeyingInterface() {}
+
 	//! returns smallest valid key length in bytes */
 	virtual size_t MinKeyLength() const =0;
 	//! returns largest valid key length in bytes */
@@ -375,7 +379,7 @@ public:
 	//! calls SetKey() with an NameValuePairs object that just specifies "IV"
 	void SetKeyWithIV(const byte *key, size_t length, const byte *iv);
 
-	enum IV_Requirement {STRUCTURED_IV = 0, RANDOM_IV, UNPREDICTABLE_RANDOM_IV, INTERNALLY_GENERATED_IV, NOT_RESYNCHRONIZABLE};
+	enum IV_Requirement {UNIQUE_IV = 0, RANDOM_IV, UNPREDICTABLE_RANDOM_IV, INTERNALLY_GENERATED_IV, NOT_RESYNCHRONIZABLE};
 	//! returns the minimal requirement for secure IVs
 	virtual IV_Requirement IVRequirement() const =0;
 
@@ -387,7 +391,7 @@ public:
 	//! returns whether this object can use random but possibly predictable IVs (in addition to ones returned by GetNextIV)
 	bool CanUsePredictableIVs() const {return IVRequirement() <= RANDOM_IV;}
 	//! returns whether this object can use structured IVs, for example a counter (in addition to ones returned by GetNextIV)
-	bool CanUseStructuredIVs() const {return IVRequirement() <= STRUCTURED_IV;}
+	bool CanUseStructuredIVs() const {return IVRequirement() <= UNIQUE_IV;}
 
 	//! returns size of IVs used by this object
 	virtual unsigned int IVSize() const {throw NotImplemented("SimpleKeyingInterface: this object doesn't support resynchronization");}
@@ -397,7 +401,7 @@ public:
 	/*! This method should be called after you finish encrypting one message and are ready to start the next one.
 		After calling it, you must call SetKey() or Resynchronize() before using this object again. 
 		This method is not implemented on decryption objects. */
-	virtual void GetNextIV(byte *IV) {throw NotImplemented("SimpleKeyingInterface: this object doesn't support GetNextIV()");}
+	virtual void GetNextIV(RandomNumberGenerator &rng, byte *IV);
 
 protected:
 	virtual const Algorithm & GetAlgorithm() const =0;
@@ -438,7 +442,7 @@ public:
 	virtual unsigned int BlockSize() const =0;
 
 	//! block pointers must be divisible by this
-	virtual unsigned int BlockAlignment() const {return 4;}
+	virtual unsigned int BlockAlignment() const;	// returns alignment of word32 by default
 
 	//! returns true if this is a permutation (i.e. there is an inverse transformation)
 	virtual bool IsPermutation() const {return true;}
@@ -624,23 +628,30 @@ typedef SymmetricCipher StreamCipher;
 class CRYPTOPP_DLL CRYPTOPP_NO_VTABLE RandomNumberGenerator : public Algorithm
 {
 public:
+	//! update RNG state with additional unpredictable values
+	virtual void IncorporateEntropy(const byte *input, size_t length) {throw NotImplemented("RandomNumberGenerator: IncorporateEntropy not implemented");}
+
+	//! returns true if IncorporateEntropy is implemented
+	virtual bool CanIncorporateEntropy() const {return false;}
+
 	//! generate new random byte and return it
-	virtual byte GenerateByte() =0;
+	virtual byte GenerateByte();
 
 	//! generate new random bit and return it
-	/*! Default implementation is to call GenerateByte() and return its parity. */
+	/*! Default implementation is to call GenerateByte() and return its lowest bit. */
 	virtual unsigned int GenerateBit();
 
 	//! generate a random 32 bit word in the range min to max, inclusive
 	virtual word32 GenerateWord32(word32 a=0, word32 b=0xffffffffL);
 
 	//! generate random array of bytes
-	/*! Default implementation is to call GenerateByte() size times. */
 	virtual void GenerateBlock(byte *output, size_t size);
 
 	//! generate and discard n bytes
-	/*! Default implementation is to call GenerateByte() n times. */
 	virtual void DiscardBytes(size_t n);
+
+	//! generate random bytes as input to a BufferedTransformation
+	virtual void GenerateIntoBufferedTransformation(BufferedTransformation &target, const std::string &channel, lword length);
 
 	//! randomly shuffle the specified array, resulting permutation is uniformly distributed
 	template <class IT> void Shuffle(IT begin, IT end)
@@ -669,6 +680,8 @@ class CallStack;
 class CRYPTOPP_NO_VTABLE Waitable
 {
 public:
+	virtual ~Waitable() {}
+
 	//! maximum number of wait objects that this object can return
 	virtual unsigned int GetMaxWaitObjectCount() const =0;
 	//! put wait objects into container
@@ -1029,6 +1042,11 @@ public:
 
 	// for internal library use
 	void DoQuickSanityCheck() const	{ThrowIfInvalid(NullRNG(), 0);}
+
+#ifdef __SUNPRO_CC
+	// Sun Studio 11/CC 5.8 workaround: it generates incorrect code when casting to an empty virtual base class
+	char m_sunCCworkaround;
+#endif
 };
 
 //! interface for generatable crypto material, such as private keys and crypto parameters

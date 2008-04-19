@@ -2,6 +2,7 @@
 
 #include "pch.h"
 
+#define CRYPTOPP_ENABLE_NAMESPACE_WEAK 1
 #include "blumshub.h"
 #include "rsa.h"
 #include "md2.h"
@@ -38,11 +39,9 @@ class FixedRNG : public RandomNumberGenerator
 public:
 	FixedRNG(BufferedTransformation &source) : m_source(source) {}
 
-	byte GenerateByte()
+	void GenerateBlock(byte *output, size_t size)
 	{
-		byte b;
-		m_source.Get(b);
-		return b;
+		m_source.Get(output, size);
 	}
 
 private:
@@ -262,7 +261,7 @@ bool ValidateRSA()
 	bool pass = true, fail;
 
 	{
-		char *plain = "Everyone gets Friday off.";
+		const char *plain = "Everyone gets Friday off.";
 		byte *signature = (byte *)
 			"\x05\xfa\x6a\x81\x2f\xc7\xdf\x8b\xf4\xf2\x54\x25\x09\xe0\x3e\x84"
 			"\x6e\x11\xb9\xc6\x20\xbe\x20\x09\xef\xb4\x40\xef\xbc\xc6\x69\x21"
@@ -270,8 +269,8 @@ bool ValidateRSA()
 			"\x5c\x77\xdf\xd9\xb1\x5b\xfc\x3d\x55\x93\x53\x50\x34\x10\xc1\xe1";
 
 		FileSource keys("rsa512a.dat", true, new HexDecoder);
-		RSASSA_PKCS1v15_MD2_Signer rsaPriv(keys);
-		RSASSA_PKCS1v15_MD2_Verifier rsaPub(rsaPriv);
+		Weak::RSASSA_PKCS1v15_MD2_Signer rsaPriv(keys);
+		Weak::RSASSA_PKCS1v15_MD2_Verifier rsaPub(rsaPriv);
 
 		size_t signatureLength = rsaPriv.SignMessage(GlobalRNG(), (byte *)plain, strlen(plain), out);
 		fail = memcmp(signature, out, 64) != 0;
@@ -659,10 +658,10 @@ bool ValidateEC2N()
 #if 0	// TODO: turn this back on when I make EC2N faster for pentanomial basis
 	cout << "Testing SEC 2 recommended curves..." << endl;
 	OID oid;
-	while (!(oid = ECParameters<EC2N>::GetNextRecommendedParametersOID(oid)).m_values.empty())
+	while (!(oid = DL_GroupParameters_EC<EC2N>::GetNextRecommendedParametersOID(oid)).m_values.empty())
 	{
-		ECParameters<EC2N> params(oid);
-		bool fail = !params.ValidateParameters(GlobalRNG());
+		DL_GroupParameters_EC<EC2N> params(oid);
+		bool fail = !params.Validate(GlobalRNG(), 2);
 		cout << (fail ? "FAILED" : "passed") << "    " << params.GetCurve().GetField().MaxElementBitLength() << " bits" << endl;
 		pass = pass && !fail;
 	}
@@ -749,8 +748,8 @@ bool ValidateESIGN()
 	cout << "verification check against test vector\n";
 
 	cout << "Generating signature key from seed..." << endl;
-	InvertibleESIGNFunction priv;
-	priv.GenerateRandom(GlobalRNG(), MakeParameters("Seed", ConstByteArrayParameter((const byte *)"test", 4))("KeySize", 3*512));
+	signer.AccessKey().GenerateRandom(GlobalRNG(), MakeParameters("Seed", ConstByteArrayParameter((const byte *)"test", 4))("KeySize", 3*512));
+	verifier = signer;
 
 	fail = !SignatureValidate(signer, verifier);
 	pass = pass && !fail;

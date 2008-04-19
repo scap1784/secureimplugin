@@ -7,7 +7,8 @@
 
 #include "randpool.h"
 #include "rng.h"
-#include "des.h"
+#include "aes.h"
+#include "sha.h"
 #include "fips140.h"
 
 NAMESPACE_BEGIN(CryptoPP)
@@ -46,7 +47,6 @@ class CRYPTOPP_DLL NonblockingRng : public RandomNumberGenerator
 public:
 	NonblockingRng();
 	~NonblockingRng();
-	byte GenerateByte();
 	void GenerateBlock(byte *output, size_t size);
 
 protected:
@@ -63,13 +63,12 @@ protected:
 
 #ifdef BLOCKING_RNG_AVAILABLE
 
-//! encapsulate /dev/random
+//! encapsulate /dev/random, or /dev/srandom on OpenBSD
 class CRYPTOPP_DLL BlockingRng : public RandomNumberGenerator
 {
 public:
 	BlockingRng();
 	~BlockingRng();
-	byte GenerateByte();
 	void GenerateBlock(byte *output, size_t size);
 
 protected:
@@ -85,7 +84,7 @@ CRYPTOPP_DLL void CRYPTOPP_API OS_GenerateRandomBlock(bool blocking, byte *outpu
 class CRYPTOPP_DLL AutoSeededRandomPool : public RandomPool
 {
 public:
-	//! blocking will be ignored if the prefered RNG isn't available
+	//! use blocking to choose seeding with BlockingRng or NonblockingRng. the parameter is ignored if only one of these is available
 	explicit AutoSeededRandomPool(bool blocking = false, unsigned int seedSize = 32)
 		{Reseed(blocking, seedSize);}
 	void Reseed(bool blocking = false, unsigned int seedSize = 32);
@@ -96,42 +95,42 @@ template <class BLOCK_CIPHER>
 class AutoSeededX917RNG : public RandomNumberGenerator, public NotCopyable
 {
 public:
-	//! blocking will be ignored if the prefered RNG isn't available
+	//! use blocking to choose seeding with BlockingRng or NonblockingRng. the parameter is ignored if only one of these is available
 	explicit AutoSeededX917RNG(bool blocking = false)
 		{Reseed(blocking);}
-	void Reseed(bool blocking = false);
+	void Reseed(bool blocking = false, const byte *additionalEntropy = NULL, size_t length = 0);
 	// exposed for testing
 	void Reseed(const byte *key, size_t keylength, const byte *seed, const byte *timeVector);
 
-	byte GenerateByte();
+	bool CanIncorporateEntropy() const {return true;}
+	void IncorporateEntropy(const byte *input, size_t length) {Reseed(false, input, length);}
+	void GenerateIntoBufferedTransformation(BufferedTransformation &target, const std::string &channel, lword length) {m_rng->GenerateIntoBufferedTransformation(target, channel, length);}
 
 private:
 	member_ptr<RandomNumberGenerator> m_rng;
-	SecByteBlock m_lastBlock;
-	bool m_isDifferent;
-	unsigned int m_counter;
 };
 
 template <class BLOCK_CIPHER>
 void AutoSeededX917RNG<BLOCK_CIPHER>::Reseed(const byte *key, size_t keylength, const byte *seed, const byte *timeVector)
 {
 	m_rng.reset(new X917RNG(new typename BLOCK_CIPHER::Encryption(key, keylength), seed, timeVector));
-
-	// for FIPS 140-2
-	m_lastBlock.resize(16);
-	m_rng->GenerateBlock(m_lastBlock, m_lastBlock.size());
-	m_counter = 0;
-	m_isDifferent = false;
 }
 
 template <class BLOCK_CIPHER>
-void AutoSeededX917RNG<BLOCK_CIPHER>::Reseed(bool blocking)
+void AutoSeededX917RNG<BLOCK_CIPHER>::Reseed(bool blocking, const byte *input, size_t length)
 {
 	SecByteBlock seed(BLOCK_CIPHER::BLOCKSIZE + BLOCK_CIPHER::DEFAULT_KEYLENGTH);
 	const byte *key;
 	do
 	{
 		OS_GenerateRandomBlock(blocking, seed, seed.size());
+		if (length > 0)
+		{
+			SHA256 hash;
+			hash.Update(seed, seed.size());
+			hash.Update(input, length);
+			hash.TruncatedFinal(seed, UnsignedMin(hash.DigestSize(), seed.size()));
+		}
 		key = seed + BLOCK_CIPHER::BLOCKSIZE;
 	}	// check that seed and key don't have same value
 	while (memcmp(key, seed, STDMIN((unsigned int)BLOCK_CIPHER::BLOCKSIZE, (unsigned int)BLOCK_CIPHER::DEFAULT_KEYLENGTH)) == 0);
@@ -139,27 +138,13 @@ void AutoSeededX917RNG<BLOCK_CIPHER>::Reseed(bool blocking)
 	Reseed(key, BLOCK_CIPHER::DEFAULT_KEYLENGTH, seed, NULL);
 }
 
-template <class BLOCK_CIPHER>
-byte AutoSeededX917RNG<BLOCK_CIPHER>::GenerateByte()
-{
-	byte b = m_rng->GenerateByte();
+CRYPTOPP_DLL_TEMPLATE_CLASS AutoSeededX917RNG<AES>;
 
-	// for FIPS 140-2
-	m_isDifferent = m_isDifferent || b != m_lastBlock[m_counter];
-	m_lastBlock[m_counter] = b;
-	++m_counter;
-	if (m_counter == m_lastBlock.size())
-	{
-		if (!m_isDifferent)
-			throw SelfTestFailure("AutoSeededX917RNG: Continuous random number generator test failed.");
-		m_counter = 0;
-		m_isDifferent = false;
-	}
-
-	return b;
-}
-
-CRYPTOPP_DLL_TEMPLATE_CLASS AutoSeededX917RNG<DES_EDE3>;
+#if CRYPTOPP_ENABLE_COMPLIANCE_WITH_FIPS_140_2
+typedef AutoSeededX917RNG<AES> DefaultAutoSeededRNG;
+#else
+typedef AutoSeededRandomPool DefaultAutoSeededRNG;
+#endif
 
 NAMESPACE_END
 

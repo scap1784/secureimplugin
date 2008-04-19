@@ -17,6 +17,8 @@ CFG=cryptlib - Win32 Debug
 !MESSAGE 
 !MESSAGE Possible choices for configuration are:
 !MESSAGE 
+!MESSAGE "cryptlib - Win32 DLL-Import Release" (based on "Win32 (x86) Static Library")
+!MESSAGE "cryptlib - Win32 DLL-Import Debug" (based on "Win32 (x86) Static Library")
 !MESSAGE "cryptlib - Win32 Release" (based on "Win32 (x86) Static Library")
 !MESSAGE "cryptlib - Win32 Debug" (based on "Win32 (x86) Static Library")
 !MESSAGE 
@@ -28,7 +30,53 @@ CFG=cryptlib - Win32 Debug
 CPP=cl.exe
 RSC=rc.exe
 
-!IF  "$(CFG)" == "cryptlib - Win32 Release"
+!IF  "$(CFG)" == "cryptlib - Win32 DLL-Import Release"
+
+# PROP BASE Use_MFC 0
+# PROP BASE Use_Debug_Libraries 0
+# PROP BASE Output_Dir "cryptlib___Win32_FIPS_140_Release"
+# PROP BASE Intermediate_Dir "cryptlib___Win32_FIPS_140_Release"
+# PROP BASE Target_Dir ""
+# PROP Use_MFC 0
+# PROP Use_Debug_Libraries 0
+# PROP Output_Dir "DLL_Import_Release"
+# PROP Intermediate_Dir "DLL_Import_Release"
+# PROP Target_Dir ""
+# ADD BASE CPP /nologo /G5 /Gz /MT /W3 /GX /Zi /O2 /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "USE_PRECOMPILED_HEADERS" /Yu"pch.h" /FD /c
+# ADD CPP /nologo /G5 /Gz /MT /W3 /GX /Zi /O2 /Ob2 /D "NDEBUG" /D "_WINDOWS" /D "USE_PRECOMPILED_HEADERS" /D "WIN32" /D "CRYPTOPP_IMPORTS" /Yu"pch.h" /FD /Zm400 /c
+# ADD BASE RSC /l 0x409
+# ADD RSC /l 0x409
+BSC32=bscmake.exe
+# ADD BASE BSC32 /nologo
+# ADD BSC32 /nologo
+LIB32=link.exe -lib
+# ADD BASE LIB32 /nologo
+# ADD LIB32 /nologo
+
+!ELSEIF  "$(CFG)" == "cryptlib - Win32 DLL-Import Debug"
+
+# PROP BASE Use_MFC 0
+# PROP BASE Use_Debug_Libraries 1
+# PROP BASE Output_Dir "cryptlib___Win32_FIPS_140_Debug"
+# PROP BASE Intermediate_Dir "cryptlib___Win32_FIPS_140_Debug"
+# PROP BASE Target_Dir ""
+# PROP Use_MFC 0
+# PROP Use_Debug_Libraries 1
+# PROP Output_Dir "DLL_Import_Debug"
+# PROP Intermediate_Dir "DLL_Import_Debug"
+# PROP Target_Dir ""
+# ADD BASE CPP /nologo /MTd /W3 /GX /ZI /Od /D "_DEBUG" /D "WIN32" /D "_WINDOWS" /D "USE_PRECOMPILED_HEADERS" /Yu"pch.h" /FD /c
+# ADD CPP /nologo /G5 /Gz /MTd /W3 /GX /Zi /Oi /D "_DEBUG" /D "_WINDOWS" /D "USE_PRECOMPILED_HEADERS" /D "WIN32" /D "CRYPTOPP_IMPORTS" /Yu"pch.h" /FD /Zm400 /c
+# ADD BASE RSC /l 0x409
+# ADD RSC /l 0x409
+BSC32=bscmake.exe
+# ADD BASE BSC32 /nologo
+# ADD BSC32 /nologo
+LIB32=link.exe -lib
+# ADD BASE LIB32 /nologo
+# ADD LIB32 /nologo
+
+!ELSEIF  "$(CFG)" == "cryptlib - Win32 Release"
 
 # PROP BASE Use_MFC 0
 # PROP BASE Use_Debug_Libraries 0
@@ -41,7 +89,7 @@ RSC=rc.exe
 # PROP Intermediate_Dir "Release"
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /YX /FD /c
-# ADD CPP /nologo /MD /W3 /GX /Zi /O1 /Ob2 /D "NDEBUG" /D "_WINDOWS" /D "USE_PRECOMPILED_HEADERS" /D "WIN32" /Yu"pch.h" /FD /Zm400 /c
+# ADD CPP /nologo /G5 /MD /W3 /GX /Zi /O1 /Ob2 /D "NDEBUG" /D "_WINDOWS" /D "USE_PRECOMPILED_HEADERS" /D "WIN32" /Yu"pch.h" /FD /Zm400 /c
 # ADD BASE RSC /l 0x409
 # ADD RSC /l 0x409
 BSC32=bscmake.exe
@@ -64,7 +112,7 @@ LIB32=link.exe -lib
 # PROP Intermediate_Dir "Debug"
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /GX /Z7 /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /YX /FD /c
-# ADD CPP /nologo /MDd /W3 /GX /Zi /Od /D "_DEBUG" /D "_WINDOWS" /D "USE_PRECOMPILED_HEADERS" /D "WIN32" /Yu"pch.h" /FD /Zm400 /c
+# ADD CPP /nologo /MTd /W3 /GX /Zi /Oi /D "_DEBUG" /D "_WINDOWS" /D "USE_PRECOMPILED_HEADERS" /D "WIN32" /Yu"pch.h" /FD /Zm400 /c
 # ADD BASE RSC /l 0x409
 # ADD RSC /l 0x409
 BSC32=bscmake.exe
@@ -78,6 +126,8 @@ LIB32=link.exe -lib
 
 # Begin Target
 
+# Name "cryptlib - Win32 DLL-Import Release"
+# Name "cryptlib - Win32 DLL-Import Debug"
 # Name "cryptlib - Win32 Release"
 # Name "cryptlib - Win32 Debug"
 # Begin Group "Source Files"
@@ -91,7 +141,29 @@ SOURCE=.\3way.cpp
 
 SOURCE=.\adhoc.cpp.proto
 
-!IF  "$(CFG)" == "cryptlib - Win32 Release"
+!IF  "$(CFG)" == "cryptlib - Win32 DLL-Import Release"
+
+# Begin Custom Build
+InputPath=.\adhoc.cpp.proto
+
+"adhoc.cpp.copied" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	if not exist adhoc.cpp copy "$(InputPath)" adhoc.cpp 
+	echo: >> adhoc.cpp.copied 
+	
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "cryptlib - Win32 DLL-Import Debug"
+
+# Begin Custom Build
+InputPath=.\adhoc.cpp.proto
+
+"adhoc.cpp.copied" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	if not exist adhoc.cpp copy "$(InputPath)" adhoc.cpp 
+	echo: >> adhoc.cpp.copied 
+	
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "cryptlib - Win32 Release"
 
 # Begin Custom Build
 InputPath=.\adhoc.cpp.proto
@@ -179,6 +251,10 @@ SOURCE=.\cbcmac.cpp
 # Begin Source File
 
 SOURCE=.\channels.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\cpu.cpp
 # End Source File
 # Begin Source File
 
@@ -287,10 +363,6 @@ SOURCE=.\gzip.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\haval.cpp
-# End Source File
-# Begin Source File
-
 SOURCE=.\hex.cpp
 # End Source File
 # Begin Source File
@@ -340,10 +412,6 @@ SOURCE=.\md4.cpp
 # Begin Source File
 
 SOURCE=.\md5.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\md5mac.cpp
 # End Source File
 # Begin Source File
 
@@ -496,6 +564,10 @@ SOURCE=.\socketft.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\sosemanuk.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\square.cpp
 # End Source File
 # Begin Source File
@@ -533,6 +605,10 @@ SOURCE=.\ttmac.cpp
 # Begin Source File
 
 SOURCE=.\twofish.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\vmac.cpp
 # End Source File
 # Begin Source File
 
@@ -756,10 +832,6 @@ SOURCE=.\gzip.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\haval.h
-# End Source File
-# Begin Source File
-
 SOURCE=.\hex.h
 # End Source File
 # Begin Source File
@@ -809,10 +881,6 @@ SOURCE=.\md4.h
 # Begin Source File
 
 SOURCE=.\md5.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\md5mac.h
 # End Source File
 # Begin Source File
 
@@ -1041,10 +1109,6 @@ SOURCE=.\winpipes.h
 # Begin Source File
 
 SOURCE=.\words.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\xormac.h
 # End Source File
 # Begin Source File
 

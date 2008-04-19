@@ -114,33 +114,37 @@ typedef unsigned int word32;
 	#define W64LIT(x) x##ui64
 #endif
 
-// define largest word type
+// define large word type, used for file offsets and such
 #ifdef WORD64_AVAILABLE
 	typedef word64 lword;
-	const lword LWORD_MAX = W64LIT(0)-1;
+	const lword LWORD_MAX = W64LIT(0xffffffffffffffff);
 #else
 	typedef word32 lword;
-	const lword LWORD_MAX = lword(0)-1;
+	const lword LWORD_MAX = 0xffffffffUL;
 #endif
 
-#if defined(__alpha__) || defined(__ia64__) || defined(_ARCH_PPC64) || defined(__x86_64__) || defined(__mips64) || defined(_M_X64)
-	// These platforms have 64-bit CPU registers. Unfortunately most C++ compilers doesn't
-	// allow any way to access the 64-bit by 64-bit multiply instruction without using
-	// assembly, so in order to use word64 as word, the assembly instruction must be defined
-	// in Dword::Multiply().
-	#if defined(__SUNPRO_CC)	// no Dword::Multiply() for these compilers yet
-		#define CRYPTOPP_NATIVE_DWORD_AVAILABLE
-		typedef word16 hword;
-		typedef word32 word;
-		typedef word64 dword;
-	#else
-		typedef word32 hword;
-		typedef word64 word;
-	#endif
+// define hword, word, and dword. these are used for multiprecision integer arithmetic
+// Intel compiler won't have _umul128 until version 10.0. See http://softwarecommunity.intel.com/isn/Community/en-US/forums/thread/30231625.aspx
+#if (defined(_MSC_VER) && (!defined(__INTEL_COMPILER) || __INTEL_COMPILER >= 1000) && (defined(_M_X64) || defined(_M_IA64))) || (defined(__DECCXX) && defined(__alpha__)) || (defined(__INTEL_COMPILER) && defined(__x86_64__))
+	typedef word32 hword;
+	typedef word64 word;
 #else
 	#define CRYPTOPP_NATIVE_DWORD_AVAILABLE
-	#ifdef WORD64_AVAILABLE
-		#define CRYPTOPP_SLOW_WORD64 // defined this if your CPU is not 64-bit to use alternative code that avoids word64
+	#if defined(__alpha__) || defined(__ia64__) || defined(_ARCH_PPC64) || defined(__x86_64__) || defined(__mips64) || defined(__sparc64__)
+		#if defined(__GNUC__) && !defined(__INTEL_COMPILER)
+			typedef word32 hword;
+			typedef word64 word;
+			typedef __uint128_t dword;
+			typedef __uint128_t word128;
+			#define CRYPTOPP_WORD128_AVAILABLE
+		#else
+			// if we're here, it means we're on a 64-bit CPU but we don't have a way to obtain 128-bit multiplication results
+			typedef word16 hword;
+			typedef word32 word;
+			typedef word64 dword;
+		#endif
+	#elif defined(WORD64_AVAILABLE)
+		#define CRYPTOPP_SLOW_WORD64 // use alternative code that avoids word64
 		typedef word16 hword;
 		typedef word32 word;
 		typedef word64 dword;
@@ -154,40 +158,70 @@ typedef unsigned int word32;
 const unsigned int WORD_SIZE = sizeof(word);
 const unsigned int WORD_BITS = WORD_SIZE * 8;
 
-#if defined(_MSC_VER) // || defined(__BORLANDC__) intrinsics don't work on BCB 2006
-	#define INTEL_INTRINSICS
-	#define FAST_ROTATE
-#elif defined(__MWERKS__) && TARGET_CPU_PPC
-	#define PPC_INTRINSICS
-	#define FAST_ROTATE
-#elif defined(__GNUC__) && defined(__i386__)
-	// GCC does peephole optimizations which should result in using rotate instructions
-	#define FAST_ROTATE
-#endif
+NAMESPACE_END
 
 #ifndef CRYPTOPP_L1_CACHE_LINE_SIZE
 	// This should be a lower bound on the L1 cache line size. It's used for defense against timing attacks.
-	// L1 cache line size is 32 on Pentium III and earlier
-	#define CRYPTOPP_L1_CACHE_LINE_SIZE 32
-#endif
-
-#ifndef CRYPTOPP_L1_CACHE_ALIGN
-	#if defined(_MSC_VER)
-		#define CRYPTOPP_L1_CACHE_ALIGN(x) __declspec(align(CRYPTOPP_L1_CACHE_LINE_SIZE)) x
-	#elif defined(__GNUC__)
-		#define CRYPTOPP_L1_CACHE_ALIGN(x) x __attribute__((aligned(CRYPTOPP_L1_CACHE_LINE_SIZE)))
+	#if defined(_M_X64) || defined(__x86_64__)
+		#define CRYPTOPP_L1_CACHE_LINE_SIZE 64
 	#else
-		#define CRYPTOPP_L1_CACHE_ALIGN(x) x
+		// L1 cache line size is 32 on Pentium III and earlier
+		#define CRYPTOPP_L1_CACHE_LINE_SIZE 32
 	#endif
 #endif
 
-NAMESPACE_END
+#if defined(_MSC_VER)
+	#if _MSC_VER == 1200
+		#include <malloc.h>
+	#endif
+	#if _MSC_VER > 1200 || defined(_mm_free)
+		#define CRYPTOPP_MSVC6PP_OR_LATER		// VC 6 processor pack or later
+	#else
+		#define CRYPTOPP_MSVC6_NO_PP			// VC 6 without processor pack
+	#endif
+#endif
+
+#ifdef __GNUC__
+	#define CRYPTOPP_GCC_VERSION (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__)
+#endif
+
+#ifndef CRYPTOPP_ALIGN_DATA
+	#if defined(CRYPTOPP_MSVC6PP_OR_LATER)
+		#define CRYPTOPP_ALIGN_DATA(x) __declspec(align(x))
+	#elif defined(__GNUC__) || __SUNPRO_CC > 0x580
+		#define CRYPTOPP_ALIGN_DATA(x) __attribute__((aligned(x)))
+	#else
+		#define CRYPTOPP_ALIGN_DATA(x)
+	#endif
+#endif
+
+#ifndef CRYPTOPP_SECTION_ALIGN16
+	#if defined(__GNUC__) && !defined(__APPLE__)
+		// the alignment attribute doesn't seem to work without this section attribute when -fdata-sections is turned on
+		#define CRYPTOPP_SECTION_ALIGN16 __attribute__((section ("CryptoPP_Align16")))
+	#else
+		#define CRYPTOPP_SECTION_ALIGN16
+	#endif
+#endif
+
+#if defined(_MSC_VER) || defined(__fastcall)
+	#define CRYPTOPP_FASTCALL __fastcall
+#else
+	#define CRYPTOPP_FASTCALL
+#endif
 
 // VC60 workaround: it doesn't allow typename in some places
 #if defined(_MSC_VER) && (_MSC_VER < 1300)
 #define CPP_TYPENAME
 #else
 #define CPP_TYPENAME typename
+#endif
+
+// VC60 workaround: can't cast unsigned __int64 to float or double
+#if defined(_MSC_VER) && !defined(CRYPTOPP_MSVC6PP_OR_LATER)
+#define CRYPTOPP_VC6_INT64 (__int64)
+#else
+#define CRYPTOPP_VC6_INT64
 #endif
 
 #ifdef _MSC_VER
@@ -205,7 +239,8 @@ NAMESPACE_END
 	// 4661: no suitable definition provided for explicit template instantiation request
 	// 4786: identifer was truncated in debug information
 	// 4355: 'this' : used in base member initializer list
-#	pragma warning(disable: 4231 4250 4251 4275 4660 4661 4786 4355)
+	// 4910: '__declspec(dllexport)' and 'extern' are incompatible on an explicit instantiation
+#	pragma warning(disable: 4231 4250 4251 4275 4660 4661 4786 4355 4910)
 #endif
 
 #ifdef __BORLANDC__
@@ -221,9 +256,52 @@ NAMESPACE_END
 #define CRYPTOPP_UNCAUGHT_EXCEPTION_AVAILABLE
 #endif
 
-// CodeWarrior defines _MSC_VER
-#if !defined(CRYPTOPP_DISABLE_X86ASM) && ((defined(_MSC_VER) && !defined(__MWERKS__) && defined(_M_IX86)) || (defined(__GNUC__) && defined(__i386__)))
-#define CRYPTOPP_X86ASM_AVAILABLE
+#ifdef CRYPTOPP_DISABLE_X86ASM		// for backwards compatibility: this macro had both meanings
+#define CRYPTOPP_DISABLE_ASM
+#define CRYPTOPP_DISABLE_SSE2
+#endif
+
+#if !defined(CRYPTOPP_DISABLE_ASM) && ((defined(_MSC_VER) && defined(_M_IX86)) || (defined(__GNUC__) && (defined(__i386__) || defined(__x86_64__))))
+	#define CRYPTOPP_X86_ASM_AVAILABLE
+
+	#if !defined(CRYPTOPP_DISABLE_SSE2) && (defined(CRYPTOPP_MSVC6PP_OR_LATER) || CRYPTOPP_GCC_VERSION >= 30300)
+		#define CRYPTOPP_BOOL_SSE2_ASM_AVAILABLE 1
+	#else
+		#define CRYPTOPP_BOOL_SSE2_ASM_AVAILABLE 0
+	#endif
+
+	// SSSE3 was actually introduced in GNU as 2.17, which was released 6/23/2006, but we can't tell what version of binutils is installed.
+	// GCC 4.1.2 was released on 2/13/2007, so we'll use that as a proxy for the binutils version.
+	#if !defined(CRYPTOPP_DISABLE_SSSE3) && (_MSC_VER >= 1400 || CRYPTOPP_GCC_VERSION >= 40102)
+		#define CRYPTOPP_BOOL_SSSE3_ASM_AVAILABLE 1
+	#else
+		#define CRYPTOPP_BOOL_SSSE3_ASM_AVAILABLE 0
+	#endif
+#endif
+
+#if !defined(CRYPTOPP_DISABLE_ASM) && defined(_MSC_VER) && defined(_M_X64)
+	#define CRYPTOPP_X64_MASM_AVAILABLE
+#endif
+
+#if !defined(CRYPTOPP_DISABLE_ASM) && defined(__GNUC__) && defined(__x86_64__)
+	#define CRYPTOPP_X64_ASM_AVAILABLE
+#endif
+
+#if !defined(CRYPTOPP_DISABLE_SSE2) && (defined(CRYPTOPP_MSVC6PP_OR_LATER) || defined(__SSE2__))
+	#define CRYPTOPP_BOOL_SSE2_INTRINSICS_AVAILABLE 1
+#else
+	#define CRYPTOPP_BOOL_SSE2_INTRINSICS_AVAILABLE 0
+#endif
+
+// how to allocate 16-byte aligned memory (for SSE2)
+#if defined(CRYPTOPP_MSVC6PP_OR_LATER)
+	#define CRYPTOPP_MM_MALLOC_AVAILABLE
+#elif defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__)
+	#define CRYPTOPP_MALLOC_ALIGNMENT_IS_16
+#elif defined(__linux__) || defined(__sun__) || defined(__CYGWIN__)
+	#define CRYPTOPP_MEMALIGN_AVAILABLE
+#else
+	#define CRYPTOPP_NO_ALIGNED_ALLOC
 #endif
 
 // how to disable inlining
@@ -239,18 +317,30 @@ NAMESPACE_END
 #endif
 
 // how to declare class constants
-#if defined(_MSC_VER) && _MSC_VER < 1300
+#if defined(_MSC_VER) && _MSC_VER <= 1300
 #	define CRYPTOPP_CONSTANT(x) enum {x};
 #else
 #	define CRYPTOPP_CONSTANT(x) static const int x;
 #endif
 
-// how to allocate 16-byte aligned memory (for SSE2)
-#if defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__)
-#	define CRYPTOPP_MALLOC_ALIGNMENT_IS_16
-#elif defined(__linux__) || defined(__sun__) || defined(__CYGWIN__)
-#	define CRYPTOPP_MEMALIGN_AVAILABLE
+#if defined(_M_X64) || defined(__x86_64__)
+	#define CRYPTOPP_BOOL_X64 1
+#else
+	#define CRYPTOPP_BOOL_X64 0
 #endif
+
+// see http://predef.sourceforge.net/prearch.html
+#if defined(_M_IX86) || defined(__i386__) || defined(__i386) || defined(_X86_) || defined(__I86__) || defined(__INTEL__)
+	#define CRYPTOPP_BOOL_X86 1
+#else
+	#define CRYPTOPP_BOOL_X86 0
+#endif
+
+#if CRYPTOPP_BOOL_X64 || CRYPTOPP_BOOL_X86
+	#define CRYPTOPP_ALLOW_UNALIGNED_DATA_ACCESS
+#endif
+
+#define CRYPTOPP_VERSION 552
 
 // ***************** determine availability of OS features ********************
 
@@ -260,7 +350,7 @@ NAMESPACE_END
 #define CRYPTOPP_WIN32_AVAILABLE
 #endif
 
-#if defined(__unix__) || defined(__MACH__) || defined(__NetBSD__)
+#if defined(__unix__) || defined(__MACH__) || defined(__NetBSD__) || defined(__sun)
 #define CRYPTOPP_UNIX_AVAILABLE
 #endif
 

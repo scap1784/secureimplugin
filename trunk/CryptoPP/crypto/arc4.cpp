@@ -7,9 +7,11 @@
 // completely in the public domain.
 
 #include "pch.h"
+#define CRYPTOPP_ENABLE_NAMESPACE_WEAK 1
 #include "arc4.h"
 
 NAMESPACE_BEGIN(CryptoPP)
+namespace Weak1 {
 
 void ARC4_TestInstantiations()
 {
@@ -60,9 +62,10 @@ static inline unsigned int MakeByte(T &x, T &y, byte *s)
 	return s[(a+b) & 0xff];
 }
 
-byte ARC4_Base::GenerateByte()
+void ARC4_Base::GenerateBlock(byte *output, size_t size)
 {
-	return MakeByte(m_x, m_y, m_state);
+	while (size--)
+		*output++ = MakeByte(m_x, m_y, m_state);
 }
 
 void ARC4_Base::ProcessData(byte *outString, const byte *inString, size_t length)
@@ -113,4 +116,5 @@ void ARC4_Base::DiscardBytes(size_t length)
 	m_y = y;
 }
 
+}
 NAMESPACE_END

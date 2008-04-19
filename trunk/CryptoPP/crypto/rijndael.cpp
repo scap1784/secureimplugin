@@ -2,6 +2,8 @@
 // and Wei Dai from Paulo Baretto's Rijndael implementation
 // The original code and all modifications are in the public domain.
 
+// use "cl /EP /P /DCRYPTOPP_GENERATE_X64_MASM rijndael.cpp" to generate MASM code
+
 /*
 Defense against timing attacks was added in July 2006 by Wei Dai.
 
@@ -48,9 +50,11 @@ being unloaded from L1 cache, until that round is finished.
 #include "pch.h"
 
 #ifndef CRYPTOPP_IMPORTS
+#ifndef CRYPTOPP_GENERATE_X64_MASM
 
 #include "rijndael.h"
 #include "misc.h"
+#include "cpu.h"
 
 NAMESPACE_BEGIN(CryptoPP)
 
@@ -118,25 +122,25 @@ void Rijndael::Base::UncheckedSetKey(const byte *userKey, unsigned int keylen, c
 		for (i = 1; i < m_rounds; i++) {
 			rk += 4;
 			rk[0] =
-				Td0[Se[GETBYTE(rk[0], 3)]] ^
-				Td1[Se[GETBYTE(rk[0], 2)]] ^
-				Td2[Se[GETBYTE(rk[0], 1)]] ^
-				Td3[Se[GETBYTE(rk[0], 0)]];
+				Td[0*256+Se[GETBYTE(rk[0], 3)]] ^
+				Td[1*256+Se[GETBYTE(rk[0], 2)]] ^
+				Td[2*256+Se[GETBYTE(rk[0], 1)]] ^
+				Td[3*256+Se[GETBYTE(rk[0], 0)]];
 			rk[1] =
-				Td0[Se[GETBYTE(rk[1], 3)]] ^
-				Td1[Se[GETBYTE(rk[1], 2)]] ^
-				Td2[Se[GETBYTE(rk[1], 1)]] ^
-				Td3[Se[GETBYTE(rk[1], 0)]];
+				Td[0*256+Se[GETBYTE(rk[1], 3)]] ^
+				Td[1*256+Se[GETBYTE(rk[1], 2)]] ^
+				Td[2*256+Se[GETBYTE(rk[1], 1)]] ^
+				Td[3*256+Se[GETBYTE(rk[1], 0)]];
 			rk[2] =
-				Td0[Se[GETBYTE(rk[2], 3)]] ^
-				Td1[Se[GETBYTE(rk[2], 2)]] ^
-				Td2[Se[GETBYTE(rk[2], 1)]] ^
-				Td3[Se[GETBYTE(rk[2], 0)]];
+				Td[0*256+Se[GETBYTE(rk[2], 3)]] ^
+				Td[1*256+Se[GETBYTE(rk[2], 2)]] ^
+				Td[2*256+Se[GETBYTE(rk[2], 1)]] ^
+				Td[3*256+Se[GETBYTE(rk[2], 0)]];
 			rk[3] =
-				Td0[Se[GETBYTE(rk[3], 3)]] ^
-				Td1[Se[GETBYTE(rk[3], 2)]] ^
-				Td2[Se[GETBYTE(rk[3], 1)]] ^
-				Td3[Se[GETBYTE(rk[3], 0)]];
+				Td[0*256+Se[GETBYTE(rk[3], 3)]] ^
+				Td[1*256+Se[GETBYTE(rk[3], 2)]] ^
+				Td[2*256+Se[GETBYTE(rk[3], 1)]] ^
+				Td[3*256+Se[GETBYTE(rk[3], 0)]];
 		}
 	}
 
@@ -144,15 +148,349 @@ void Rijndael::Base::UncheckedSetKey(const byte *userKey, unsigned int keylen, c
 	ConditionalByteReverse(BIG_ENDIAN_ORDER, m_key + m_rounds*4, m_key + m_rounds*4, 16);
 }
 
-const static unsigned int s_lineSizeDiv4 = CRYPTOPP_L1_CACHE_LINE_SIZE/4;
-#ifdef IS_BIG_ENDIAN
-const static unsigned int s_i3=3, s_i2=2, s_i1=1, s_i0=0;
-#else
-const static unsigned int s_i3=0, s_i2=1, s_i1=2, s_i0=3;
+#ifdef CRYPTOPP_X64_MASM_AVAILABLE
+extern "C" {
+void Rijndael_Enc_ProcessAndXorBlock(const word32 *table, word32 cacheLineSize, const word32 *k, const word32 *kLoopEnd, const byte *inBlock, const byte *xorBlock, byte *outBlock);
+}
 #endif
+
+#pragma warning(disable: 4731)	// frame pointer register 'ebp' modified by inline assembly code
 
 void Rijndael::Enc::ProcessAndXorBlock(const byte *inBlock, const byte *xorBlock, byte *outBlock) const
 {
+#endif	// #ifdef CRYPTOPP_GENERATE_X64_MASM
+
+#ifdef CRYPTOPP_X64_MASM_AVAILABLE
+	Rijndael_Enc_ProcessAndXorBlock(Te, g_cacheLineSize, m_key, m_key + m_rounds*4, inBlock, xorBlock, outBlock);
+	return;
+#endif
+
+#if defined(CRYPTOPP_X86_ASM_AVAILABLE)
+	#ifdef CRYPTOPP_GENERATE_X64_MASM
+		ALIGN   8
+	Rijndael_Enc_ProcessAndXorBlock	PROC FRAME
+		rex_push_reg rbx
+		push_reg rsi
+		push_reg rdi
+		push_reg r12
+		push_reg r13
+		push_reg r14
+		push_reg r15
+		.endprolog
+		mov		AS_REG_7, rcx
+		mov		rdi, [rsp + 5*8 + 7*8]			; inBlock
+	#else
+	if (HasMMX())
+	{
+		const word32 *k = m_key;
+		const word32 *kLoopEnd = k + m_rounds*4;
+	#endif
+
+		#if CRYPTOPP_BOOL_X64
+			#define K_REG			r8
+			#define K_END_REG		r9
+			#define SAVE_K
+			#define RESTORE_K
+			#define RESTORE_K_END
+			#define SAVE_0(x)		AS2(mov	r13d, x)
+			#define SAVE_1(x)		AS2(mov	r14d, x)
+			#define SAVE_2(x)		AS2(mov	r15d, x)
+			#define RESTORE_0(x)	AS2(mov	x, r13d)
+			#define RESTORE_1(x)	AS2(mov	x, r14d)
+			#define RESTORE_2(x)	AS2(mov	x, r15d)
+		#else
+			#define K_REG			esi
+			#define K_END_REG		edi
+			#define SAVE_K			AS2(movd	mm4, esi)
+			#define RESTORE_K		AS2(movd	esi, mm4)
+			#define RESTORE_K_END	AS2(movd	edi, mm5)
+			#define SAVE_0(x)		AS2(movd	mm0, x)
+			#define SAVE_1(x)		AS2(movd	mm1, x)
+			#define SAVE_2(x)		AS2(movd	mm2, x)
+			#define RESTORE_0(x)	AS2(movd	x, mm0)
+			#define RESTORE_1(x)	AS2(movd	x, mm1)
+			#define RESTORE_2(x)	AS2(movd	x, mm2)
+		#endif
+#ifdef __GNUC__
+		word32 t0, t1, t2, t3;
+		__asm__ __volatile__
+		(
+		".intel_syntax noprefix;"
+	#if CRYPTOPP_BOOL_X64
+		AS2(	mov		K_REG, rsi)
+		AS2(	mov		K_END_REG, rcx)
+	#else
+		AS1(	push	ebx)
+		AS1(	push	ebp)
+		AS2(	movd	mm5, ecx)
+	#endif
+		AS2(	mov		AS_REG_7, WORD_REG(ax))
+#elif CRYPTOPP_BOOL_X86
+	#if _MSC_VER < 1300
+		const word32 *t = Te;
+		AS2(	mov		eax, t)
+	#endif
+		AS2(	mov		edx, g_cacheLineSize)
+		AS2(	mov		WORD_REG(di), inBlock)
+		AS2(	mov		K_REG, k)
+		AS2(	movd	mm5, kLoopEnd)
+	#if _MSC_VER < 1300
+		AS1(	push	ebx)
+		AS1(	push	ebp)
+		AS2(	mov		AS_REG_7, eax)
+	#else
+		AS1(	push	ebp)
+		AS2(	lea		AS_REG_7, Te)
+	#endif
+#endif
+		AS2(	mov		eax, [K_REG+0*4])	// s0
+		AS2(	xor		eax, [WORD_REG(di)+0*4])
+		SAVE_0(eax)
+		AS2(	mov		ebx, [K_REG+1*4])
+		AS2(	xor		ebx, [WORD_REG(di)+1*4])
+		SAVE_1(ebx)
+		AS2(	and		ebx, eax)
+		AS2(	mov		eax, [K_REG+2*4])
+		AS2(	xor		eax, [WORD_REG(di)+2*4])
+		SAVE_2(eax)
+		AS2(	and		ebx, eax)
+		AS2(	mov		ecx, [K_REG+3*4])
+		AS2(	xor		ecx, [WORD_REG(di)+3*4])
+		AS2(	and		ebx, ecx)
+
+		// read Te0 into L1 cache. this code could be simplifed by using lfence, but that is an SSE2 instruction
+		AS2(	and		ebx, 0)
+		AS2(	mov		edi, ebx)	// make index depend on previous loads to simulate lfence
+		ASL(2)
+		AS2(	and		ebx, [AS_REG_7+WORD_REG(di)])
+		AS2(	add		edi, edx)
+		AS2(	and		ebx, [AS_REG_7+WORD_REG(di)])
+		AS2(	add		edi, edx)
+		AS2(	and		ebx, [AS_REG_7+WORD_REG(di)])
+		AS2(	add		edi, edx)
+		AS2(	and		ebx, [AS_REG_7+WORD_REG(di)])
+		AS2(	add		edi, edx)
+		AS2(	cmp		edi, 1024)
+		ASJ(	jl,		2, b)
+		AS2(	and		ebx, [AS_REG_7+1020])
+#if CRYPTOPP_BOOL_X64
+		AS2(	xor		r13d, ebx)
+		AS2(	xor		r14d, ebx)
+		AS2(	xor		r15d, ebx)
+#else
+		AS2(	movd	mm6, ebx)
+		AS2(	pxor	mm2, mm6)
+		AS2(	pxor	mm1, mm6)
+		AS2(	pxor	mm0, mm6)
+#endif
+		AS2(	xor		ecx, ebx)
+
+		AS2(	mov		edi, [K_REG+4*4])	// t0
+		AS2(	mov		eax, [K_REG+5*4])
+		AS2(	mov		ebx, [K_REG+6*4])
+		AS2(	mov		edx, [K_REG+7*4])
+		AS2(	add		K_REG, 8*4)
+		SAVE_K
+
+#define QUARTER_ROUND(t, a, b, c, d)	\
+	AS2(movzx esi, t##l)\
+	AS2(d, [AS_REG_7+0*1024+4*WORD_REG(si)])\
+	AS2(movzx esi, t##h)\
+	AS2(c, [AS_REG_7+1*1024+4*WORD_REG(si)])\
+	AS2(shr e##t##x, 16)\
+	AS2(movzx esi, t##l)\
+	AS2(b, [AS_REG_7+2*1024+4*WORD_REG(si)])\
+	AS2(movzx esi, t##h)\
+	AS2(a, [AS_REG_7+3*1024+4*WORD_REG(si)])
+
+#define s0		xor edi
+#define s1		xor eax
+#define s2		xor ebx
+#define s3		xor ecx
+#define t0		xor edi
+#define t1		xor eax
+#define t2		xor ebx
+#define t3		xor edx
+
+		QUARTER_ROUND(c, t0, t1, t2, t3)
+		RESTORE_2(ecx)
+		QUARTER_ROUND(c, t3, t0, t1, t2)
+		RESTORE_1(ecx)
+		QUARTER_ROUND(c, t2, t3, t0, t1)
+		RESTORE_0(ecx)
+		QUARTER_ROUND(c, t1, t2, t3, t0)
+		SAVE_2(ebx)
+		SAVE_1(eax)
+		SAVE_0(edi)
+#undef QUARTER_ROUND
+
+		RESTORE_K
+
+		ASL(0)
+		AS2(	mov		edi, [K_REG+0*4])
+		AS2(	mov		eax, [K_REG+1*4])
+		AS2(	mov		ebx, [K_REG+2*4])
+		AS2(	mov		ecx, [K_REG+3*4])
+
+#define QUARTER_ROUND(t, a, b, c, d)	\
+	AS2(movzx esi, t##l)\
+	AS2(a, [AS_REG_7+3*1024+4*WORD_REG(si)])\
+	AS2(movzx esi, t##h)\
+	AS2(b, [AS_REG_7+2*1024+4*WORD_REG(si)])\
+	AS2(shr e##t##x, 16)\
+	AS2(movzx esi, t##l)\
+	AS2(c, [AS_REG_7+1*1024+4*WORD_REG(si)])\
+	AS2(movzx esi, t##h)\
+	AS2(d, [AS_REG_7+0*1024+4*WORD_REG(si)])
+
+		QUARTER_ROUND(d, s0, s1, s2, s3)
+		RESTORE_2(edx)
+		QUARTER_ROUND(d, s3, s0, s1, s2)
+		RESTORE_1(edx)
+		QUARTER_ROUND(d, s2, s3, s0, s1)
+		RESTORE_0(edx)
+		QUARTER_ROUND(d, s1, s2, s3, s0)
+		RESTORE_K
+		SAVE_2(ebx)
+		SAVE_1(eax)
+		SAVE_0(edi)
+
+		AS2(	mov		edi, [K_REG+4*4])
+		AS2(	mov		eax, [K_REG+5*4])
+		AS2(	mov		ebx, [K_REG+6*4])
+		AS2(	mov		edx, [K_REG+7*4])
+
+		QUARTER_ROUND(c, t0, t1, t2, t3)
+		RESTORE_2(ecx)
+		QUARTER_ROUND(c, t3, t0, t1, t2)
+		RESTORE_1(ecx)
+		QUARTER_ROUND(c, t2, t3, t0, t1)
+		RESTORE_0(ecx)
+		QUARTER_ROUND(c, t1, t2, t3, t0)
+		SAVE_2(ebx)
+		SAVE_1(eax)
+		SAVE_0(edi)
+
+		RESTORE_K
+		RESTORE_K_END
+		AS2(	add		K_REG, 8*4)
+		SAVE_K
+		AS2(	cmp		K_END_REG, K_REG)
+		ASJ(	jne,	0, b)
+
+#undef QUARTER_ROUND
+#undef s0
+#undef s1
+#undef s2
+#undef s3
+#undef t0
+#undef t1
+#undef t2
+#undef t3
+
+		AS2(	mov		eax, [K_END_REG+0*4])
+		AS2(	mov		ecx, [K_END_REG+1*4])
+		AS2(	mov		esi, [K_END_REG+2*4])
+		AS2(	mov		edi, [K_END_REG+3*4])
+
+#define QUARTER_ROUND(a, b, c, d)	\
+	AS2(	movzx	ebx, dl)\
+	AS2(	movzx	ebx, BYTE PTR [AS_REG_7+1+4*WORD_REG(bx)])\
+	AS2(	shl		ebx, 3*8)\
+	AS2(	xor		a, ebx)\
+	AS2(	movzx	ebx, dh)\
+	AS2(	movzx	ebx, BYTE PTR [AS_REG_7+1+4*WORD_REG(bx)])\
+	AS2(	shl		ebx, 2*8)\
+	AS2(	xor		b, ebx)\
+	AS2(	shr		edx, 16)\
+	AS2(	movzx	ebx, dl)\
+	AS2(	shr		edx, 8)\
+	AS2(	movzx	ebx, BYTE PTR [AS_REG_7+1+4*WORD_REG(bx)])\
+	AS2(	shl		ebx, 1*8)\
+	AS2(	xor		c, ebx)\
+	AS2(	movzx	ebx, BYTE PTR [AS_REG_7+1+4*WORD_REG(dx)])\
+	AS2(	xor		d, ebx)
+
+		QUARTER_ROUND(eax, ecx, esi, edi)
+		RESTORE_2(edx)
+		QUARTER_ROUND(edi, eax, ecx, esi)
+		RESTORE_1(edx)
+		QUARTER_ROUND(esi, edi, eax, ecx)
+		RESTORE_0(edx)
+		QUARTER_ROUND(ecx, esi, edi, eax)
+
+#undef QUARTER_ROUND
+
+#if CRYPTOPP_BOOL_X86
+		AS1(emms)
+		AS1(pop		ebp)
+	#if defined(__GNUC__) || (defined(_MSC_VER) && _MSC_VER < 1300)
+		AS1(pop		ebx)
+	#endif
+#endif
+
+#ifdef __GNUC__
+		".att_syntax prefix;"
+			: "=a" (t0), "=c" (t1), "=S" (t2), "=D" (t3)
+			: "a" (Te), "D" (inBlock), "S" (k), "c" (kLoopEnd), "d" (g_cacheLineSize)
+			: "memory", "cc"
+	#if CRYPTOPP_BOOL_X64
+			, "%ebx", "%r8", "%r9", "%r10", "%r11", "%r12", "%r13", "%r14", "%r15"
+	#endif
+		);
+
+		if (xorBlock)
+		{
+			t0 ^= ((const word32 *)xorBlock)[0];
+			t1 ^= ((const word32 *)xorBlock)[1];
+			t2 ^= ((const word32 *)xorBlock)[2];
+			t3 ^= ((const word32 *)xorBlock)[3];
+		}
+		((word32 *)outBlock)[0] = t0;
+		((word32 *)outBlock)[1] = t1;
+		((word32 *)outBlock)[2] = t2;
+		((word32 *)outBlock)[3] = t3;
+#else
+	#if CRYPTOPP_BOOL_X64
+		mov		rbx, [rsp + 6*8 + 7*8]			; xorBlock
+	#else
+		AS2(	mov		ebx, xorBlock)
+	#endif
+		AS2(	test	WORD_REG(bx), WORD_REG(bx))
+		ASJ(	jz,		1, f)
+		AS2(	xor		eax, [WORD_REG(bx)+0*4])
+		AS2(	xor		ecx, [WORD_REG(bx)+1*4])
+		AS2(	xor		esi, [WORD_REG(bx)+2*4])
+		AS2(	xor		edi, [WORD_REG(bx)+3*4])
+		ASL(1)
+	#if CRYPTOPP_BOOL_X64
+		mov		rbx, [rsp + 7*8 + 7*8]			; outBlock
+	#else
+		AS2(	mov		ebx, outBlock)
+	#endif
+		AS2(	mov		[WORD_REG(bx)+0*4], eax)
+		AS2(	mov		[WORD_REG(bx)+1*4], ecx)
+		AS2(	mov		[WORD_REG(bx)+2*4], esi)
+		AS2(	mov		[WORD_REG(bx)+3*4], edi)
+#endif
+
+#if CRYPTOPP_GENERATE_X64_MASM
+		pop r15
+		pop r14
+		pop r13
+		pop r12
+		pop rdi
+		pop rsi
+		pop rbx
+		ret
+	Rijndael_Enc_ProcessAndXorBlock ENDP
+#else
+	}
+	else
+#endif
+#endif	// #ifdef CRYPTOPP_X86_ASM_AVAILABLE
+#ifndef CRYPTOPP_GENERATE_X64_MASM
+	{
 	word32 s0, s1, s2, s3, t0, t1, t2, t3;
 	const word32 *rk = m_key;
 
@@ -167,95 +505,68 @@ void Rijndael::Enc::ProcessAndXorBlock(const byte *inBlock, const byte *xorBlock
 	rk += 8;
 
 	// timing attack countermeasure. see comments at top for more details
+	const int cacheLineSize = GetCacheLineSize();
 	unsigned int i;
 	word32 u = 0;
-	for (i=0; i<sizeof(Te0)/4; i+=CRYPTOPP_L1_CACHE_LINE_SIZE)
-		u &= (Te0[i+0*s_lineSizeDiv4] & Te0[i+2*s_lineSizeDiv4]) & (Te0[i+1*s_lineSizeDiv4] & Te0[i+3*s_lineSizeDiv4]);
+	for (i=0; i<1024; i+=cacheLineSize)
+		u &= *(const word32 *)(((const byte *)Te)+i);
+	u &= Te[255];
 	s0 |= u; s1 |= u; s2 |= u; s3 |= u;
 
 	// first round
-    t0 ^=
-        Te0[GETBYTE(s0, s_i3)] ^
-        rotrFixed(Te0[GETBYTE(s1, s_i2)], 8) ^
-        rotrFixed(Te0[GETBYTE(s2, s_i1)], 16) ^
-        rotrFixed(Te0[GETBYTE(s3, s_i0)], 24);
-    t1 ^=
-        Te0[GETBYTE(s1, s_i3)] ^
-        rotrFixed(Te0[GETBYTE(s2, s_i2)], 8) ^
-        rotrFixed(Te0[GETBYTE(s3, s_i1)], 16) ^
-        rotrFixed(Te0[GETBYTE(s0, s_i0)], 24);
-    t2 ^=
-        Te0[GETBYTE(s2, s_i3)] ^
-        rotrFixed(Te0[GETBYTE(s3, s_i2)], 8) ^
-        rotrFixed(Te0[GETBYTE(s0, s_i1)], 16) ^
-        rotrFixed(Te0[GETBYTE(s1, s_i0)], 24);
-    t3 ^=
-        Te0[GETBYTE(s3, s_i3)] ^
-        rotrFixed(Te0[GETBYTE(s0, s_i2)], 8) ^
-        rotrFixed(Te0[GETBYTE(s1, s_i1)], 16) ^
-        rotrFixed(Te0[GETBYTE(s2, s_i0)], 24);
+#ifdef IS_BIG_ENDIAN
+#define QUARTER_ROUND(t, a, b, c, d)	\
+		a ^= rotrFixed(Te[byte(t)], 24);	t >>= 8;\
+		b ^= rotrFixed(Te[byte(t)], 16);	t >>= 8;\
+		c ^= rotrFixed(Te[byte(t)], 8);	t >>= 8;\
+		d ^= Te[t];
+#else
+#define QUARTER_ROUND(t, a, b, c, d)	\
+		d ^= Te[byte(t)];					t >>= 8;\
+		c ^= rotrFixed(Te[byte(t)], 8);	t >>= 8;\
+		b ^= rotrFixed(Te[byte(t)], 16);	t >>= 8;\
+		a ^= rotrFixed(Te[t], 24);
+#endif
+
+	QUARTER_ROUND(s3, t0, t1, t2, t3)
+	QUARTER_ROUND(s2, t3, t0, t1, t2)
+	QUARTER_ROUND(s1, t2, t3, t0, t1)
+	QUARTER_ROUND(s0, t1, t2, t3, t0)
+#undef QUARTER_ROUND
 
 	// Nr - 2 full rounds:
     unsigned int r = m_rounds/2 - 1;
     do
 	{
-        s0 =
-            Te0[GETBYTE(t0, 3)] ^
-            Te1[GETBYTE(t1, 2)] ^
-            Te2[GETBYTE(t2, 1)] ^
-            Te3[GETBYTE(t3, 0)] ^
-            rk[0];
-        s1 =
-            Te0[GETBYTE(t1, 3)] ^
-            Te1[GETBYTE(t2, 2)] ^
-            Te2[GETBYTE(t3, 1)] ^
-            Te3[GETBYTE(t0, 0)] ^
-            rk[1];
-        s2 =
-            Te0[GETBYTE(t2, 3)] ^
-            Te1[GETBYTE(t3, 2)] ^
-            Te2[GETBYTE(t0, 1)] ^
-            Te3[GETBYTE(t1, 0)] ^
-            rk[2];
-        s3 =
-            Te0[GETBYTE(t3, 3)] ^
-            Te1[GETBYTE(t0, 2)] ^
-            Te2[GETBYTE(t1, 1)] ^
-            Te3[GETBYTE(t2, 0)] ^
-            rk[3];
+#define QUARTER_ROUND(t, a, b, c, d)	\
+		a ^= Te[3*256+byte(t)]; t >>= 8;\
+		b ^= Te[2*256+byte(t)]; t >>= 8;\
+		c ^= Te[1*256+byte(t)]; t >>= 8;\
+		d ^= Te[t];
 
-        t0 =
-            Te0[GETBYTE(s0, 3)] ^
-            Te1[GETBYTE(s1, 2)] ^
-            Te2[GETBYTE(s2, 1)] ^
-            Te3[GETBYTE(s3, 0)] ^
-            rk[4];
-        t1 =
-            Te0[GETBYTE(s1, 3)] ^
-            Te1[GETBYTE(s2, 2)] ^
-            Te2[GETBYTE(s3, 1)] ^
-            Te3[GETBYTE(s0, 0)] ^
-            rk[5];
-        t2 =
-            Te0[GETBYTE(s2, 3)] ^
-            Te1[GETBYTE(s3, 2)] ^
-            Te2[GETBYTE(s0, 1)] ^
-            Te3[GETBYTE(s1, 0)] ^
-            rk[6];
-        t3 =
-            Te0[GETBYTE(s3, 3)] ^
-            Te1[GETBYTE(s0, 2)] ^
-            Te2[GETBYTE(s1, 1)] ^
-            Te3[GETBYTE(s2, 0)] ^
-            rk[7];
+		s0 = rk[0]; s1 = rk[1]; s2 = rk[2]; s3 = rk[3];
+
+		QUARTER_ROUND(t3, s0, s1, s2, s3)
+		QUARTER_ROUND(t2, s3, s0, s1, s2)
+		QUARTER_ROUND(t1, s2, s3, s0, s1)
+		QUARTER_ROUND(t0, s1, s2, s3, s0)
+
+		t0 = rk[4]; t1 = rk[5]; t2 = rk[6]; t3 = rk[7];
+
+		QUARTER_ROUND(s3, t0, t1, t2, t3)
+		QUARTER_ROUND(s2, t3, t0, t1, t2)
+		QUARTER_ROUND(s1, t2, t3, t0, t1)
+		QUARTER_ROUND(s0, t1, t2, t3, t0)
+#undef QUARTER_ROUND
 
         rk += 8;
     } while (--r);
 
 	// timing attack countermeasure. see comments at top for more details
 	u = 0;
-	for (i=0; i<sizeof(Se)/4; i+=CRYPTOPP_L1_CACHE_LINE_SIZE)
-		u &= (((word32*)Se)[i+0*s_lineSizeDiv4] & ((word32*)Se)[i+2*s_lineSizeDiv4]) & (((word32*)Se)[i+1*s_lineSizeDiv4] & ((word32*)Se)[i+3*s_lineSizeDiv4]);
+	for (i=0; i<256; i+=cacheLineSize)
+		u &= *(const word32 *)(Se+i);
+	u &= *(const word32 *)(Se+252);
 	t0 |= u; t1 |= u; t2 |= u; t3 |= u;
 
 	word32 tbw[4];
@@ -263,23 +574,17 @@ void Rijndael::Enc::ProcessAndXorBlock(const byte *inBlock, const byte *xorBlock
 	word32 *const obw = (word32 *)outBlock;
 	const word32 *const xbw = (const word32 *)xorBlock;
 
-	// last round
-	tempBlock[0] = Se[GETBYTE(t0, 3)];
-	tempBlock[1] = Se[GETBYTE(t1, 2)];
-	tempBlock[2] = Se[GETBYTE(t2, 1)];
-	tempBlock[3] = Se[GETBYTE(t3, 0)];
-	tempBlock[4] = Se[GETBYTE(t1, 3)];
-	tempBlock[5] = Se[GETBYTE(t2, 2)];
-	tempBlock[6] = Se[GETBYTE(t3, 1)];
-	tempBlock[7] = Se[GETBYTE(t0, 0)];
-	tempBlock[8] = Se[GETBYTE(t2, 3)];
-	tempBlock[9] = Se[GETBYTE(t3, 2)];
-	tempBlock[10] = Se[GETBYTE(t0, 1)];
-	tempBlock[11] = Se[GETBYTE(t1, 0)];
-	tempBlock[12] = Se[GETBYTE(t3, 3)];
-	tempBlock[13] = Se[GETBYTE(t0, 2)];
-	tempBlock[14] = Se[GETBYTE(t1, 1)];
-	tempBlock[15] = Se[GETBYTE(t2, 0)];
+#define QUARTER_ROUND(t, a, b, c, d)	\
+	tempBlock[a] = Se[byte(t)]; t >>= 8;\
+	tempBlock[b] = Se[byte(t)]; t >>= 8;\
+	tempBlock[c] = Se[byte(t)]; t >>= 8;\
+	tempBlock[d] = Se[t];
+
+	QUARTER_ROUND(t2, 15, 2, 5, 8)
+	QUARTER_ROUND(t1, 11, 14, 1, 4)
+	QUARTER_ROUND(t0, 7, 10, 13, 0)
+	QUARTER_ROUND(t3, 3, 6, 9, 12)
+#undef QUARTER_ROUND
 
 	if (xbw)
 	{
@@ -295,12 +600,13 @@ void Rijndael::Enc::ProcessAndXorBlock(const byte *inBlock, const byte *xorBlock
 		obw[2] = tbw[2] ^ rk[2];
 		obw[3] = tbw[3] ^ rk[3];
 	}
+	}
 }
 
 void Rijndael::Dec::ProcessAndXorBlock(const byte *inBlock, const byte *xorBlock, byte *outBlock) const
 {
 	word32 s0, s1, s2, s3, t0, t1, t2, t3;
-    const word32 *rk = m_key;
+	const word32 *rk = m_key;
 
 	s0 = ((const word32 *)inBlock)[0] ^ rk[0];
 	s1 = ((const word32 *)inBlock)[1] ^ rk[1];
@@ -313,95 +619,68 @@ void Rijndael::Dec::ProcessAndXorBlock(const byte *inBlock, const byte *xorBlock
 	rk += 8;
 
 	// timing attack countermeasure. see comments at top for more details
+	const int cacheLineSize = GetCacheLineSize();
 	unsigned int i;
 	word32 u = 0;
-	for (i=0; i<sizeof(Td0)/4; i+=CRYPTOPP_L1_CACHE_LINE_SIZE)
-		u &= (Td0[i+0*s_lineSizeDiv4] & Td0[i+2*s_lineSizeDiv4]) & (Td0[i+1*s_lineSizeDiv4] & Td0[i+3*s_lineSizeDiv4]);
+	for (i=0; i<1024; i+=cacheLineSize)
+		u &= *(const word32 *)(((const byte *)Td)+i);
+	u &= Td[255];
 	s0 |= u; s1 |= u; s2 |= u; s3 |= u;
 
 	// first round
-    t0 ^=
-        Td0[GETBYTE(s0, s_i3)] ^
-        rotrFixed(Td0[GETBYTE(s3, s_i2)], 8) ^
-        rotrFixed(Td0[GETBYTE(s2, s_i1)], 16) ^
-        rotrFixed(Td0[GETBYTE(s1, s_i0)], 24);
-    t1 ^=
-        Td0[GETBYTE(s1, s_i3)] ^
-        rotrFixed(Td0[GETBYTE(s0, s_i2)], 8) ^
-        rotrFixed(Td0[GETBYTE(s3, s_i1)], 16) ^
-        rotrFixed(Td0[GETBYTE(s2, s_i0)], 24);
-    t2 ^=
-        Td0[GETBYTE(s2, s_i3)] ^
-        rotrFixed(Td0[GETBYTE(s1, s_i2)], 8) ^
-        rotrFixed(Td0[GETBYTE(s0, s_i1)], 16) ^
-        rotrFixed(Td0[GETBYTE(s3, s_i0)], 24);
-    t3 ^=
-        Td0[GETBYTE(s3, s_i3)] ^
-        rotrFixed(Td0[GETBYTE(s2, s_i2)], 8) ^
-        rotrFixed(Td0[GETBYTE(s1, s_i1)], 16) ^
-        rotrFixed(Td0[GETBYTE(s0, s_i0)], 24);
+#ifdef IS_BIG_ENDIAN
+#define QUARTER_ROUND(t, a, b, c, d)	\
+		a ^= rotrFixed(Td[byte(t)], 24);	t >>= 8;\
+		b ^= rotrFixed(Td[byte(t)], 16);	t >>= 8;\
+		c ^= rotrFixed(Td[byte(t)], 8);		t >>= 8;\
+		d ^= Td[t];
+#else
+#define QUARTER_ROUND(t, a, b, c, d)	\
+		d ^= Td[byte(t)];					t >>= 8;\
+		c ^= rotrFixed(Td[byte(t)], 8);		t >>= 8;\
+		b ^= rotrFixed(Td[byte(t)], 16);	t >>= 8;\
+		a ^= rotrFixed(Td[t], 24);
+#endif
+
+	QUARTER_ROUND(s3, t2, t1, t0, t3)
+	QUARTER_ROUND(s2, t1, t0, t3, t2)
+	QUARTER_ROUND(s1, t0, t3, t2, t1)
+	QUARTER_ROUND(s0, t3, t2, t1, t0)
+#undef QUARTER_ROUND
 
 	// Nr - 2 full rounds:
     unsigned int r = m_rounds/2 - 1;
     do
 	{
-        s0 =
-            Td0[GETBYTE(t0, 3)] ^
-            Td1[GETBYTE(t3, 2)] ^
-            Td2[GETBYTE(t2, 1)] ^
-            Td3[GETBYTE(t1, 0)] ^
-            rk[0];
-        s1 =
-            Td0[GETBYTE(t1, 3)] ^
-            Td1[GETBYTE(t0, 2)] ^
-            Td2[GETBYTE(t3, 1)] ^
-            Td3[GETBYTE(t2, 0)] ^
-            rk[1];
-        s2 =
-            Td0[GETBYTE(t2, 3)] ^
-            Td1[GETBYTE(t1, 2)] ^
-            Td2[GETBYTE(t0, 1)] ^
-            Td3[GETBYTE(t3, 0)] ^
-            rk[2];
-        s3 =
-            Td0[GETBYTE(t3, 3)] ^
-            Td1[GETBYTE(t2, 2)] ^
-            Td2[GETBYTE(t1, 1)] ^
-            Td3[GETBYTE(t0, 0)] ^
-            rk[3];
+#define QUARTER_ROUND(t, a, b, c, d)	\
+		a ^= Td[3*256+byte(t)]; t >>= 8;\
+		b ^= Td[2*256+byte(t)]; t >>= 8;\
+		c ^= Td[1*256+byte(t)]; t >>= 8;\
+		d ^= Td[t];
 
-        t0 =
-            Td0[GETBYTE(s0, 3)] ^
-            Td1[GETBYTE(s3, 2)] ^
-            Td2[GETBYTE(s2, 1)] ^
-            Td3[GETBYTE(s1, 0)] ^
-            rk[4];
-        t1 =
-            Td0[GETBYTE(s1, 3)] ^
-            Td1[GETBYTE(s0, 2)] ^
-            Td2[GETBYTE(s3, 1)] ^
-            Td3[GETBYTE(s2, 0)] ^
-            rk[5];
-        t2 =
-            Td0[GETBYTE(s2, 3)] ^
-            Td1[GETBYTE(s1, 2)] ^
-            Td2[GETBYTE(s0, 1)] ^
-            Td3[GETBYTE(s3, 0)] ^
-            rk[6];
-        t3 =
-            Td0[GETBYTE(s3, 3)] ^
-            Td1[GETBYTE(s2, 2)] ^
-            Td2[GETBYTE(s1, 1)] ^
-            Td3[GETBYTE(s0, 0)] ^
-            rk[7];
+		s0 = rk[0]; s1 = rk[1]; s2 = rk[2]; s3 = rk[3];
+
+		QUARTER_ROUND(t3, s2, s1, s0, s3)
+		QUARTER_ROUND(t2, s1, s0, s3, s2)
+		QUARTER_ROUND(t1, s0, s3, s2, s1)
+		QUARTER_ROUND(t0, s3, s2, s1, s0)
+
+		t0 = rk[4]; t1 = rk[5]; t2 = rk[6]; t3 = rk[7];
+
+		QUARTER_ROUND(s3, t2, t1, t0, t3)
+		QUARTER_ROUND(s2, t1, t0, t3, t2)
+		QUARTER_ROUND(s1, t0, t3, t2, t1)
+		QUARTER_ROUND(s0, t3, t2, t1, t0)
+#undef QUARTER_ROUND
 
         rk += 8;
     } while (--r);
 
 	// timing attack countermeasure. see comments at top for more details
 	u = 0;
-	for (i=0; i<sizeof(Sd)/4; i+=CRYPTOPP_L1_CACHE_LINE_SIZE)
-		u &= (((word32*)Sd)[i+0*s_lineSizeDiv4] & ((word32*)Sd)[i+2*s_lineSizeDiv4]) & (((word32*)Sd)[i+1*s_lineSizeDiv4] & ((word32*)Sd)[i+3*s_lineSizeDiv4]);
+	for (i=0; i<256; i+=cacheLineSize)
+		u &= *(const word32 *)(Sd+i);
+	u &= *(const word32 *)(Sd+252);
 	t0 |= u; t1 |= u; t2 |= u; t3 |= u;
 
 	word32 tbw[4];
@@ -409,23 +688,17 @@ void Rijndael::Dec::ProcessAndXorBlock(const byte *inBlock, const byte *xorBlock
 	word32 *const obw = (word32 *)outBlock;
 	const word32 *const xbw = (const word32 *)xorBlock;
 
-	// last round
-	tempBlock[0] = Sd[GETBYTE(t0, 3)];
-	tempBlock[1] = Sd[GETBYTE(t3, 2)];
-	tempBlock[2] = Sd[GETBYTE(t2, 1)];
-	tempBlock[3] = Sd[GETBYTE(t1, 0)];
-	tempBlock[4] = Sd[GETBYTE(t1, 3)];
-	tempBlock[5] = Sd[GETBYTE(t0, 2)];
-	tempBlock[6] = Sd[GETBYTE(t3, 1)];
-	tempBlock[7] = Sd[GETBYTE(t2, 0)];
-	tempBlock[8] = Sd[GETBYTE(t2, 3)];
-	tempBlock[9] = Sd[GETBYTE(t1, 2)];
-	tempBlock[10] = Sd[GETBYTE(t0, 1)];
-	tempBlock[11] = Sd[GETBYTE(t3, 0)];
-	tempBlock[12] = Sd[GETBYTE(t3, 3)];
-	tempBlock[13] = Sd[GETBYTE(t2, 2)];
-	tempBlock[14] = Sd[GETBYTE(t1, 1)];
-	tempBlock[15] = Sd[GETBYTE(t0, 0)];
+#define QUARTER_ROUND(t, a, b, c, d)	\
+	tempBlock[a] = Sd[byte(t)]; t >>= 8;\
+	tempBlock[b] = Sd[byte(t)]; t >>= 8;\
+	tempBlock[c] = Sd[byte(t)]; t >>= 8;\
+	tempBlock[d] = Sd[t];
+
+	QUARTER_ROUND(t2, 7, 2, 13, 8)
+	QUARTER_ROUND(t1, 3, 14, 9, 4)
+	QUARTER_ROUND(t0, 15, 10, 5, 0)
+	QUARTER_ROUND(t3, 11, 6, 1, 12)
+#undef QUARTER_ROUND
 
 	if (xbw)
 	{
@@ -445,4 +718,5 @@ void Rijndael::Dec::ProcessAndXorBlock(const byte *inBlock, const byte *xorBlock
 
 NAMESPACE_END
 
+#endif
 #endif
