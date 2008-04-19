@@ -40,7 +40,6 @@ public:
 	unsigned int OptimalDataAlignment() const {return BlockSize();}
 
 	unsigned int IVSize() const {return BlockSize();}
-	void GetNextIV(byte *IV);
 	virtual IV_Requirement IVRequirement() const =0;
 
 protected:
@@ -64,7 +63,6 @@ class CRYPTOPP_NO_VTABLE ModePolicyCommonTemplate : public CipherModeBase, publi
 {
 	unsigned int GetAlignment() const {return m_cipher->BlockAlignment();}
 	void CipherSetKey(const NameValuePairs &params, const byte *key, size_t length);
-	void CipherGetNextIV(byte *IV) {CipherModeBase::GetNextIV(IV);}
 };
 
 template <class POLICY_INTERFACE>
@@ -87,6 +85,7 @@ protected:
 	byte * GetRegisterBegin() {return m_register + BlockSize() - m_feedbackSize;}
 	void TransformRegister()
 	{
+		assert(m_cipher->IsForwardTransformation());	// CFB mode needs the "encrypt" direction of the underlying block cipher, even to decrypt
 		m_cipher->ProcessBlock(m_register, m_temp);
 		unsigned int updateSize = BlockSize()-m_feedbackSize;
 		memmove_s(m_register, m_register.size(), m_register+m_feedbackSize, updateSize);
@@ -125,7 +124,7 @@ class CRYPTOPP_DLL CRYPTOPP_NO_VTABLE OFB_ModePolicy : public ModePolicyCommonTe
 {
 public:
 	bool IsRandomAccess() const {return false;}
-	IV_Requirement IVRequirement() const {return STRUCTURED_IV;}
+	IV_Requirement IVRequirement() const {return UNIQUE_IV;}
 	static const char * CRYPTOPP_API StaticAlgorithmName() {return "OFB";}
 
 private:
@@ -134,8 +133,8 @@ private:
 	void WriteKeystream(byte *keystreamBuffer, size_t iterationCount)
 	{
 		assert(iterationCount == 1);
+		assert(m_cipher->IsForwardTransformation());	// OFB mode needs the "encrypt" direction of the underlying block cipher, even to decrypt
 		m_cipher->ProcessBlock(keystreamBuffer);
-		memcpy_s(m_register, m_register.size(), keystreamBuffer, BlockSize());
 	}
 	void CipherResynchronize(byte *keystreamBuffer, const byte *iv)
 	{
@@ -147,11 +146,11 @@ class CRYPTOPP_DLL CRYPTOPP_NO_VTABLE CTR_ModePolicy : public ModePolicyCommonTe
 {
 public:
 	bool IsRandomAccess() const {return true;}
-	IV_Requirement IVRequirement() const {return STRUCTURED_IV;}
-	void CipherGetNextIV(byte *IV);
+	IV_Requirement IVRequirement() const {return UNIQUE_IV;}
 	static const char * CRYPTOPP_API StaticAlgorithmName() {return "CTR";}
 
 private:
+	unsigned int GetAlignment() const {return m_cipher->BlockAlignment();}
 	unsigned int GetBytesPerIteration() const {return BlockSize();}
 	unsigned int GetIterationsToBuffer() const {return m_cipher->OptimalNumberOfParallelBlocks();}
 	void WriteKeystream(byte *buffer, size_t iterationCount)
@@ -192,6 +191,8 @@ protected:
 class CRYPTOPP_DLL CRYPTOPP_NO_VTABLE ECB_OneWay : public BlockOrientedCipherModeBase
 {
 public:
+	void SetKey(const byte *key, size_t length, const NameValuePairs &params = g_nullNameValuePairs)
+		{m_cipher->SetKey(key, length, params); BlockOrientedCipherModeBase::ResizeBuffers();}
 	IV_Requirement IVRequirement() const {return NOT_RESYNCHRONIZABLE;}
 	unsigned int OptimalBlockSize() const {return BlockSize() * m_cipher->OptimalNumberOfParallelBlocks();}
 	void ProcessBlocks(byte *outString, const byte *inString, size_t numberOfBlocks)

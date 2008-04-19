@@ -24,17 +24,52 @@ void AdditiveCipherTemplate<S>::UncheckedSetKey(const byte *key, unsigned int le
 }
 
 template <class S>
-byte AdditiveCipherTemplate<S>::GenerateByte()
+void AdditiveCipherTemplate<S>::GenerateBlock(byte *outString, size_t length)
 {
-	PolicyInterface &policy = this->AccessPolicy();
-
-	if (m_leftOver == 0)
+	if (m_leftOver > 0)
 	{
-		policy.WriteKeystream(m_buffer, policy.GetIterationsToBuffer());
-		m_leftOver = policy.GetBytesPerIteration();
+		size_t len = STDMIN(m_leftOver, length);
+		memcpy(outString, KeystreamBufferEnd()-m_leftOver, len);
+		length -= len;
+		m_leftOver -= len;
+		outString += len;
+
+		if (!length)
+			return;
+	}
+	assert(m_leftOver == 0);
+
+	PolicyInterface &policy = this->AccessPolicy();
+	unsigned int bytesPerIteration = policy.GetBytesPerIteration();
+
+	if (length >= bytesPerIteration)
+	{
+		size_t iterations = length / bytesPerIteration;
+		policy.WriteKeystream(outString, iterations);
+		outString += iterations * bytesPerIteration;
+		length -= iterations * bytesPerIteration;
+
+		if (!length)
+			return;
 	}
 
-	return *(KeystreamBufferEnd()-m_leftOver--);
+	unsigned int bufferByteSize = GetBufferByteSize(policy);
+	unsigned int bufferIterations = policy.GetIterationsToBuffer();
+
+	while (length >= bufferByteSize)
+	{
+		policy.WriteKeystream(m_buffer, bufferIterations);
+		memcpy(outString, KeystreamBufferBegin(), bufferByteSize);
+		length -= bufferByteSize;
+		outString += bufferByteSize;
+	}
+
+	if (length > 0)
+	{
+		policy.WriteKeystream(m_buffer, bufferIterations);
+		memcpy(outString, KeystreamBufferBegin(), length);
+		m_leftOver = bytesPerIteration - length;
+	}
 }
 
 template <class S>
@@ -48,29 +83,26 @@ void AdditiveCipherTemplate<S>::ProcessData(byte *outString, const byte *inStrin
 		m_leftOver -= len;
 		inString += len;
 		outString += len;
+
+		if (!length)
+			return;
 	}
-
-	if (!length)
-		return;
-
 	assert(m_leftOver == 0);
 
 	PolicyInterface &policy = this->AccessPolicy();
 	unsigned int bytesPerIteration = policy.GetBytesPerIteration();
-	unsigned int alignment = policy.GetAlignment();
 
-	if (policy.CanOperateKeystream() && length >= bytesPerIteration && IsAlignedOn(outString, alignment))
+	if (policy.CanOperateKeystream() && length >= bytesPerIteration)
 	{
-		if (IsAlignedOn(inString, alignment))
-			policy.OperateKeystream(XOR_KEYSTREAM, outString, inString, length / bytesPerIteration);
-		else
-		{
-			memcpy(outString, inString, length);
-			policy.OperateKeystream(XOR_KEYSTREAM_INPLACE, outString, outString, length / bytesPerIteration);
-		}
-		inString += length - length % bytesPerIteration;
-		outString += length - length % bytesPerIteration;
-		length %= bytesPerIteration;
+		size_t iterations = length / bytesPerIteration;
+		unsigned int alignment = policy.GetAlignment();
+		KeystreamOperation operation = KeystreamOperation((IsAlignedOn(inString, alignment) * 2) | (int)IsAlignedOn(outString, alignment));
+
+		policy.OperateKeystream(operation, outString, inString, iterations);
+
+		inString += iterations * bytesPerIteration;
+		outString += iterations * bytesPerIteration;
+		length -= iterations * bytesPerIteration;
 
 		if (!length)
 			return;

@@ -2,6 +2,7 @@
 
 #include "pch.h"
 
+#define CRYPTOPP_ENABLE_NAMESPACE_WEAK 1
 #include "files.h"
 #include "hex.h"
 #include "base32.h"
@@ -33,6 +34,7 @@
 #include "camellia.h"
 #include "osrng.h"
 #include "zdeflate.h"
+#include "cpu.h"
 
 #include <stdlib.h>
 #include <time.h>
@@ -56,15 +58,12 @@ bool ValidateAll(bool thorough)
 	pass=ValidateMD5() && pass;
 	pass=ValidateSHA() && pass;
 	pass=ValidateSHA2() && pass;
-	pass=ValidateHAVAL() && pass;
 	pass=ValidateTiger() && pass;
 	pass=ValidateRIPEMD() && pass;
 	pass=ValidatePanama() && pass;
 	pass=ValidateWhirlpool() && pass;
 
-	pass=ValidateMD5MAC() && pass;
 	pass=ValidateHMAC() && pass;
-	pass=ValidateXMACC() && pass;
 	pass=ValidateTTMAC() && pass;
 
 	pass=ValidatePBKDF() && pass;
@@ -92,6 +91,8 @@ bool ValidateAll(bool thorough)
 	pass=ValidateSHACAL2() && pass;
 	pass=ValidateCamellia() && pass;
 	pass=ValidateSalsa() && pass;
+	pass=ValidateSosemanuk() && pass;
+	pass=ValidateVMAC() && pass;
 
 	pass=ValidateBBS() && pass;
 	pass=ValidateDH() && pass;
@@ -199,6 +200,17 @@ bool TestSettings()
 		cout << "passed:  word64 not available" << endl;
 #endif
 
+#ifdef CRYPTOPP_WORD128_AVAILABLE
+	if (sizeof(word128) == 16)
+		cout << "passed:  ";
+	else
+	{
+		cout << "FAILED:  ";
+		pass = false;
+	}
+	cout << "sizeof(word128) == " << sizeof(word128) << endl;
+#endif
+
 	if (sizeof(word) == 2*sizeof(hword)
 #ifdef CRYPTOPP_NATIVE_DWORD_AVAILABLE
 		&& sizeof(dword) == 2*sizeof(word)
@@ -215,6 +227,23 @@ bool TestSettings()
 	cout << ", sizeof(dword) == " << sizeof(dword);
 #endif
 	cout << endl;
+
+	bool hasMMX = HasMMX();
+	bool hasISSE = HasISSE();
+	bool hasSSE2 = HasSSE2();
+	bool hasSSSE3 = HasSSSE3();
+	bool isP4 = IsP4();
+	int cacheLineSize = GetCacheLineSize();
+
+	if ((isP4 && (!hasMMX || !hasSSE2)) || (hasSSE2 && !hasMMX) || (cacheLineSize < 16 || cacheLineSize > 256 || !IsPowerOf2(cacheLineSize)))
+	{
+		cout << "FAILED:  ";
+		pass = false;
+	}
+	else
+		cout << "passed:  ";
+
+	cout << "hasMMX == " << hasMMX << ", hasISSE == " << hasISSE << ", hasSSE2 == " << hasSSE2 << ", hasSSSE3 == " << hasSSSE3 << ", isP4 == " << isP4 << ", cacheLineSize == " << cacheLineSize;
 
 	if (!pass)
 	{
@@ -260,6 +289,7 @@ bool TestOS_RNG()
 			cout << "passed:";
 		cout << "  it took " << long(t1) << " seconds to generate " << total << " bytes" << endl;
 
+#if 0	// disable this part. it's causing an unpredictable pause during the validation testing
 		if (t1 < 2)
 		{
 			// that was fast, are we really blocking?
@@ -280,9 +310,7 @@ bool TestOS_RNG()
 				total += 1;
 				length += 1;
 			}
-			// turn off this test because it fails on several systems, including Darwin
-			// they don't block, or gather entropy too fast?
-			if (false) // (length > 1024)
+			if (length > 1024)
 			{
 				cout << "FAILED:";
 				pass = false;
@@ -291,6 +319,7 @@ bool TestOS_RNG()
 				cout << "passed:";
 			cout << "  it generated " << length << " bytes in " << long(time(NULL) - t) << " seconds" << endl;
 		}
+#endif
 
 		test.AttachedTransformation()->MessageEnd();
 
@@ -421,6 +450,7 @@ public:
 	{
 		if (counter >= outputLen || validOutput[counter] != inByte)
 		{
+			std::cerr << "incorrect output " << counter << ", " << (word16)validOutput[counter] << ", " << (word16)inByte << "\n";
 			fail = true;
 			assert(false);
 		}
@@ -485,15 +515,13 @@ bool ValidateDES()
 
 bool TestModeIV(SymmetricCipher &e, SymmetricCipher &d)
 {
-	SecByteBlock lastIV;
+	SecByteBlock lastIV, iv(e.IVSize());
 	StreamTransformationFilter filter(e, new StreamTransformationFilter(d));
 	byte plaintext[20480];
 
 	for (unsigned int i=1; i<sizeof(plaintext); i*=2)
 	{
-		SecByteBlock iv(e.IVSize());
-		e.GetNextIV(iv);
-
+		e.GetNextIV(GlobalRNG(), iv);
 		if (iv == lastIV)
 			return false;
 		else
@@ -976,39 +1004,39 @@ bool ValidateARC4()
 	0xc0};
 
 	// VC60 workaround: auto_ptr lacks reset()
-	member_ptr<ARC4> arc4;
+	member_ptr<Weak::ARC4> arc4;
 	bool pass=true, fail;
 	int i;
 
 	cout << "\nARC4 validation suite running...\n\n";
 
-	arc4.reset(new ARC4(Key0, sizeof(Key0)));
+	arc4.reset(new Weak::ARC4(Key0, sizeof(Key0)));
 	arc4->ProcessString(Input0, sizeof(Input0));
 	fail = memcmp(Input0, Output0, sizeof(Input0)) != 0;
 	cout << (fail ? "FAILED" : "passed") << "    Test 0" << endl;
 	pass = pass && !fail;
 
-	arc4.reset(new ARC4(Key1, sizeof(Key1)));
+	arc4.reset(new Weak::ARC4(Key1, sizeof(Key1)));
 	arc4->ProcessString(Key1, Input1, sizeof(Key1));
 	fail = memcmp(Output1, Key1, sizeof(Key1)) != 0;
 	cout << (fail ? "FAILED" : "passed") << "    Test 1" << endl;
 	pass = pass && !fail;
 
-	arc4.reset(new ARC4(Key2, sizeof(Key2)));
+	arc4.reset(new Weak::ARC4(Key2, sizeof(Key2)));
 	for (i=0, fail=false; i<sizeof(Input2); i++)
 		if (arc4->ProcessByte(Input2[i]) != Output2[i])
 			fail = true;
 	cout << (fail ? "FAILED" : "passed") << "    Test 2" << endl;
 	pass = pass && !fail;
 
-	arc4.reset(new ARC4(Key3, sizeof(Key3)));
+	arc4.reset(new Weak::ARC4(Key3, sizeof(Key3)));
 	for (i=0, fail=false; i<sizeof(Input3); i++)
 		if (arc4->ProcessByte(Input3[i]) != Output3[i])
 			fail = true;
 	cout << (fail ? "FAILED" : "passed") << "    Test 3" << endl;
 	pass = pass && !fail;
 
-	arc4.reset(new ARC4(Key4, sizeof(Key4)));
+	arc4.reset(new Weak::ARC4(Key4, sizeof(Key4)));
 	for (i=0, fail=false; i<sizeof(Input4); i++)
 		if (arc4->ProcessByte(Input4[i]) != Output4[i])
 			fail = true;
@@ -1091,7 +1119,7 @@ bool ValidateBlowfish()
 	cout << "\nBlowfish validation suite running...\n\n";
 
 	HexEncoder output(new FileSink(cout));
-	char *key[]={"abcdefghijklmnopqrstuvwxyz", "Who is John Galt?"};
+	const char *key[]={"abcdefghijklmnopqrstuvwxyz", "Who is John Galt?"};
 	byte *plain[]={(byte *)"BLOWFISH", (byte *)"\xfe\xdc\xba\x98\x76\x54\x32\x10"};
 	byte *cipher[]={(byte *)"\x32\x4e\xd0\xfe\xf4\x13\xa2\x03", (byte *)"\xcc\x91\x73\x2b\x80\x22\xf6\x84"};
 	byte out[8], outplain[8];
@@ -1296,17 +1324,12 @@ bool ValidateCamellia()
 {
 	cout << "\nCamellia validation suite running...\n\n";
 
-#ifdef WORD64_AVAILABLE
 	bool pass = true;
 	FileSource valdata("camellia.dat", true, new HexDecoder);
 	pass = BlockTransformationTest(FixedRoundsCipherFactory<CamelliaEncryption, CamelliaDecryption>(16), valdata, 15) && pass;
 	pass = BlockTransformationTest(FixedRoundsCipherFactory<CamelliaEncryption, CamelliaDecryption>(24), valdata, 15) && pass;
 	pass = BlockTransformationTest(FixedRoundsCipherFactory<CamelliaEncryption, CamelliaDecryption>(32), valdata, 15) && pass;
 	return pass;
-#else
-	cout << "word64 not available, skipping Camellia validation." << endl;
-	return true;
-#endif
 }
 
 bool ValidateSalsa()
@@ -1314,4 +1337,16 @@ bool ValidateSalsa()
 	cout << "\nSalsa validation suite running...\n";
 
 	return RunTestDataFile("TestVectors/salsa.txt");
+}
+
+bool ValidateSosemanuk()
+{
+	cout << "\nSosemanuk validation suite running...\n";
+	return RunTestDataFile("TestVectors/sosemanuk.txt");
+}
+
+bool ValidateVMAC()
+{
+	cout << "\nVMAC validation suite running...\n";
+	return RunTestDataFile("TestVectors/vmac.txt");
 }

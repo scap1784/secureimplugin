@@ -746,13 +746,11 @@ protected:
 
 		if (m_algorithm == "RNG")
 		{
-			key.resize(16);
-			HexDecoder hexDec(new ArraySink(key, key.size()));
-			StringSource(m_data["Key1"], true, new Redirector(hexDec));
-			StringSource(m_data["Key2"], true, new Redirector(hexDec));
+			key.resize(24);
+			StringSource(m_data["Key1"] + m_data["Key2"] + m_data["Key3"], true, new HexDecoder(new ArraySink(key, key.size())));
 
 			SecByteBlock seed(m_data2[INPUT]), dt(m_data2[IV]), r(8);
-			X917RNG rng(new DES_EDE2::Encryption(key), seed, dt);
+			X917RNG rng(new DES_EDE3::Encryption(key, key.size()), seed, dt);
 
 			if (m_test == "MCT")
 			{
@@ -1202,7 +1200,7 @@ protected:
 	Map2 m_data2;
 	int m_count;
 
-	AutoSeededX917RNG<DES_EDE3> m_rng;
+	AutoSeededX917RNG<AES> m_rng;
 	std::vector<unsigned int> m_compactString;
 };
 

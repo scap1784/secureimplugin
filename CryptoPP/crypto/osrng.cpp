@@ -74,18 +74,11 @@ NonblockingRng::~NonblockingRng()
 #endif
 }
 
-byte NonblockingRng::GenerateByte()
-{
-	byte b;
-	GenerateBlock(&b, 1);
-	return b;
-}
-
 void NonblockingRng::GenerateBlock(byte *output, size_t size)
 {
 #ifdef CRYPTOPP_WIN32_AVAILABLE
 #	ifdef WORKAROUND_MS_BUG_Q258000
-		static MicrosoftCryptoProvider m_Provider;
+		const MicrosoftCryptoProvider &m_Provider = Singleton<MicrosoftCryptoProvider>().Ref();
 #	endif
 	if (!CryptGenRandom(m_Provider.GetProviderHandle(), (DWORD)size, output))
 		throw OS_RNG_Err("CryptGenRandom");
@@ -119,13 +112,6 @@ BlockingRng::BlockingRng()
 BlockingRng::~BlockingRng()
 {
 	close(m_fd);
-}
-
-byte BlockingRng::GenerateByte()
-{
-	byte b;
-	GenerateBlock(&b, 1);
-	return b;
 }
 
 void BlockingRng::GenerateBlock(byte *output, size_t size)
@@ -175,7 +161,7 @@ void AutoSeededRandomPool::Reseed(bool blocking, unsigned int seedSize)
 {
 	SecByteBlock seed(seedSize);
 	OS_GenerateRandomBlock(blocking, seed, seedSize);
-	Put(seed, seedSize);
+	IncorporateEntropy(seed, seedSize);
 }
 
 NAMESPACE_END

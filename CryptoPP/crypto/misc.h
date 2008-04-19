@@ -3,13 +3,39 @@
 
 #include "cryptlib.h"
 #include "smartptr.h"
+#include <string.h>		// for memcpy and memmove
 
-#ifdef INTEL_INTRINSICS
-#include <stdlib.h>
+#ifdef _MSC_VER
+	#include <stdlib.h>
+	#if _MSC_VER >= 1400
+		// VC2005 workaround: disable declarations that conflict with winnt.h
+		#define _interlockedbittestandset CRYPTOPP_DISABLED_INTRINSIC_1
+		#define _interlockedbittestandreset CRYPTOPP_DISABLED_INTRINSIC_2
+		#include <intrin.h>
+		#undef _interlockedbittestandset
+		#undef _interlockedbittestandreset
+		#define CRYPTOPP_FAST_ROTATE(x) 1
+	#elif _MSC_VER >= 1300
+		#define CRYPTOPP_FAST_ROTATE(x) ((x) == 32 | (x) == 64)
+	#else
+		#define CRYPTOPP_FAST_ROTATE(x) ((x) == 32)
+	#endif
+#elif (defined(__MWERKS__) && TARGET_CPU_PPC) || \
+	(defined(__GNUC__) && (defined(_ARCH_PWR2) || defined(_ARCH_PWR) || defined(_ARCH_PPC) || defined(_ARCH_PPC64) || defined(_ARCH_COM)))
+	#define CRYPTOPP_FAST_ROTATE(x) ((x) == 32)
+#elif defined(__GNUC__) && (CRYPTOPP_BOOL_X64 || CRYPTOPP_BOOL_X86)	// depend on GCC's peephole optimization to generate rotate instructions
+	#define CRYPTOPP_FAST_ROTATE(x) 1
+#else
+	#define CRYPTOPP_FAST_ROTATE(x) 0
 #endif
 
 #ifdef __BORLANDC__
 #include <mem.h>
+#endif
+
+#if defined(__GNUC__) && defined(__linux__)
+#define CRYPTOPP_BYTESWAP_AVAILABLE
+#include <byteswap.h>
 #endif
 
 NAMESPACE_BEGIN(CryptoPP)
@@ -289,8 +315,13 @@ inline T1 RoundUpToMultipleOf(const T1 &n, const T2 &m)
 }
 
 template <class T>
-inline unsigned int GetAlignment(T *dummy=NULL)	// VC60 workaround
+inline unsigned int GetAlignmentOf(T *dummy=NULL)	// VC60 workaround
 {
+#if CRYPTOPP_BOOL_X64 || CRYPTOPP_BOOL_X86
+	if (sizeof(T) < 16)
+		return 1;			// alignment not needed on x86 and x64
+#endif
+
 #if (_MSC_VER >= 1300)
 	return __alignof(T);
 #elif defined(__GNUC__)
@@ -304,13 +335,13 @@ inline unsigned int GetAlignment(T *dummy=NULL)	// VC60 workaround
 
 inline bool IsAlignedOn(const void *p, unsigned int alignment)
 {
-	return IsPowerOf2(alignment) ? ModPowerOf2((size_t)p, alignment) == 0 : (size_t)p % alignment == 0;
+	return alignment==1 || (IsPowerOf2(alignment) ? ModPowerOf2((size_t)p, alignment) == 0 : (size_t)p % alignment == 0);
 }
 
 template <class T>
 inline bool IsAligned(const void *p, T *dummy=NULL)	// VC60 workaround
 {
-	return IsAlignedOn(p, GetAlignment<T>());
+	return IsAlignedOn(p, GetAlignmentOf<T>());
 }
 
 #ifdef IS_LITTLE_ENDIAN
@@ -364,7 +395,7 @@ inline CipherDir GetCipherDir(const T &obj)
 	return obj.IsForwardTransformation() ? ENCRYPTION : DECRYPTION;
 }
 
-void CallNewHandler();
+CRYPTOPP_DLL void CRYPTOPP_API CallNewHandler();
 
 inline void IncrementCounterByOne(byte *inout, unsigned int s)
 {
@@ -418,31 +449,29 @@ template <class T> inline T rotrMod(T x, unsigned int y)
 	return T((x>>y) | (x<<(sizeof(T)*8-y)));
 }
 
-#ifdef INTEL_INTRINSICS
-
-#pragma intrinsic(_lrotl, _lrotr)
+#ifdef _MSC_VER
 
 template<> inline word32 rotlFixed<word32>(word32 x, unsigned int y)
 {
-	assert(y < 32);
+	assert(y < 8*sizeof(x));
 	return y ? _lrotl(x, y) : x;
 }
 
 template<> inline word32 rotrFixed<word32>(word32 x, unsigned int y)
 {
-	assert(y < 32);
+	assert(y < 8*sizeof(x));
 	return y ? _lrotr(x, y) : x;
 }
 
 template<> inline word32 rotlVariable<word32>(word32 x, unsigned int y)
 {
-	assert(y < 32);
+	assert(y < 8*sizeof(x));
 	return _lrotl(x, y);
 }
 
 template<> inline word32 rotrVariable<word32>(word32 x, unsigned int y)
 {
-	assert(y < 32);
+	assert(y < 8*sizeof(x));
 	return _lrotr(x, y);
 }
 
@@ -456,9 +485,121 @@ template<> inline word32 rotrMod<word32>(word32 x, unsigned int y)
 	return _lrotr(x, y);
 }
 
-#endif // #ifdef INTEL_INTRINSICS
+#endif // #ifdef _MSC_VER
 
-#ifdef PPC_INTRINSICS
+#if _MSC_VER >= 1300 && !defined(__INTEL_COMPILER)
+// Intel C++ Compiler 10.0 calls a function instead of using the rotate instruction when using these instructions
+
+template<> inline word64 rotlFixed<word64>(word64 x, unsigned int y)
+{
+	assert(y < 8*sizeof(x));
+	return y ? _rotl64(x, y) : x;
+}
+
+template<> inline word64 rotrFixed<word64>(word64 x, unsigned int y)
+{
+	assert(y < 8*sizeof(x));
+	return y ? _rotr64(x, y) : x;
+}
+
+template<> inline word64 rotlVariable<word64>(word64 x, unsigned int y)
+{
+	assert(y < 8*sizeof(x));
+	return _rotl64(x, y);
+}
+
+template<> inline word64 rotrVariable<word64>(word64 x, unsigned int y)
+{
+	assert(y < 8*sizeof(x));
+	return _rotr64(x, y);
+}
+
+template<> inline word64 rotlMod<word64>(word64 x, unsigned int y)
+{
+	return _rotl64(x, y);
+}
+
+template<> inline word64 rotrMod<word64>(word64 x, unsigned int y)
+{
+	return _rotr64(x, y);
+}
+
+#endif // #if _MSC_VER >= 1310
+
+#if _MSC_VER >= 1400 && !defined(__INTEL_COMPILER)
+// Intel C++ Compiler 10.0 gives undefined externals with these
+
+template<> inline word16 rotlFixed<word16>(word16 x, unsigned int y)
+{
+	assert(y < 8*sizeof(x));
+	return y ? _rotl16(x, y) : x;
+}
+
+template<> inline word16 rotrFixed<word16>(word16 x, unsigned int y)
+{
+	assert(y < 8*sizeof(x));
+	return y ? _rotr16(x, y) : x;
+}
+
+template<> inline word16 rotlVariable<word16>(word16 x, unsigned int y)
+{
+	assert(y < 8*sizeof(x));
+	return _rotl16(x, y);
+}
+
+template<> inline word16 rotrVariable<word16>(word16 x, unsigned int y)
+{
+	assert(y < 8*sizeof(x));
+	return _rotr16(x, y);
+}
+
+template<> inline word16 rotlMod<word16>(word16 x, unsigned int y)
+{
+	return _rotl16(x, y);
+}
+
+template<> inline word16 rotrMod<word16>(word16 x, unsigned int y)
+{
+	return _rotr16(x, y);
+}
+
+template<> inline byte rotlFixed<byte>(byte x, unsigned int y)
+{
+	assert(y < 8*sizeof(x));
+	return y ? _rotl8(x, y) : x;
+}
+
+template<> inline byte rotrFixed<byte>(byte x, unsigned int y)
+{
+	assert(y < 8*sizeof(x));
+	return y ? _rotr8(x, y) : x;
+}
+
+template<> inline byte rotlVariable<byte>(byte x, unsigned int y)
+{
+	assert(y < 8*sizeof(x));
+	return _rotl8(x, y);
+}
+
+template<> inline byte rotrVariable<byte>(byte x, unsigned int y)
+{
+	assert(y < 8*sizeof(x));
+	return _rotr8(x, y);
+}
+
+template<> inline byte rotlMod<byte>(byte x, unsigned int y)
+{
+	return _rotl8(x, y);
+}
+
+template<> inline byte rotrMod<byte>(byte x, unsigned int y)
+{
+	return _rotr8(x, y);
+}
+
+#endif // #if _MSC_VER >= 1400
+
+#if (defined(__MWERKS__) && TARGET_CPU_PPC)
 
 template<> inline word32 rotlFixed<word32>(word32 x, unsigned int y)
 {
@@ -494,7 +635,7 @@ template<> inline word32 rotrMod<word32>(word32 x, unsigned int y)
 	return (__rlwnm(x,32-y,0,31));
 }
 
-#endif // #ifdef PPC_INTRINSICS
+#endif // #if (defined(__MWERKS__) && TARGET_CPU_PPC)
 
 // ************** endian reversal ***************
 
@@ -514,15 +655,27 @@ inline byte ByteReverse(byte value)
 
 inline word16 ByteReverse(word16 value)
 {
+#ifdef CRYPTOPP_BYTESWAP_AVAILABLE
+	return bswap_16(value);
+#elif defined(_MSC_VER) && _MSC_VER >= 1300
+	return _byteswap_ushort(value);
+#else
 	return rotlFixed(value, 8U);
+#endif
 }
 
 inline word32 ByteReverse(word32 value)
 {
-#ifdef PPC_INTRINSICS
-	// PPC: load reverse indexed instruction
+#if defined(__GNUC__) && defined(CRYPTOPP_X86_ASM_AVAILABLE)
+	__asm__ ("bswap %0" : "=r" (value) : "0" (value));
+	return value;
+#elif defined(CRYPTOPP_BYTESWAP_AVAILABLE)
+	return bswap_32(value);
+#elif defined(__MWERKS__) && TARGET_CPU_PPC
 	return (word32)__lwbrx(&value,0);
-#elif defined(FAST_ROTATE)
+#elif _MSC_VER >= 1400 || (_MSC_VER >= 1300 && !defined(_DLL))
+	return _byteswap_ulong(value);
+#elif CRYPTOPP_FAST_ROTATE(32)
 	// 5 instructions with rotate instruction, 9 without
 	return (rotrFixed(value, 8U) & 0xff00ff00) | (rotlFixed(value, 8U) & 0x00ff00ff);
 #else
@@ -535,7 +688,14 @@ inline word32 ByteReverse(word32 value)
 #ifdef WORD64_AVAILABLE
 inline word64 ByteReverse(word64 value)
 {
-#ifdef CRYPTOPP_SLOW_WORD64
+#if defined(__GNUC__) && defined(CRYPTOPP_X86_ASM_AVAILABLE) && defined(__x86_64__)
+	__asm__ ("bswap %0" : "=r" (value) : "0" (value));
+	return value;
+#elif defined(CRYPTOPP_BYTESWAP_AVAILABLE)
+	return bswap_64(value);
+#elif defined(_MSC_VER) && _MSC_VER >= 1300
+	return _byteswap_uint64(value);
+#elif defined(CRYPTOPP_SLOW_WORD64)
 	return (word64(ByteReverse(word32(value))) << 32) | ByteReverse(word32(value>>32));
 #else
 	value = ((value & W64LIT(0xFF00FF00FF00FF00)) >> 8) | ((value & W64LIT(0x00FF00FF00FF00FF)) << 8);
@@ -637,19 +797,20 @@ inline void GetUserKey(ByteOrder order, T *out, size_t outlen, const byte *in, s
 	ConditionalByteReverse(order, out, out, RoundUpToMultipleOf(inlen, U));
 }
 
-inline byte UnalignedGetWordNonTemplate(ByteOrder order, const byte *block, byte*)
+#ifndef CRYPTOPP_ALLOW_UNALIGNED_DATA_ACCESS
+inline byte UnalignedGetWordNonTemplate(ByteOrder order, const byte *block, const byte *)
 {
 	return block[0];
 }
 
-inline word16 UnalignedGetWordNonTemplate(ByteOrder order, const byte *block, word16*)
+inline word16 UnalignedGetWordNonTemplate(ByteOrder order, const byte *block, const word16 *)
 {
 	return (order == BIG_ENDIAN_ORDER)
 		? block[1] | (block[0] << 8)
 		: block[0] | (block[1] << 8);
 }
 
-inline word32 UnalignedGetWordNonTemplate(ByteOrder order, const byte *block, word32*)
+inline word32 UnalignedGetWordNonTemplate(ByteOrder order, const byte *block, const word32 *)
 {
 	return (order == BIG_ENDIAN_ORDER)
 		? word32(block[3]) | (word32(block[2]) << 8) | (word32(block[1]) << 16) | (word32(block[0]) << 24)
@@ -657,7 +818,7 @@ inline word32 UnalignedGetWordNonTemplate(ByteOrder order, const byte *block, wo
 }
 
 #ifdef WORD64_AVAILABLE
-inline word64 UnalignedGetWordNonTemplate(ByteOrder order, const byte *block, word64*)
+inline word64 UnalignedGetWordNonTemplate(ByteOrder order, const byte *block, const word64 *)
 {
 	return (order == BIG_ENDIAN_ORDER)
 		?
@@ -681,113 +842,145 @@ inline word64 UnalignedGetWordNonTemplate(ByteOrder order, const byte *block, wo
 }
 #endif
 
-template <class T>
-inline T UnalignedGetWord(ByteOrder order, const byte *block, T*dummy=NULL)
-{
-	return UnalignedGetWordNonTemplate(order, block, dummy);
-}
-
-inline void UnalignedPutWord(ByteOrder order, byte *block, byte value, const byte *xorBlock = NULL)
+inline void UnalignedPutWordNonTemplate(ByteOrder order, byte *block, byte value, const byte *xorBlock)
 {
 	block[0] = xorBlock ? (value ^ xorBlock[0]) : value;
 }
 
-inline void UnalignedPutWord(ByteOrder order, byte *block, word16 value, const byte *xorBlock = NULL)
+inline void UnalignedPutWordNonTemplate(ByteOrder order, byte *block, word16 value, const byte *xorBlock)
 {
 	if (order == BIG_ENDIAN_ORDER)
 	{
-		block[0] = CRYPTOPP_GET_BYTE_AS_BYTE(value, 1);
-		block[1] = CRYPTOPP_GET_BYTE_AS_BYTE(value, 0);
+		if (xorBlock)
+		{
+			block[0] = xorBlock[0] ^ CRYPTOPP_GET_BYTE_AS_BYTE(value, 1);
+			block[1] = xorBlock[1] ^ CRYPTOPP_GET_BYTE_AS_BYTE(value, 0);
+		}
+		else
+		{
+			block[0] = CRYPTOPP_GET_BYTE_AS_BYTE(value, 1);
+			block[1] = CRYPTOPP_GET_BYTE_AS_BYTE(value, 0);
+		}
 	}
 	else
 	{
-		block[0] = CRYPTOPP_GET_BYTE_AS_BYTE(value, 0);
-		block[1] = CRYPTOPP_GET_BYTE_AS_BYTE(value, 1);
-	}
-
-	if (xorBlock)
-	{
-		block[0] ^= xorBlock[0];
-		block[1] ^= xorBlock[1];
+		if (xorBlock)
+		{
+			block[0] = xorBlock[0] ^ CRYPTOPP_GET_BYTE_AS_BYTE(value, 0);
+			block[1] = xorBlock[1] ^ CRYPTOPP_GET_BYTE_AS_BYTE(value, 1);
+		}
+		else
+		{
+			block[0] = CRYPTOPP_GET_BYTE_AS_BYTE(value, 0);
+			block[1] = CRYPTOPP_GET_BYTE_AS_BYTE(value, 1);
+		}
 	}
 }
 
-inline void UnalignedPutWord(ByteOrder order, byte *block, word32 value, const byte *xorBlock = NULL)
+inline void UnalignedPutWordNonTemplate(ByteOrder order, byte *block, word32 value, const byte *xorBlock)
 {
 	if (order == BIG_ENDIAN_ORDER)
 	{
-		block[0] = CRYPTOPP_GET_BYTE_AS_BYTE(value, 3);
-		block[1] = CRYPTOPP_GET_BYTE_AS_BYTE(value, 2);
-		block[2] = CRYPTOPP_GET_BYTE_AS_BYTE(value, 1);
-		block[3] = CRYPTOPP_GET_BYTE_AS_BYTE(value, 0);
+		if (xorBlock)
+		{
+			block[0] = xorBlock[0] ^ CRYPTOPP_GET_BYTE_AS_BYTE(value, 3);
+			block[1] = xorBlock[1] ^ CRYPTOPP_GET_BYTE_AS_BYTE(value, 2);
+			block[2] = xorBlock[2] ^ CRYPTOPP_GET_BYTE_AS_BYTE(value, 1);
+			block[3] = xorBlock[3] ^ CRYPTOPP_GET_BYTE_AS_BYTE(value, 0);
+		}
+		else
+		{
+			block[0] = CRYPTOPP_GET_BYTE_AS_BYTE(value, 3);
+			block[1] = CRYPTOPP_GET_BYTE_AS_BYTE(value, 2);
+			block[2] = CRYPTOPP_GET_BYTE_AS_BYTE(value, 1);
+			block[3] = CRYPTOPP_GET_BYTE_AS_BYTE(value, 0);
+		}
 	}
 	else
 	{
-		block[0] = CRYPTOPP_GET_BYTE_AS_BYTE(value, 0);
-		block[1] = CRYPTOPP_GET_BYTE_AS_BYTE(value, 1);
-		block[2] = CRYPTOPP_GET_BYTE_AS_BYTE(value, 2);
-		block[3] = CRYPTOPP_GET_BYTE_AS_BYTE(value, 3);
-	}
-
-	if (xorBlock)
-	{
-		block[0] ^= xorBlock[0];
-		block[1] ^= xorBlock[1];
-		block[2] ^= xorBlock[2];
-		block[3] ^= xorBlock[3];
+		if (xorBlock)
+		{
+			block[0] = xorBlock[0] ^ CRYPTOPP_GET_BYTE_AS_BYTE(value, 0);
+			block[1] = xorBlock[1] ^ CRYPTOPP_GET_BYTE_AS_BYTE(value, 1);
+			block[2] = xorBlock[2] ^ CRYPTOPP_GET_BYTE_AS_BYTE(value, 2);
+			block[3] = xorBlock[3] ^ CRYPTOPP_GET_BYTE_AS_BYTE(value, 3);
+		}
+		else
+		{
+			block[0] = CRYPTOPP_GET_BYTE_AS_BYTE(value, 0);
+			block[1] = CRYPTOPP_GET_BYTE_AS_BYTE(value, 1);
+			block[2] = CRYPTOPP_GET_BYTE_AS_BYTE(value, 2);
+			block[3] = CRYPTOPP_GET_BYTE_AS_BYTE(value, 3);
+		}
 	}
 }
 
 #ifdef WORD64_AVAILABLE
-inline void UnalignedPutWord(ByteOrder order, byte *block, word64 value, const byte *xorBlock = NULL)
+inline void UnalignedPutWordNonTemplate(ByteOrder order, byte *block, word64 value, const byte *xorBlock)
 {
 	if (order == BIG_ENDIAN_ORDER)
 	{
-		block[0] = CRYPTOPP_GET_BYTE_AS_BYTE(value, 7);
-		block[1] = CRYPTOPP_GET_BYTE_AS_BYTE(value, 6);
-		block[2] = CRYPTOPP_GET_BYTE_AS_BYTE(value, 5);
-		block[3] = CRYPTOPP_GET_BYTE_AS_BYTE(value, 4);
-		block[4] = CRYPTOPP_GET_BYTE_AS_BYTE(value, 3);
-		block[5] = CRYPTOPP_GET_BYTE_AS_BYTE(value, 2);
-		block[6] = CRYPTOPP_GET_BYTE_AS_BYTE(value, 1);
-		block[7] = CRYPTOPP_GET_BYTE_AS_BYTE(value, 0);
+		if (xorBlock)
+		{
+			block[0] = xorBlock[0] ^ CRYPTOPP_GET_BYTE_AS_BYTE(value, 7);
+			block[1] = xorBlock[1] ^ CRYPTOPP_GET_BYTE_AS_BYTE(value, 6);
+			block[2] = xorBlock[2] ^ CRYPTOPP_GET_BYTE_AS_BYTE(value, 5);
+			block[3] = xorBlock[3] ^ CRYPTOPP_GET_BYTE_AS_BYTE(value, 4);
+			block[4] = xorBlock[4] ^ CRYPTOPP_GET_BYTE_AS_BYTE(value, 3);
+			block[5] = xorBlock[5] ^ CRYPTOPP_GET_BYTE_AS_BYTE(value, 2);
+			block[6] = xorBlock[6] ^ CRYPTOPP_GET_BYTE_AS_BYTE(value, 1);
+			block[7] = xorBlock[7] ^ CRYPTOPP_GET_BYTE_AS_BYTE(value, 0);
+		}
+		else
+		{
+			block[0] = CRYPTOPP_GET_BYTE_AS_BYTE(value, 7);
+			block[1] = CRYPTOPP_GET_BYTE_AS_BYTE(value, 6);
+			block[2] = CRYPTOPP_GET_BYTE_AS_BYTE(value, 5);
+			block[3] = CRYPTOPP_GET_BYTE_AS_BYTE(value, 4);
+			block[4] = CRYPTOPP_GET_BYTE_AS_BYTE(value, 3);
+			block[5] = CRYPTOPP_GET_BYTE_AS_BYTE(value, 2);
+			block[6] = CRYPTOPP_GET_BYTE_AS_BYTE(value, 1);
+			block[7] = CRYPTOPP_GET_BYTE_AS_BYTE(value, 0);
+		}
 	}
 	else
 	{
-		block[0] = CRYPTOPP_GET_BYTE_AS_BYTE(value, 0);
-		block[1] = CRYPTOPP_GET_BYTE_AS_BYTE(value, 1);
-		block[2] = CRYPTOPP_GET_BYTE_AS_BYTE(value, 2);
-		block[3] = CRYPTOPP_GET_BYTE_AS_BYTE(value, 3);
-		block[4] = CRYPTOPP_GET_BYTE_AS_BYTE(value, 4);
-		block[5] = CRYPTOPP_GET_BYTE_AS_BYTE(value, 5);
-		block[6] = CRYPTOPP_GET_BYTE_AS_BYTE(value, 6);
-		block[7] = CRYPTOPP_GET_BYTE_AS_BYTE(value, 7);
-	}
-
-	if (xorBlock)
-	{
-		block[0] ^= xorBlock[0];
-		block[1] ^= xorBlock[1];
-		block[2] ^= xorBlock[2];
-		block[3] ^= xorBlock[3];
-		block[4] ^= xorBlock[4];
-		block[5] ^= xorBlock[5];
-		block[6] ^= xorBlock[6];
-		block[7] ^= xorBlock[7];
+		if (xorBlock)
+		{
+			block[0] = xorBlock[0] ^ CRYPTOPP_GET_BYTE_AS_BYTE(value, 0);
+			block[1] = xorBlock[1] ^ CRYPTOPP_GET_BYTE_AS_BYTE(value, 1);
+			block[2] = xorBlock[2] ^ CRYPTOPP_GET_BYTE_AS_BYTE(value, 2);
+			block[3] = xorBlock[3] ^ CRYPTOPP_GET_BYTE_AS_BYTE(value, 3);
+			block[4] = xorBlock[4] ^ CRYPTOPP_GET_BYTE_AS_BYTE(value, 4);
+			block[5] = xorBlock[5] ^ CRYPTOPP_GET_BYTE_AS_BYTE(value, 5);
+			block[6] = xorBlock[6] ^ CRYPTOPP_GET_BYTE_AS_BYTE(value, 6);
+			block[7] = xorBlock[7] ^ CRYPTOPP_GET_BYTE_AS_BYTE(value, 7);
+		}
+		else
+		{
+			block[0] = CRYPTOPP_GET_BYTE_AS_BYTE(value, 0);
+			block[1] = CRYPTOPP_GET_BYTE_AS_BYTE(value, 1);
+			block[2] = CRYPTOPP_GET_BYTE_AS_BYTE(value, 2);
+			block[3] = CRYPTOPP_GET_BYTE_AS_BYTE(value, 3);
+			block[4] = CRYPTOPP_GET_BYTE_AS_BYTE(value, 4);
+			block[5] = CRYPTOPP_GET_BYTE_AS_BYTE(value, 5);
+			block[6] = CRYPTOPP_GET_BYTE_AS_BYTE(value, 6);
+			block[7] = CRYPTOPP_GET_BYTE_AS_BYTE(value, 7);
+		}
 	}
 }
 #endif
+#endif	// #ifndef CRYPTOPP_ALLOW_UNALIGNED_DATA_ACCESS
 
 template <class T>
 inline T GetWord(bool assumeAligned, ByteOrder order, const byte *block)
 {
-	if (assumeAligned)
-	{
-		assert(IsAligned<T>(block));
-		return ConditionalByteReverse(order, *reinterpret_cast<const T *>(block));
-	}
-	else
-		return UnalignedGetWord<T>(order, block);
+#ifndef CRYPTOPP_ALLOW_UNALIGNED_DATA_ACCESS
+	if (!assumeAligned)
+		return UnalignedGetWordNonTemplate(order, block, (T*)NULL);
+	assert(IsAligned<T>(block));
+#endif
+	return ConditionalByteReverse(order, *reinterpret_cast<const T *>(block));
 }
 
 template <class T>
@@ -799,17 +992,13 @@ inline void GetWord(bool assumeAligned, ByteOrder order, T &result, const byte *
 template <class T>
 inline void PutWord(bool assumeAligned, ByteOrder order, byte *block, T value, const byte *xorBlock = NULL)
 {
-	if (assumeAligned)
-	{
-		assert(IsAligned<T>(block));
-		assert(IsAligned<T>(xorBlock));
-		if (xorBlock)
-			*reinterpret_cast<T *>(block) = ConditionalByteReverse(order, value) ^ *reinterpret_cast<const T *>(xorBlock);
-		else
-			*reinterpret_cast<T *>(block) = ConditionalByteReverse(order, value);
-	}
-	else
-		UnalignedPutWord(order, block, value, xorBlock);
+#ifndef CRYPTOPP_ALLOW_UNALIGNED_DATA_ACCESS
+	if (!assumeAligned)
+		return UnalignedPutWordNonTemplate(order, block, value, xorBlock);
+	assert(IsAligned<T>(block));
+	assert(IsAligned<T>(xorBlock));
+#endif
+	*reinterpret_cast<T *>(block) = ConditionalByteReverse(order, value) ^ (xorBlock ? *reinterpret_cast<const T *>(xorBlock) : 0);
 }
 
 template <class T, class B, bool A=true>
@@ -832,7 +1021,7 @@ private:
 	const byte *m_block;
 };
 
-template <class T, class B, bool A=true>
+template <class T, class B, bool A=false>
 class PutBlock
 {
 public:
@@ -854,12 +1043,12 @@ private:
 	byte *m_block;
 };
 
-template <class T, class B, bool A=true>
+template <class T, class B, bool GA=true, bool PA=false>
 struct BlockGetAndPut
 {
 	// function needed because of C++ grammatical ambiguity between expression-statements and declarations
-	static inline GetBlock<T, B, A> Get(const void *block) {return GetBlock<T, B, A>(block);}
-	typedef PutBlock<T, B, A> Put;
+	static inline GetBlock<T, B, GA> Get(const void *block) {return GetBlock<T, B, GA>(block);}
+	typedef PutBlock<T, B, PA> Put;
 };
 
 template <class T>
@@ -927,4 +1116,4 @@ inline T SafeLeftShift(T value)
 
 NAMESPACE_END
 
-#endif // MISC_H
+#endif
