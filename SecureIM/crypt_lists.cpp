@@ -134,6 +134,14 @@ pUinKey getUinKey(HANDLE hContact) {
 }
 
 
+pUinKey getUinCntx(int cntx) {
+	int j;
+	for(j=0;j<clist_cnt && clist[j].cntx!=cntx;j++);
+	if (j==clist_cnt)	return NULL;
+	return &clist[j];
+}
+
+
 // add message to user queue for send later
 void addMsg2Queue(pUinKey ptr,WPARAM wParam,LPSTR szMsg) {
 		

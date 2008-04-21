@@ -118,8 +118,8 @@ int onRecvMsg(WPARAM wParam, LPARAM lParam) {
 		else {
 			szPlainMsg = m_aastrcat(Translate(sim402),szEncMsg);
 		}
-       	ppre->szMessage = szPlainMsg;
-     	pccsd->wParam |= PREF_SIMNOMETA;
+		ppre->szMessage = szPlainMsg;
+		pccsd->wParam |= PREF_SIMNOMETA;
 		int ret = CallService(MS_PROTO_CHAINRECV, wParam, lParam);
 		mir_free(szPlainMsg);
 		return ret;
@@ -155,7 +155,7 @@ int onRecvMsg(WPARAM wParam, LPARAM lParam) {
 		sscanf(szEncMsg,"%4X%2X%2X",&msg_id,&part_num,&part_all);
 		//
 		pPM ppm = NULL, pm = ptr->msgPart;
-        if( !ptr->msgPart ) {
+		if( !ptr->msgPart ) {
 			pm = ptr->msgPart = new partitionMessage;
 			pm->id = msg_id;
 			pm->message = new LPSTR[part_all];
@@ -255,13 +255,13 @@ int onRecvMsg(WPARAM wParam, LPARAM lParam) {
 	switch(ssig) {
 
 	case SiG_SECU: { // new secured msg, pass to rsa_recv
-	    if(!ptr->cntx) {
+		if(!ptr->cntx) {
 			ptr->cntx = cpp_create_context(MODE_RSA);
 			ptr->keyLoaded = 0;
 		}
 
-     	LPSTR szNewMsg = NULL;
-    	LPSTR szOldMsg = NULL;
+		LPSTR szNewMsg = NULL;
+		LPSTR szOldMsg = NULL;
 
 		szOldMsg = exp->rsa_recv(ptr->cntx,szEncMsg);
 		if(!szOldMsg) { // don't handle it ...
@@ -525,7 +525,7 @@ int onRecvMsg(WPARAM wParam, LPARAM lParam) {
 int onSendMsgW(WPARAM wParam, LPARAM lParam) {
 	if(!lParam) return 0;
 
-    CCSDATA *ccs = (CCSDATA *) lParam;
+	CCSDATA *ccs = (CCSDATA *) lParam;
 	ccs->wParam |= PREF_UNICODE;
 	
 	return onSendMsg(wParam, lParam);
@@ -553,7 +553,8 @@ int onSendMsg(WPARAM wParam, LPARAM lParam) {
 		ssig==SiG_GAME ||
 		isChatRoom(pccsd->hContact) ||
 		(hMetaContact && (pccsd->wParam & PREF_METANODB)) ||
-		stat == -1 ||
+		stat==-1 ||
+		ssig==SiG_SECU ||
 		(ssig==-1 && ptr->sendQueue)
 		)
 		return CallService(MS_PROTO_CHAINSEND, wParam, lParam);
@@ -580,16 +581,16 @@ int onSendMsg(WPARAM wParam, LPARAM lParam) {
 		LPSTR szOldMsg = (LPSTR) pccsd->lParam;
 		LPSTR szNewMsg = NULL;
 		if(ptr->keyLoaded == 1) { // PGP
-    		if(pccsd->wParam & PREF_UNICODE)
+    			if(pccsd->wParam & PREF_UNICODE)
     			szNewMsg = pgp_encodeW(ptr->cntx,(LPCWSTR)(szOldMsg+strlen(szOldMsg)+1));
-    		else
+    			else
     			szNewMsg = pgp_encodeA(ptr->cntx,szOldMsg);
-    	}
-    	else
-		if(ptr->keyLoaded == 2) { // GPG
-    		if(pccsd->wParam & PREF_UNICODE)
-    			szNewMsg = gpg_encodeW(ptr->cntx,(LPCWSTR)(szOldMsg+strlen(szOldMsg)+1));
+    		}
     		else
+		if(ptr->keyLoaded == 2) { // GPG
+    			if(pccsd->wParam & PREF_UNICODE)
+    			szNewMsg = gpg_encodeW(ptr->cntx,(LPCWSTR)(szOldMsg+strlen(szOldMsg)+1));
+    			else
     			szNewMsg = gpg_encodeA(ptr->cntx,szOldMsg);
 		}
 		if(!szNewMsg) {

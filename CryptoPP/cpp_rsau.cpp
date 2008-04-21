@@ -171,10 +171,10 @@ string RSADecryptString(const string& privkey, const string& ciphertext)
 string RSASignString(const string& privkey, const string& plaintext)
 {
 	StringSource privsrc(privkey, true, NULL);
-    RSASSA_PKCS1v15_SHA_Signer priv(privsrc);
+	RSASSA_PKCS1v15_SHA_Signer priv(privsrc);
 
-    string result;
-    try {
+	string result;
+	try {
 		StringSource(plaintext, true, new SignerFilter(GlobalRNG(), priv, new StringSink(result)));
 	}
 	catch (...)	{

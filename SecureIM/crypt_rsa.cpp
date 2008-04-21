@@ -16,16 +16,25 @@ BOOL rsa_2048=0, rsa_4096=0;
 
 
 int rsa_inject(int context, LPCSTR msg) {
+	pUinKey ptr = getUinKey(context);
+	if(!ptr) return 0;
+	CallContactService(pUinKey->hContact,PSS_MESSAGE,(WPARAM)PREF_METANODB,(LPARAM)msg);
 	return 1;
 }
 
 
 int rsa_check_pub(int context, PBYTE pub, int pubLen, PBYTE sig, int sigLen) {
+	pUinKey ptr = getUinKey(context);
+	if(!ptr) return 0;
+	//
 	return 1;
 }
 
 
 void rsa_notify(int context, int state) {
+	pUinKey ptr = getUinKey(context);
+	if(!ptr) return;
+	//
 }
 
 
