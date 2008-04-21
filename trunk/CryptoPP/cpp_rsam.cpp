@@ -81,9 +81,9 @@ int __cdecl rsa_done(void) {
 
 pRSAPRIV rsa_gen_keys(int context) {
 
-    if( context != -2 && context != -3) return 0;
+	if( context != -2 && context != -3) return 0;
 
-    pCNTX ptr = get_context_on_id(context);
+	pCNTX ptr = get_context_on_id(context);
 	pRSAPRIV r = (pRSAPRIV) ptr->pdata;
 
 	string priv, pub;
@@ -106,7 +106,7 @@ pRSAPRIV rsa_gen_keys(int context) {
 
 int rsa_gen_keypair(short mode) {
 
-    if( mode&MODE_RSA_2048 )	rsa_gen_keys(-2); // 2048
+	if( mode&MODE_RSA_2048 )	rsa_gen_keys(-2); // 2048
 	if( mode&MODE_RSA_4096 )	rsa_gen_keys(-3); // 4096
 
 	return 1;
@@ -115,11 +115,11 @@ int rsa_gen_keypair(short mode) {
 
 int rsa_get_keypair(short mode, PBYTE privKey, int* privKeyLen, PBYTE pubKey, int* pubKeyLen) {
 
-    pCNTX ptr = get_context_on_id((mode&MODE_RSA_4096)?-3:-2);
+	pCNTX ptr = get_context_on_id((mode&MODE_RSA_4096)?-3:-2);
 	pRSAPRIV r = (pRSAPRIV) ptr->pdata;
 
-	*privKeyLen = r->priv_k.length(); if(privKey) r->priv_k.copy((char*)privKey, *privKeyLen);
-	*pubKeyLen = r->pub_k.length(); if(pubKey) r->pub_k.copy((char*)pubKey, *pubKeyLen);
+	*privKeyLen = r->priv_k.length(); r->priv_k.copy((char*)privKey, *privKeyLen);
+	*pubKeyLen = r->pub_k.length(); r->pub_k.copy((char*)pubKey, *pubKeyLen);
 
 	return 1;
 }
@@ -127,7 +127,7 @@ int rsa_get_keypair(short mode, PBYTE privKey, int* privKeyLen, PBYTE pubKey, in
 
 int rsa_set_keypair(short mode, PBYTE privKey, int privKeyLen, PBYTE pubKey, int pubKeyLen) {
 
-    pCNTX ptr = get_context_on_id((mode&MODE_RSA_4096)?-3:-2);
+	pCNTX ptr = get_context_on_id((mode&MODE_RSA_4096)?-3:-2);
 	pRSAPRIV r = (pRSAPRIV) ptr->pdata;
 
 	r->priv_k.assign((char*)privKey, privKeyLen);
@@ -142,8 +142,9 @@ int rsa_set_keypair(short mode, PBYTE privKey, int privKeyLen, PBYTE pubKey, int
 
 int rsa_connect(int context, PBYTE pubKey, int pubKeyLen) {
 
-    pCNTX ptr = get_context_on_id(context);
-    if(!ptr) return 0;
+	pCNTX ptr = get_context_on_id(context);
+	if(!ptr) return 0;
+
 	cpp_alloc_pdata(ptr); pRSADATA p = (pRSADATA) ptr->pdata;
 	if(p->state) return p->state;
 
@@ -161,8 +162,9 @@ int rsa_connect(int context, PBYTE pubKey, int pubKeyLen) {
 
 int rsa_disconnect(int context) {
 
-    pCNTX ptr = get_context_on_id(context);
-    if(!ptr) return 0;
+	pCNTX ptr = get_context_on_id(context);
+	if(!ptr) return 0;
+
 	cpp_alloc_pdata(ptr); pRSADATA p = (pRSADATA) ptr->pdata;
 	if(!p->state) return 1;
 
@@ -175,8 +177,9 @@ int rsa_disconnect(int context) {
 
 LPSTR rsa_recv(int context, LPCSTR msg) {
 
-    pCNTX ptr = get_context_on_id(context);
-    if(!ptr) return 0;
+	pCNTX ptr = get_context_on_id(context);
+	if(!ptr) return 0;
+
 	cpp_alloc_pdata(ptr); pRSADATA p = (pRSADATA) ptr->pdata;
 	pRSAPRIV r = (pRSAPRIV) (get_context_on_id((ptr->mode&MODE_RSA_4096)?-3:-2))->pdata;
 
@@ -241,7 +244,7 @@ LPSTR rsa_recv(int context, LPCSTR msg) {
 		#define BUFSIZE 512
 		PBYTE buffer=(PBYTE) mir_alloc(BUFSIZE);
 		GlobalRNG().GenerateBlock(buffer, BUFSIZE);
-        inject_msg(context,0x50,encode_msg(p,sign(buffer,BUFSIZE)));
+        	inject_msg(context,0x50,encode_msg(p,sign(buffer,BUFSIZE)));
 		mir_free(buffer);
 		p->state=6;
 	} break;
@@ -296,7 +299,7 @@ LPSTR rsa_recv(int context, LPCSTR msg) {
 		#define BUFSIZE 512
 		PBYTE buffer=(PBYTE) mir_alloc(BUFSIZE);
 		GlobalRNG().GenerateBlock(buffer, BUFSIZE);
-        inject_msg(context,0x60,encode_msg(p,sign(buffer,BUFSIZE)));
+        	inject_msg(context,0x60,encode_msg(p,sign(buffer,BUFSIZE)));
 		mir_free(buffer);
 		imp->rsa_notify(context,1);	// заебися, криптосессия установлена
 		p->state=7;
@@ -341,8 +344,9 @@ LPSTR rsa_recv(int context, LPCSTR msg) {
 
 int rsa_send(int context, LPCSTR msg) {
 
-    pCNTX ptr = get_context_on_id(context);
-    if(!ptr) return 0;
+	pCNTX ptr = get_context_on_id(context);
+	if(!ptr) return 0;
+
 	cpp_alloc_pdata(ptr); pRSADATA p = (pRSADATA) ptr->pdata;
 	if(p->state!=7) return 0;
 
