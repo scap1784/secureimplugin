@@ -134,7 +134,7 @@ pUinKey getUinKey(HANDLE hContact) {
 }
 
 
-pUinKey getUinCntx(int cntx) {
+pUinKey getUinCtx(int cntx) {
 	int j;
 	for(j=0;j<clist_cnt && clist[j].cntx!=cntx;j++);
 	if (j==clist_cnt)	return NULL;

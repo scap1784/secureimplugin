@@ -95,7 +95,7 @@ void loadSupportedProtocols();
 void freeSupportedProtocols();
 pSupPro getSupPro(HANDLE);
 pUinKey getUinKey(HANDLE);
-pUinKey getUinCntx(int);
+pUinKey getUinCtx(int);
 void addMsg2Queue(pUinKey,WPARAM,LPSTR);
 
 // crypt_check.cpp
