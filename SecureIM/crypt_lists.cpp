@@ -10,8 +10,8 @@ void loadSupportedProtocols() {
 
     freeSupportedProtocols();
 
-	int numberOfProtocols;
-	PROTOCOLDESCRIPTOR **protos;
+    int numberOfProtocols;
+    PROTOCOLDESCRIPTOR **protos;
     char *szNames = DBGetString(0,szModuleName,"protos");
 
 	CallService(MS_PROTO_ENUMPROTOCOLS, (WPARAM)&numberOfProtocols, (LPARAM)&protos);

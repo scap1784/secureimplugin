@@ -163,8 +163,32 @@ wchar_t* a2u( const char* src )
 	return result;
 }
 
+pA2U pa2u = NULL;
+int ca2u = 0;
+
+LPWSTR TranslateX( LPCSTR lpText ) {
+	int i;
+	for( i=0; i<ca2u; i++ ) {
+       	    if( pa2u[i].a == lpText ) return pa2u[i].u;
+	}
+	ca2u++;
+	pa2u = (pA2U) mir_realloc(pa2u,sizeof(A2U)*ca2u);
+       	pa2u[i].a = lpText;
+       	pa2u[i].u = a2u(lpText);
+	return pa2u[i].u;
+}
+
+void freeTranslateX() {
+	for( int i=0; i<ca2u; i++ ) {
+       	    SAFE_FREE(pa2u[i].u);
+	}
+	SAFE_FREE(pa2u);
+	pa2u=NULL;
+	ca2u=0;
+}
+
 int msgbox( HWND hWnd, LPCSTR lpText, LPCSTR lpCaption, UINT uType) {
-	if( bCoreUnicode ) return MessageBoxW(hWnd,TranslateW(lpText),TranslateW(lpCaption),uType);
+	if( bCoreUnicode ) return MessageBoxW(hWnd,TranslateX(lpText),TranslateX(lpCaption),uType);
 	return MessageBoxA(hWnd,Translate(lpText),Translate(lpCaption),uType);
 }
 

@@ -251,14 +251,6 @@ int Load(PLUGINLINK *link) {
 	// get memoryManagerInterface address
 	mir_getMMI(&memoryManagerInterface);
 
-	// load crypo++ dll
-	if (!loadlib()) {
-		msgbox(0,sim107,szModuleName,MB_OK|MB_ICONSTOP);
-		return 1;
-	}
-
-	load_rtfconv();
-
 	// check for support TrueColor Icons
 	BOOL bIsComCtl6 = FALSE;
 	HMODULE hComCtlDll = LoadLibrary("comctl32.dll");
@@ -275,10 +267,22 @@ int Load(PLUGINLINK *link) {
 		}
 		FreeLibrary(hComCtlDll);
 	}
-	if (bIsComCtl6)		iBmpDepth = ILC_COLOR32 | ILC_MASK;  // 32-bit images are supported
-	else				iBmpDepth = ILC_COLOR24 | ILC_MASK;
+	if (bIsComCtl6)	iBmpDepth = ILC_COLOR32 | ILC_MASK;  // 32-bit images are supported
+	else		iBmpDepth = ILC_COLOR24 | ILC_MASK;
 
 //	iBmpDepth = ILC_COLOR32 | ILC_MASK;
+
+	char version[512];
+	CallService(MS_SYSTEM_GETVERSIONTEXT, sizeof(version), (LPARAM)&version);
+	bCoreUnicode = strstr(version, "Unicode")!=0;
+
+	// load crypo++ dll
+	if (!loadlib()) {
+		msgbox(0,sim107,szModuleName,MB_OK|MB_ICONSTOP);
+		return 1;
+	}
+
+	load_rtfconv();
 
 	// register plugin module
 	PROTOCOLDESCRIPTOR pd = {0};
@@ -341,10 +345,6 @@ HANDLE AddSubItem(HANDLE rootid,LPCSTR name,int pos,int poppos,LPCSTR service,WP
 int onModulesLoaded(WPARAM wParam,LPARAM lParam) {
 
 	InitNetlib();
-
-	char version[512];
-	CallService(MS_SYSTEM_GETVERSIONTEXT, sizeof(version), (LPARAM)&version);
-	bCoreUnicode = strstr(version, "Unicode")!=0;
 
     bMetaContacts = ServiceExists(MS_MC_GETMETACONTACT)!=0;
     bPopupExists = ServiceExists(MS_POPUP_ADDPOPUPEX)!=0;
@@ -583,6 +583,7 @@ int onSystemOKToExit(WPARAM wParam,LPARAM lParam) {
 	DestroyHookableEvent(g_hEvent[1]);
 	freeContactList();
 	freeSupportedProtocols();
+	freeTranslateX();
 	free_rtfconv();
 	DeinitNetlib();
 	return 0;
