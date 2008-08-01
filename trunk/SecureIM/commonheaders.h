@@ -166,6 +166,8 @@ void SetFlags();
 
 char* u2a( const wchar_t* src );
 wchar_t* a2u( const char* src );
+LPWSTR TranslateX( LPCSTR lpText );
+void freeTranslateX();
 int msgbox( HWND hWnd, LPCSTR lpText, LPCSTR lpCaption, UINT uType);
 
 #endif

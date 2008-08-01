@@ -12,6 +12,12 @@
 #define KEY_A_SIG	0x000000
 #define KEY_B_SIG	0x010000
 
+struct A2U{
+	LPCSTR a;
+	LPWSTR u;
+};
+typedef A2U* pA2U;
+
 // struct to store all supported protocols
 struct SupPro {
 	char *uniqueName;
