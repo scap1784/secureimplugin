@@ -852,7 +852,7 @@ BOOL CALLBACK DlgProcSetPSK(HWND hDlg,UINT uMsg,WPARAM wParam,LPARAM lParam) {
 		case IDOK: {
 			int len = GetDlgItemTextA(hDlg,IDC_EDIT1,buffer,PSKSIZE+1);
 			if(len<8) {
-				MessageBox(hDlg,Translate(sim211),Translate(szModuleName),MB_OK|MB_ICONEXCLAMATION);
+				msgbox(hDlg,sim211,szModuleName,MB_OK|MB_ICONEXCLAMATION);
 				return TRUE;
 			}
 			else {
@@ -1238,7 +1238,7 @@ void ApplyGeneralSettings(HWND hDlg) {
 		bGPG = i; tmp++;
 		DBWriteContactSettingByte(0, szModuleName, "gpg", bGPG);
 	}
-	if(tmp) MessageBox(hDlg, Translate(sim224), Translate(szModuleName), MB_OK|MB_ICONINFORMATION);
+	if(tmp) msgbox(hDlg, sim224, szModuleName, MB_OK|MB_ICONINFORMATION);
 	}
 
 	HWND hLV = GetDlgItem(hDlg,IDC_STD_USERLIST);

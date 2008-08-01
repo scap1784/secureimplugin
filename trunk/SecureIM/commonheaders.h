@@ -166,5 +166,6 @@ void SetFlags();
 
 char* u2a( const wchar_t* src );
 wchar_t* a2u( const char* src );
+int msgbox( HWND hWnd, LPCSTR lpText, LPCSTR lpCaption, UINT uType);
 
 #endif

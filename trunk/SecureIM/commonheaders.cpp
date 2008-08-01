@@ -163,6 +163,11 @@ wchar_t* a2u( const char* src )
 	return result;
 }
 
+int msgbox( HWND hWnd, LPCSTR lpText, LPCSTR lpCaption, UINT uType) {
+	if( bCoreUnicode ) return MessageBoxW(hWnd,TranslateW(lpText),TranslateW(lpCaption),uType);
+	return MessageBoxA(hWnd,Translate(lpText),Translate(lpCaption),uType);
+}
+
 void InitNetlib() {
 	NETLIBUSER nl_user = {0};
 	nl_user.cbSize = sizeof(nl_user);
