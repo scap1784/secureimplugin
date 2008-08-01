@@ -253,7 +253,7 @@ int Load(PLUGINLINK *link) {
 
 	// load crypo++ dll
 	if (!loadlib()) {
-		MessageBox(0,Translate(sim107),Translate(szModuleName),MB_OK|MB_ICONSTOP);
+		msgbox(0,sim107,szModuleName,MB_OK|MB_ICONSTOP);
 		return 1;
 	}
 

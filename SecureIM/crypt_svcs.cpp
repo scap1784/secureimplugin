@@ -563,7 +563,7 @@ int onSendMsg(WPARAM wParam, LPARAM lParam) {
 	if(isContactPGP(ptr->hContact) || isContactGPG(ptr->hContact)) {
 /*
 		if(stat==ID_STATUS_OFFLINE) {
-			if (MessageBox(0,Translate(sim110),Translate(szModuleName),MB_YESNO|MB_ICONQUESTION)==IDNO) {
+			if (msgbox(0,sim110,szModuleName,MB_YESNO|MB_ICONQUESTION)==IDNO) {
 				return returnNoError(pccsd->hContact);
 			}
 			// exit and send unencrypted message
@@ -691,7 +691,7 @@ int onSendMsg(WPARAM wParam, LPARAM lParam) {
 			else {
 				DBDeleteContactSetting(ptr->hContact,szModuleName,"offlineKey");
 				DBDeleteContactSetting(ptr->hContact,szModuleName,"offlineKeyTimeout");
-				if (MessageBox(0,Translate(sim106),Translate(szModuleName),MB_YESNO|MB_ICONQUESTION)==IDNO) {
+				if (msgbox(0,sim106,szModuleName,MB_YESNO|MB_ICONQUESTION)==IDNO) {
 					return returnNoError(pccsd->hContact);
 				}
 				// exit and send unencrypted message
@@ -700,7 +700,7 @@ int onSendMsg(WPARAM wParam, LPARAM lParam) {
 		}
 		else {
 /*			if (stid==STATUS_ALWAYSTRY && !isMiranda || stid!=STATUS_ALWAYSTRY && isMiranda) {
-				int res=MessageBox(0,Translate("User is offline now, Do you want to send your message ?\nIt will be unencrypted !"),Translate("Can't Send Encrypted Message !"),MB_YESNO);
+				int res=msgbox(0,"User is offline now, Do you want to send your message ?\nIt will be unencrypted !","Can't Send Encrypted Message !",MB_YESNO);
 				if (res==IDNO) return 1;
 			}*/
 		    if(ssig!=-1) {

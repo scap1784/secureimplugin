@@ -45,7 +45,7 @@ void __cdecl sttWaitForExchange( LPVOID param ) {
 
    	// if keyexchange failed or timeout
    	if(ptr->waitForExchange) {
-   		if (ptr->msgQueue && MessageBox(0,Translate(sim104),Translate(szModuleName),MB_YESNO|MB_ICONQUESTION)==IDYES) {
+   		if (ptr->msgQueue && msgbox(0,sim104,szModuleName,MB_YESNO|MB_ICONQUESTION)==IDYES) {
 	   		EnterCriticalSection(&localQueueMutex);
 	   		ptr->sendQueue = true;
 	   		pWM ptrMessage = ptr->msgQueue;
@@ -65,5 +65,6 @@ void __cdecl sttWaitForExchange( LPVOID param ) {
    		ShowStatusIconNotify(ptr->hContact);
    	} // if
 }
+
 
 // EOF
