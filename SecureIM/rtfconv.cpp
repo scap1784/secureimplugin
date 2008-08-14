@@ -29,8 +29,8 @@ void free_rtfconv () {
 
 	if ( hRtfconv )
 	    FreeLibrary( hRtfconv ) ;
-    pRtfconvString = NULL;
-    hRtfconv = NULL;
+	pRtfconvString = NULL;
+	hRtfconv = NULL;
 }
 
 

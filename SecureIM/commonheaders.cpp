@@ -5,11 +5,12 @@ PLUGINLINK *pluginLink;
 MM_INTERFACE memoryManagerInterface;
 MUUID interfaces[] = {MIID_SECUREIM, MIID_LAST};
 
-const char *szModuleName = MODULENAME;
+LPCSTR szModuleName = MODULENAME;
+LPCSTR szVersionStr = MODULENAME" DLL ("__VERSION_STRING")";
 char TEMP[MAX_PATH];
 int  TEMP_SIZE = 0;
 
-HANDLE g_hEvent[2], g_hMenu[10], g_hService[14], g_hHook[13];
+HANDLE g_hEvent[2], g_hMenu[10], g_hService[14], g_hHook[17];
 int iService=0, iHook=0;
 HICON g_hIcon[ALL_CNT], g_hICO[ICO_CNT], g_hIEC[IEC_CNT], g_hPOP[POP_CNT];
 IconExtraColumn g_IEC[IEC_CNT];
@@ -19,18 +20,17 @@ BOOL bPGPloaded = false, bPGPkeyrings = false, bUseKeyrings = false, bPGPprivkey
 BOOL bGPGloaded = false, bGPGkeyrings = false, bSavePass = false;
 BOOL bSFT, bSOM, bASI, bMCD, bSCM, bDGP, bAIP;
 BYTE bADV, bPGP, bGPG;
+DWORD iCoreVersion = 0;
 CRITICAL_SECTION localQueueMutex;
-HANDLE hNetlibUser;
-
 
 PLUGININFO pluginInfo = {
 	sizeof(PLUGININFO),
 		MODULENAME" (2in1)",
 		__VERSION_DWORD,
-		MODULENAME" plugin for Miranda IM",
+		MODULENAME" plugin for Miranda IM ("__DATE__")",
 		"Johell, Ghost, Nightwish, __alex, Baloo",
 		"Johell@ifrance.com, baloo@bk.ru",
-		"© 2003 Johell, © 2005-07 Baloo",
+		"© 2003 Johell, © 2005-08 Baloo",
 		"http://addons.miranda-im.org/details.php?action=viewfile&id=2445",
 		0, 0
 };
@@ -40,10 +40,10 @@ PLUGININFOEX pluginInfoEx = {
 	sizeof(PLUGININFOEX),
 		MODULENAME" (2in1)",
 		__VERSION_DWORD,
-		MODULENAME" plugin for Miranda IM",
+		MODULENAME" plugin for Miranda IM ("__DATE__")",
 		"Johell, Ghost, Nightwish, __alex, Baloo",
 		"Johell@ifrance.com, baloo@bk.ru",
-		"© 2003 Johell, © 2005-07 Baloo",
+		"© 2003 Johell, © 2005-08 Baloo",
 		"http://addons.miranda-im.org/details.php?action=viewfile&id=2445",
 		0, 0,
 		MIID_SECUREIM
@@ -65,7 +65,7 @@ char *DBGetString(HANDLE hContact,const char *szModule,const char *szSetting) {
 char *DBGetStringDecode(HANDLE hContact,const char *szModule,const char *szSetting) {
 	char *val = DBGetString(hContact,szModule,szSetting);
 	if(!val) return NULL;
-    int len = strlen(val)+64;
+	int len = strlen(val)+64;
 	char *buf = (LPSTR)mir_alloc(len);
 	strcpy(buf,val); mir_free(val);
 	CallService(MS_DB_CRYPT_DECODESTRING,(WPARAM)len,(LPARAM)buf);
@@ -74,12 +74,11 @@ char *DBGetStringDecode(HANDLE hContact,const char *szModule,const char *szSetti
 
 
 int DBWriteStringEncode(HANDLE hContact,const char *szModule,const char *szSetting,const char *val) {
-    int len = strlen(val)+64;
-	char *buf = (LPSTR)mir_alloc(len);
+	int len = strlen(val)+64;
+	char *buf = (LPSTR)alloca(len);
 	strcpy(buf,val);
 	CallService(MS_DB_CRYPT_ENCODESTRING,(WPARAM)len,(LPARAM)buf);
 	int ret = DBWriteContactSettingString(hContact,szModule,szSetting,buf);
-	mir_free(buf);
 	return ret;
 }
 
@@ -125,7 +124,7 @@ void SetFlags() {
     DBWriteContactSettingByte(0,szModuleName,"sft",bSFT);
     DBWriteContactSettingByte(0,szModuleName,"som",bSOM);
     DBWriteContactSettingByte(0,szModuleName,"asi",bASI);
-	DBWriteContactSettingByte(0,szModuleName,"mcd",bMCD);
+    DBWriteContactSettingByte(0,szModuleName,"mcd",bMCD);
     DBWriteContactSettingByte(0,szModuleName,"scm",bSCM);
     DBWriteContactSettingByte(0,szModuleName,"dgp",bDGP);
     DBWriteContactSettingByte(0,szModuleName,"aip",bAIP);
@@ -135,12 +134,12 @@ void SetFlags() {
 
 /*-----------------------------------------------------*/
 
-char* u2a( const wchar_t* src )
+LPSTR u2a( LPCWSTR src )
 {
 	int codepage = ServiceExists(MS_LANGPACK_GETCODEPAGE)?CallService( MS_LANGPACK_GETCODEPAGE, 0, 0 ):CP_ACP;
 
 	int cbLen = WideCharToMultiByte( codepage, 0, src, -1, NULL, 0, NULL, NULL );
-	char* result = ( char* )mir_alloc( cbLen+1 );
+	LPSTR result = (LPSTR) mir_alloc( cbLen+1 );
 	if ( result == NULL )
 		return NULL;
 
@@ -149,12 +148,12 @@ char* u2a( const wchar_t* src )
 	return result;
 }
 
-wchar_t* a2u( const char* src )
+LPWSTR a2u( LPCSTR src )
 {
 	int codepage = ServiceExists(MS_LANGPACK_GETCODEPAGE)?CallService( MS_LANGPACK_GETCODEPAGE, 0, 0 ):CP_ACP;
 
 	int cbLen = MultiByteToWideChar( codepage, 0, src, -1, NULL, 0 );
-	wchar_t* result = ( wchar_t* )mir_alloc( sizeof( wchar_t )*(cbLen+1));
+	LPWSTR result = (LPWSTR) mir_alloc( sizeof(WCHAR)*(cbLen+1));
 	if ( result == NULL )
 		return NULL;
 
@@ -163,41 +162,61 @@ wchar_t* a2u( const char* src )
 	return result;
 }
 
-pA2U pa2u = NULL;
-int ca2u = 0;
+struct A2U {
+	LPSTR a;
+	LPSTR u;
+};
+typedef A2U* pA2U;
 
-LPWSTR TranslateX( LPCSTR lpText ) {
-	int i;
-	for( i=0; i<ca2u; i++ ) {
-       	    if( pa2u[i].a == lpText ) return pa2u[i].u;
+pA2U pa2u;
+int ca2u=0;
+
+LPSTR TranslateU( LPCSTR lpText ) {
+	for(int i=0;i<ca2u;i++) {
+		if( pa2u[i].a == lpText ) {
+			return pa2u[i].u;
+		}
 	}
 	ca2u++;
 	pa2u = (pA2U) mir_realloc(pa2u,sizeof(A2U)*ca2u);
-       	pa2u[i].a = lpText;
-       	pa2u[i].u = a2u(lpText);
+	pa2u[i].a = (LPSTR) lpText;
+	if( bCoreUnicode ) {
+		LPWSTR lpwText = a2u(lpText);
+		LPWSTR lpwTran = TranslateW(lpwText);
+		mir_free(lpwText);
+		pa2u[i].u = mir_strdup(exp->utf8encode(lpwTran));
+	}
+	else {
+		LPSTR lpTran = Translate(lpText);
+		LPWSTR lpwTran = a2u(lpTran);
+		lpTran = exp->utf8encode(lpwTran);
+		mir_free(lpwTran);
+		pa2u[i].u = mir_strdup(lpTran);
+	}
 	return pa2u[i].u;
 }
 
-void freeTranslateX() {
-	for( int i=0; i<ca2u; i++ ) {
-       	    SAFE_FREE(pa2u[i].u);
-	}
-	SAFE_FREE(pa2u);
-	pa2u=NULL;
-	ca2u=0;
-}
-
 int msgbox( HWND hWnd, LPCSTR lpText, LPCSTR lpCaption, UINT uType) {
-	if( bCoreUnicode ) return MessageBoxW(hWnd,TranslateX(lpText),TranslateX(lpCaption),uType);
+	if( bCoreUnicode ) {
+		LPWSTR lpwText = a2u(lpText);
+		LPWSTR lpwCaption = a2u(lpCaption);
+		int r = MessageBoxW(hWnd,TranslateW(lpwText),TranslateW(lpwCaption),uType);
+		mir_free(lpwCaption);
+		mir_free(lpwText);
+		return r;
+	}
 	return MessageBoxA(hWnd,Translate(lpText),Translate(lpCaption),uType);
 }
+
+#ifdef _DEBUG
+HANDLE hNetlibUser;
 
 void InitNetlib() {
 	NETLIBUSER nl_user = {0};
 	nl_user.cbSize = sizeof(nl_user);
 	nl_user.szSettingsModule = (LPSTR)szModuleName;
-	nl_user.flags = NUF_OUTGOING | NUF_HTTPCONNS;
 	nl_user.szDescriptiveName = (LPSTR)szModuleName;
+	nl_user.flags = NUF_NOOPTIONS;
 
 	hNetlibUser = (HANDLE)CallService(MS_NETLIB_REGISTERUSER, 0, (LPARAM)&nl_user);
 }
@@ -217,5 +236,6 @@ int Sent_NetLog(const char *fmt,...)
   va_end(va);
   return CallService(MS_NETLIB_LOG,(WPARAM)hNetlibUser,(LPARAM)szText);
 }
+#endif
 
 // EOF

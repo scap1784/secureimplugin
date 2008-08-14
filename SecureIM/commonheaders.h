@@ -1,4 +1,6 @@
+// Windows API
 
+#define STRICT
 #define WIN32_LEAN_AND_MEAN
 
 #ifdef _MSC_VER
@@ -14,10 +16,6 @@
 
 #ifndef M_SIM_COMMONHEADERS_H
 #define M_SIM_COMMONHEADERS_H
-
-#ifndef STRICT
-#define STRICT
-#endif
 
 #ifndef _WIN32_WINNT
 #define _WIN32_WINNT 0x0500 
@@ -103,7 +101,9 @@
 #include "cryptopp.h"
 
 #define MODULENAME "SecureIM"
-extern const char *szModuleName;
+
+extern LPCSTR szModuleName;
+extern LPCSTR szVersionStr;
 extern char TEMP[MAX_PATH];
 extern int  TEMP_SIZE;
 
@@ -132,7 +132,7 @@ extern "C" {
 
 }
 
-extern HANDLE g_hEvent[2], g_hMenu[10], g_hService[14], g_hHook[13];
+extern HANDLE g_hEvent[2], g_hMenu[10], g_hService[14], g_hHook[17];
 extern int iService, iHook;
 extern HICON g_hIcon[ALL_CNT], g_hICO[ICO_CNT], g_hIEC[IEC_CNT], g_hPOP[POP_CNT];
 extern IconExtraColumn g_IEC[IEC_CNT];
@@ -142,8 +142,8 @@ extern BOOL bPGPloaded, bPGPkeyrings, bUseKeyrings, bPGPprivkey;
 extern BOOL bGPGloaded, bGPGkeyrings, bSavePass;
 extern BOOL bSFT, bSOM, bASI, bMCD, bSCM, bDGP, bAIP;
 extern BYTE bADV, bPGP, bGPG;
+extern DWORD iCoreVersion;
 extern CRITICAL_SECTION localQueueMutex;
-extern HANDLE hNetlibUser;
 
 int onModulesLoaded(WPARAM,LPARAM);
 int onSystemOKToExit(WPARAM,LPARAM);
@@ -151,9 +151,12 @@ int onSystemOKToExit(WPARAM,LPARAM);
 char *DBGetString(HANDLE,const char *,const char *);
 char *DBGetStringDecode(HANDLE,const char *,const char *);
 int DBWriteStringEncode(HANDLE,const char *,const char *,const char *);
+#ifdef _DEBUG
+extern HANDLE hNetlibUser;
 void InitNetlib();
 void DeinitNetlib();
 int Sent_NetLog(const char *,...);
+#endif
 /*
 int DBWriteString(HANDLE,const char *,const char *,const char *);
 int DBGetByte(HANDLE,const char *,const char *,int);
@@ -164,10 +167,11 @@ int DBWriteWord(HANDLE,const char *,const char *,WORD);
 void GetFlags();
 void SetFlags();
 
-char* u2a( const wchar_t* src );
-wchar_t* a2u( const char* src );
-LPWSTR TranslateX( LPCSTR lpText );
-void freeTranslateX();
-int msgbox( HWND hWnd, LPCSTR lpText, LPCSTR lpCaption, UINT uType);
+LPSTR u2a( LPCWSTR src );
+LPWSTR a2u( LPCSTR src );
+LPSTR TranslateU( LPCSTR lpText );
+int msgbox( HWND hWnd, LPCSTR lpText, LPCSTR lpCaption, UINT uType );
+#define msgbox0(a,b,c,d) msgbox(a,b,c,d)
+#define msgbox1(a,b,c,d) msgbox(a,b,c,d)
 
 #endif

@@ -68,10 +68,12 @@ LPCSTR sim306 = "Load PGP Key";
 LPCSTR sim307 = "Unload PGP Key";
 LPCSTR sim308 = "Load GPG Key";
 LPCSTR sim309 = "Unload GPG Key";
+LPCSTR sim310 = "Delete RSA Key";
 
 //System messages
 LPCSTR sim401 = "SecureIM: Sorry, unable to decrypt this message due you have no PGP/GPG installed. Visit www.pgp.com or www.gnupg.org for more info.";
 LPCSTR sim402 = "SecureIM received unencryped message:\n";
 LPCSTR sim403 = "SecureIM received encryped message:\n";
+LPCSTR sim404 = "SecureIM received RSA Public Key from \"%s\"\n\nSHA1: %s\n\nDo you Accept this Key ?";
 
 // EOF

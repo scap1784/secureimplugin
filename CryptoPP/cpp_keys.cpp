@@ -6,9 +6,8 @@ const unsigned char IV[] = "PSKhell@MIRANDA!";
 // generate KeyA pair, return public key as ASCII
 LPSTR __cdecl cpp_init_keya(int context, int features) {
 
-    pCNTX ptr = get_context_on_id(context);
-    if(!ptr) return NULL;
-	cpp_alloc_pdata(ptr); pSIMDATA p = (pSIMDATA) ptr->pdata;
+	pCNTX ptr = get_context_on_id(context); if(!ptr) return NULL;
+	pSIMDATA p = (pSIMDATA) cpp_alloc_pdata(ptr);
 
 	int send_features = FEATURES;
 	if(p->KeyP) send_features |= FEATURES_PSK;
@@ -68,10 +67,8 @@ LPSTR __cdecl cpp_init_keya(int context, int features) {
 // store KeyB
 int __cdecl cpp_init_keyb(int context, LPCSTR key) {
 
-    pCNTX ptr = get_context_on_id(context);
-    if(!ptr) return 0;
-
-	cpp_alloc_pdata(ptr); pSIMDATA p = (pSIMDATA) ptr->pdata;
+	pCNTX ptr = get_context_on_id(context); if(!ptr) return 0;
+	pSIMDATA p = (pSIMDATA) cpp_alloc_pdata(ptr);
 
 	int clen = strlen(key);
 	ptr->features = 0;
@@ -128,10 +125,8 @@ int __cdecl cpp_init_keyb(int context, LPCSTR key) {
 // calculate secret key, return true or false
 int __cdecl cpp_calc_keyx(int context) {
 
-    pCNTX ptr = get_context_on_id(context);
-    if(!ptr) return 0;
-
-	cpp_alloc_pdata(ptr); pSIMDATA p = (pSIMDATA) ptr->pdata;
+	pCNTX ptr = get_context_on_id(context); if(!ptr) return 0;
+	pSIMDATA p = (pSIMDATA) cpp_alloc_pdata(ptr);
 
     if(!p->KeyA) { ptr->error = ERROR_NO_KEYA; return 0; }
     if(!p->KeyB) { ptr->error = ERROR_NO_KEYB; return 0; }
@@ -162,10 +157,8 @@ int __cdecl cpp_calc_keyx(int context) {
 
 // create pre-shared key from password
 int __cdecl cpp_init_keyp(int context, LPCSTR password) {
-    pCNTX ptr = get_context_on_id(context);
-    if(!ptr) return 0;
-
-	cpp_alloc_pdata(ptr); pSIMDATA p = (pSIMDATA) ptr->pdata;
+	pCNTX ptr = get_context_on_id(context); if(!ptr) return 0;
+	pSIMDATA p = (pSIMDATA) cpp_alloc_pdata(ptr);
 
 	BYTE buffer[Tiger::DIGESTSIZE]; // buffer for hash
 	Tiger().CalculateDigest(buffer,(BYTE*)password,strlen(password)); // calculate hash

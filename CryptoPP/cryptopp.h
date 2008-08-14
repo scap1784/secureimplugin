@@ -1,8 +1,6 @@
 #ifndef __CRYPTOPP_H__
 #define __CRYPTOPP_H__
 
-#define MODULENAME "Crypto++"
-
 //#pragma warning(push)
 // 4231: nonstandard extension used : 'extern' before template explicit instantiation
 // 4250: dominance
@@ -26,6 +24,7 @@
 #include "crypto/sha.h"
 #include "crypto/tiger.h"
 #include "crypto/gzip.h"
+#include "crypto/zlib.h"
 #include "crypto/files.h"
 //#pragma warning(pop)
 
@@ -36,7 +35,7 @@ USING_NAMESPACE(std)
 #define DEFMSGS 4096
 
 typedef struct __SIMDATA {
-	DH		*dh;			// diffie-hellman
+	DH	*dh;		// diffie-hellman
 	PBYTE	PubA;		// public keyA 2048 bit
 	PBYTE	KeyA;		// private keyA 2048 bit
 	PBYTE	KeyB;		// public keyB 2048 bit
@@ -56,7 +55,7 @@ typedef struct __GPGDATA {
 } GPGDATA;
 typedef GPGDATA* pGPGDATA;
 
-#define RSA_KEYSIZE			SHA1::DIGESTSIZE
+#define RSA_KEYSIZE		SHA1::DIGESTSIZE
 #define RSA_CalculateDigest	SHA1().CalculateDigest
 
 typedef struct __RSAPRIV {
@@ -68,23 +67,23 @@ typedef struct __RSAPRIV {
 typedef RSAPRIV* pRSAPRIV;
 
 typedef struct __RSADATA {
-	short			state;	// 0 - ­ЁдЁЈ  ­Ґв, 1..6 - keyexchange, 7 - б®Ґ¤Ё­Ґ­ЁҐ гбв ­®ў«Ґ­®
-	int				time;	// ¤«п ЇаҐалў ­Ёп keyexchange, Ґб«Ё ¤®«Ј® ­Ґв ®вўҐв 
+	short			state;	// 0 - нифига нет, 1..6 - keyexchange, 7 - соединение установлено
+	int			time;	// для прерывания keyexchange, если долго нет ответа
 	string			pub_k;	// public key string
 	string			pub_s;	// hash(pub_k)
-	RSA::PublicKey	pub;	// public key
+	RSA::PublicKey		pub;	// public key
 	string			aes_k;	// aes key
 	string			aes_v;	// aes iv
 } RSADATA;
 typedef RSADATA* pRSADATA;
 
 typedef struct __CNTX {
-	int		cntx;
+	int	cntx;		// context id
 	PBYTE	pdata;		// data block, for key exchange
 	short	features;	// features of client
 	short	mode;		// mode of encoding
 	short	error;		// error code of last operation
-	LPSTR	tmp;
+	LPSTR	tmp;		// return string
 } CNTX;
 typedef CNTX* pCNTX;
 
@@ -95,21 +94,22 @@ typedef CNTX* pCNTX;
 #define FEATURES_PSK			0x10
 #define FEATURES_NEWPG			0x20
 
-#define MODE_BASE16				0x00
-#define MODE_BASE64				0x01
-#define MODE_PGP				0x02
-#define MODE_GPG				0x04
-#define MODE_GPG_ANSI			0x08
-#define MODE_RSA_PRIV			0x10
-#define MODE_RSA				0x20
-#define MODE_RSA_2048			MODE_RSA
-#define MODE_RSA_4096			0x40
-#define MODE_RSA_ONLY			0x80
+#define MODE_BASE16			0x0000
+#define MODE_BASE64			0x0001
+#define MODE_PGP			0x0002
+#define MODE_GPG			0x0004
+#define MODE_GPG_ANSI			0x0008
+#define MODE_RSA_PRIV			0x0010
+#define MODE_RSA_2048			0x0020
+#define MODE_RSA_4096			0x0040
+#define MODE_RSA			MODE_RSA_4096
+#define MODE_RSA_ONLY			0x0080
+#define MODE_RSA_ZLIB			0x0100
 
-#define DATA_GZIP				1
+#define DATA_GZIP			1
 
-#define ERROR_NONE				0
-#define ERROR_SEH				1
+#define ERROR_NONE			0
+#define ERROR_SEH			1
 #define ERROR_NO_KEYA			2
 #define ERROR_NO_KEYB			3
 #define ERROR_NO_KEYX			4
@@ -134,22 +134,29 @@ pCNTX get_context_on_id(int);
 void cpp_free_keys(pCNTX);
 BYTE *cpp_gzip(BYTE*,int,int&);
 BYTE *cpp_gunzip(BYTE*,int,int&);
+string cpp_zlibc(string&);
+string cpp_zlibd(string&);
 
 typedef struct {
-    int (*rsa_gen_keypair)(short);							// ЈҐ­ҐаЁв RSA-Є«озЁ ¤«п гЄ § ­­®© ¤«Ё­л («ЁЎ® в®Є  2048, «ЁЎ® 2048 Ё 4096)
-    int (*rsa_get_keypair)(short,PBYTE,int*,PBYTE,int*);	// ў®§ўа й Ґв Ї аг Є«озҐ© ¤«п гЄ § ­­®© ¤«Ё­л
-    int (*rsa_set_keypair)(short,PBYTE,int,PBYTE,int);		// гбв ­ ў«Ёў Ґв Є«озЁ, гЄ § ­­®© ¤«Ё­л
-    int (*rsa_connect)(int,PBYTE,int);						// § ЇгбЄ Ґв Їа®жҐбб гбв ­®ўЄЁ б®¤Ё­Ґ­Ёп б гЄ § ­­л¬ Є®­вҐЄбв®¬
-    int (*rsa_disconnect)(int);								// а §алў Ґв б®Ґ¤Ё­Ґ­ЁҐ
-    LPSTR (*rsa_recv)(int,LPCSTR);							// ­Ґ®Ўе®¤Ё¬® ЇҐаҐ¤ ў вм бо¤  ўбҐ ўе®¤пйЁҐ Їа®в®Є®«м­лҐ б®®ЎйҐ­Ёп
-    int (*rsa_send)(int,LPCSTR);							// ўл§лў Ґ¬ ¤«п ®вЇа ўЄЁ б®®ЎйҐ­Ёп Є«ЁҐ­вг
+    int (__cdecl *rsa_gen_keypair)(short);				// генерит RSA-ключи для указанной длины (либо тока 2048, либо 2048 и 4096)
+    int (__cdecl *rsa_get_keypair)(short,PBYTE,int*,PBYTE,int*);	// возвращает пару ключей для указанной длины
+    int (__cdecl *rsa_get_keyhash)(short,PBYTE,int*,PBYTE,int*);	// возвращает hash пары ключей для указанной длины
+    int (__cdecl *rsa_set_keypair)(short,PBYTE,int,PBYTE,int);		// устанавливает ключи, указанной длины
+    int (__cdecl *rsa_set_pubkey)(int,PBYTE,int);			// загружает паблик ключ для указанного контекста
+    int (__cdecl *rsa_get_state)(int);					// получить статус указанного контекста
+    int (__cdecl *rsa_connect)(int);					// запускает процесс установки содинения с указанным контекстом
+    int (__cdecl *rsa_disconnect)(int);					// разрывает соединение
+    LPSTR (__cdecl *rsa_recv)(int,LPCSTR);				// необходимо передавать сюда все входящие протокольные сообщения
+    int   (__cdecl *rsa_send)(int,LPCSTR);				// вызываем для отправки сообщения клиенту
+    LPSTR  (__cdecl *utf8encode)(LPCWSTR);
+    LPWSTR (__cdecl *utf8decode)(LPCSTR);
 } RSA_EXPORT;
 typedef RSA_EXPORT* pRSA_EXPORT;
 
 typedef struct {
-    int (*rsa_inject)(int,LPCSTR);					// ўбв ў«пҐв б®®ЎйҐ­ЁҐ ў ®зҐаҐ¤м ­  ®вЇа ўЄг
-    int (*rsa_check_pub)(int,PBYTE,int,PBYTE,int);	// Їа®ўҐапҐв Ё­вҐа ЄвЁў­® SHA Ё б®еа ­пҐв Є«оз, Ґб«Ё ўбҐ ­®а¬ «м­®
-    void (*rsa_notify)(int,int);					// ­®вЁдЁЄ жЁп ® б¬Ґ­Ґ бв вгб 
+    int  (__cdecl *rsa_inject)(int,LPCSTR);			// вставляет сообщение в очередь на отправку
+    int  (__cdecl *rsa_check_pub)(int,PBYTE,int,PBYTE,int);	// проверяет интерактивно SHA и сохраняет ключ, если все нормально
+    void (__cdecl *rsa_notify)(int,int);			// нотификация о смене состояния
 } RSA_IMPORT;
 typedef RSA_IMPORT* pRSA_IMPORT;
 

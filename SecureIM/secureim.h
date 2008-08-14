@@ -27,9 +27,10 @@
 #define SiG_KEYB 9
 #define SiG_PART 10
 #define SiG_SECU 11
+#define SiG_SECP 12
+#define SiG_PGPM 13
 #define SiG_NONE -1
 #define SiG_GAME -2
-#define SiG_PGPM -3
 
 struct SIG {
 	char *sig;
@@ -51,6 +52,8 @@ const SIG signs[] = {
 	{"----KeyB@hell----",			17,	SiG_KEYB},
 	{"----Part@hell----",			17,	SiG_PART},
 	{"[SECURE]",				8,	SiG_SECU},
+	{"[$ECURE]",				8,	SiG_SECP},
+	{"-----BEGIN PGP MESSAGE-----",		27,	SiG_PGPM},
 	{"@@BattleShip",			12,	SiG_GAME},
 	{"GoMoku 0.0.2.2:",			15,	SiG_GAME},
 	{"@@GoMoku",				8,	SiG_GAME},
@@ -60,7 +63,6 @@ const SIG signs[] = {
 	{"pbiCheckersInt:",			15,	SiG_GAME},
 	{"pbiCheckersRus:",			15,	SiG_GAME},
 	{"pbiCheckersPool:",			16,	SiG_GAME},
-	{"-----BEGIN PGP MESSAGE-----",		27,	SiG_PGPM},
 	{0}
 };
 
@@ -77,6 +79,7 @@ const SIG signs[] = {
 #define SIG_KEYB signs[10].sig
 #define SIG_PART signs[11].sig
 #define SIG_SECU signs[12].sig
+#define SIG_SECP signs[13].sig
 
 #define LEN_KEY3 signs[ 0].len
 #define LEN_KEY4 signs[ 1].len
@@ -91,6 +94,7 @@ const SIG signs[] = {
 #define LEN_KEYB signs[10].len
 #define LEN_PART signs[11].len
 #define LEN_SECU signs[12].len
+#define LEN_SECP signs[13].len
 
 #define TBL_IEC		0x01
 #define TBL_ICO		0x02

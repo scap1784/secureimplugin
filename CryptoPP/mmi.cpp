@@ -4,19 +4,18 @@
 void m_check(void *ptr, const char *module) {
     if(ptr==NULL) {
     	char buffer[128];
-    	strcpy(buffer,module);
-    	strcat(buffer,": NULL pointer detected !");
-		MessageBoxA(0,buffer,szModuleName,MB_OK | MB_ICONSTOP);
-		__asm{ int 3 };
-		exit(1);
+    	strcpy(buffer,module); strcat(buffer,": NULL pointer detected !");
+	MessageBoxA(0,buffer,szModuleName,MB_OK|MB_ICONSTOP);
+	__asm{ int 3 };
+	exit(1);
     }
 }
 
 
 void *m_alloc(size_t size) {
 	void *ptr;
-	if(memoryManagerInterface.cbSize)	ptr = memoryManagerInterface.mmi_malloc(size);
-    else								ptr = malloc(size);
+/*	if(memoryManagerInterface.cbSize)	ptr = memoryManagerInterface.mmi_malloc(size);
+    else	*/							ptr = malloc(size);
     m_check(ptr,"m_alloc");
    	ZeroMemory(ptr,size);
 	return ptr;
@@ -26,15 +25,15 @@ void *m_alloc(size_t size) {
 void m_free(void *ptr) {
 //    m_check(ptr,"m_free");
     if(ptr) {
-		if(memoryManagerInterface.cbSize)	memoryManagerInterface.mmi_free(ptr);
-	    else								free(ptr);
+/*		if(memoryManagerInterface.cbSize)	memoryManagerInterface.mmi_free(ptr);
+	    else	*/							free(ptr);
     }
 }
 
 
 void *m_realloc(void *ptr,size_t size) {
-	if(memoryManagerInterface.cbSize)	ptr = memoryManagerInterface.mmi_realloc(ptr,size);
-    else								ptr = realloc(ptr,size);
+/*	if(memoryManagerInterface.cbSize)	ptr = memoryManagerInterface.mmi_realloc(ptr,size);
+    else	*/							ptr = realloc(ptr,size);
     m_check(ptr,"m_realloc");
 	return ptr;
 }
@@ -86,3 +85,5 @@ void __fastcall safe_delete(void** p)
   }
 }
 
+
+// EOF

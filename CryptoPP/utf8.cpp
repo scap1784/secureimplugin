@@ -1,9 +1,11 @@
 #include "commonheaders.h"
 
+LPSTR szOut = NULL;
+LPWSTR wszOut = NULL;
 
-LPSTR utf8encode(LPCWSTR str) {
+LPSTR __cdecl utf8encode(LPCWSTR str) {
 
-	LPSTR szOut;
+//	LPSTR szOut;
 	LPWSTR wszTemp, w;
 	int len, i;
     
@@ -19,6 +21,7 @@ LPSTR utf8encode(LPCWSTR str) {
 		else len += 3;
 	}
 
+        SAFE_FREE(szOut);
 	if ((szOut = (LPSTR) mir_alloc(len + 1)) == NULL)
 		return NULL;
 
@@ -40,48 +43,47 @@ LPSTR utf8encode(LPCWSTR str) {
 	return szOut;
 }
 
-
-LPWSTR utf8decode(LPCSTR str) {
+LPWSTR __cdecl utf8decode(LPCSTR str) {
 
 	int i, len;
 	LPSTR p;
-	LPWSTR wszTemp;
+//	LPWSTR wszOut;
 
 	if (str == NULL) return NULL;
 
 	len = strlen(str)+1;
 
-	if ((wszTemp = (LPWSTR) mir_alloc(len*sizeof(WCHAR))) == NULL)
+        SAFE_FREE(wszOut);
+	if ((wszOut = (LPWSTR) mir_alloc(len*sizeof(WCHAR))) == NULL)
 		return NULL;
 	p = (LPSTR)str;
 	i = 0;
 	while (*p) {
 		if ((p[0] & 0x80) == 0) {
-			wszTemp[i++] = *(p++);
+			wszOut[i++] = *(p++);
 			continue;
 		}
 		if ((p[0] & 0xe0) == 0xe0 && (p[1] & 0xc0) == 0x80 && (p[2] & 0xc0) == 0x80) {
-			wszTemp[i] = (*(p++) & 0x0f) << 12;
-			wszTemp[i] |= (*(p++) & 0x3f) << 6;
-			wszTemp[i++] |= (*(p++) & 0x3f);
+			wszOut[i] = (*(p++) & 0x0f) << 12;
+			wszOut[i] |= (*(p++) & 0x3f) << 6;
+			wszOut[i++] |= (*(p++) & 0x3f);
 			continue;
 		}
 		if ((p[0] & 0xe0) == 0xc0 && (p[1] & 0xc0) == 0x80) {
-			wszTemp[i] = (*(p++) & 0x1f) << 6;
-			wszTemp[i++] |= (*(p++) & 0x3f);
+			wszOut[i] = (*(p++) & 0x1f) << 6;
+			wszOut[i++] |= (*(p++) & 0x3f);
 			continue;
 		}
-		wszTemp[i++] = *p++;
+		wszOut[i++] = *p++;
 	}
-	wszTemp[i] = '\0';
+	wszOut[i] = '\0';
 
-	return wszTemp;
+	return wszOut;
 }
 
 
 // Returns true if the buffer only contains 7-bit characters.
-BOOL is_7bit_string(LPCSTR str)
-{
+BOOL __cdecl is_7bit_string(LPCSTR str) {
 	while( *str ) {
 		if ( *str & 0x80 ) {
 			return FALSE;
@@ -96,8 +98,7 @@ BOOL is_7bit_string(LPCSTR str)
 
 //Copyright (C) 2001, 2002 Peter Verthez
 //under GNU LGPL
-BOOL is_utf8_string(LPCSTR str)
-{
+BOOL __cdecl is_utf8_string(LPCSTR str) {
   int expect_bytes = 0;
 
   if (!str) return 0;
@@ -145,3 +146,4 @@ BOOL is_utf8_string(LPCSTR str)
   return (expect_bytes == 0);
 }
 
+// EOF

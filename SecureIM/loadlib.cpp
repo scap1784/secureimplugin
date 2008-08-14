@@ -38,8 +38,8 @@ BOOL loadlib(void) {
 	cpp.kx = (_cpp_keyx) GetProcAddress(h, "cpp_keyx");
 	cpp.kp = (_cpp_keyp) GetProcAddress(h, "cpp_keyp");
 
-	cpp.pgp_i    = (_pgp_init			) GetProcAddress(h, "pgp_init");
-	cpp.pgp_d    = (_pgp_done			) GetProcAddress(h, "pgp_done");
+	cpp.pgp_i    = (_pgp_init		) GetProcAddress(h, "pgp_init");
+	cpp.pgp_d    = (_pgp_done		) GetProcAddress(h, "pgp_done");
 	cpp.pgp_ok   = (_pgp_open_keyrings	) GetProcAddress(h, "pgp_open_keyrings");
 	cpp.pgp_ck   = (_pgp_close_keyrings	) GetProcAddress(h, "pgp_close_keyrings");
 	cpp.pgp_gv   = (_pgp_get_version	) GetProcAddress(h, "pgp_get_version");
@@ -48,12 +48,11 @@ BOOL loadlib(void) {
 	cpp.pgp_ski  = (_pgp_set_keyid		) GetProcAddress(h, "pgp_set_keyid");
 	cpp.pgp_szki = (_pgp_size_keyid		) GetProcAddress(h, "pgp_size_keyid");
 	cpp.pgp_slki = (_pgp_select_keyid	) GetProcAddress(h, "pgp_select_keyid");
-	cpp.pgp_ea   = (_pgp_encodeA		) GetProcAddress(h, "pgp_encodeA");
-	cpp.pgp_ew   = (_pgp_encodeW		) GetProcAddress(h, "pgp_encodeW");
-	cpp.pgp_de   = (_pgp_decode			) GetProcAddress(h, "pgp_decode");
+	cpp.pgp_eu   = (_pgp_encode		) GetProcAddress(h, "pgp_encode");
+	cpp.pgp_de   = (_pgp_decode		) GetProcAddress(h, "pgp_decode");
 
-	cpp.gpg_i    = (_gpg_init			) GetProcAddress(h, "gpg_init");
-	cpp.gpg_d    = (_gpg_done			) GetProcAddress(h, "gpg_done");
+	cpp.gpg_i    = (_gpg_init		) GetProcAddress(h, "gpg_init");
+	cpp.gpg_d    = (_gpg_done		) GetProcAddress(h, "gpg_done");
 	cpp.gpg_ok   = (_gpg_open_keyrings	) GetProcAddress(h, "gpg_open_keyrings");
 	cpp.gpg_ck   = (_gpg_close_keyrings	) GetProcAddress(h, "gpg_close_keyrings");
 	cpp.gpg_sl   = (_gpg_set_log  		) GetProcAddress(h, "gpg_set_log");
@@ -61,16 +60,15 @@ BOOL loadlib(void) {
 	cpp.gpg_ski  = (_gpg_set_keyid		) GetProcAddress(h, "gpg_set_keyid");
 	cpp.gpg_szki = (_gpg_size_keyid		) GetProcAddress(h, "gpg_size_keyid");
 	cpp.gpg_slki = (_gpg_select_keyid	) GetProcAddress(h, "gpg_select_keyid");
-	cpp.gpg_ea   = (_gpg_encodeA		) GetProcAddress(h, "gpg_encodeA");
-	cpp.gpg_ew   = (_gpg_encodeW		) GetProcAddress(h, "gpg_encodeW");
-	cpp.gpg_de   = (_gpg_decode			) GetProcAddress(h, "gpg_decode");
-	cpp.gpg_gph  = (_gpg_get_passphrases) GetProcAddress(h, "gpg_get_passphrases");
-	cpp.gpg_sph  = (_gpg_set_passphrases) GetProcAddress(h, "gpg_set_passphrases");
+	cpp.gpg_eu   = (_gpg_encode		) GetProcAddress(h, "gpg_encode");
+	cpp.gpg_de   = (_gpg_decode		) GetProcAddress(h, "gpg_decode");
+	cpp.gpg_gph  = (_gpg_get_passphrases	) GetProcAddress(h, "gpg_get_passphrases");
+	cpp.gpg_sph  = (_gpg_set_passphrases	) GetProcAddress(h, "gpg_set_passphrases");
 
 	cpp.rsa_i  = (_rsa_init) GetProcAddress(h, "rsa_init");
 	cpp.rsa_d  = (_rsa_done) GetProcAddress(h, "rsa_done");
 
-	return (cpp_get_version()>=0x01000201);
+	return (cpp_get_version()>=0x01000300);
 }
 
 // EOF

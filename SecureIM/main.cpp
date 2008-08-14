@@ -32,28 +32,28 @@ int Service_CreateIM(WPARAM wParam,LPARAM lParam){
 	if (!CallService(MS_PROTO_ISPROTOONCONTACT, (WPARAM)wParam, (LPARAM)szModuleName))
 		CallService(MS_PROTO_ADDTOCONTACT, (WPARAM)wParam, (LPARAM)szModuleName);
 
-	WPARAM flags = 0;
-	HANDLE hMetaContact = getMetaContact((HANDLE)wParam);
-	if( hMetaContact ) {
-		wParam = (WPARAM)hMetaContact;
-		flags = PREF_METANODB;
-	}
+//	WPARAM flags = 0;
+//	HANDLE hMetaContact = getMetaContact((HANDLE)wParam);
+//	if( hMetaContact ) {
+//		wParam = (WPARAM)hMetaContact;
+//		flags = PREF_METANODB;
+//	}
 
-	CallContactService((HANDLE)wParam,PSS_MESSAGE,flags,(LPARAM)SIG_INIT);
+	CallContactService((HANDLE)wParam,PSS_MESSAGE,PREF_METANODB,(LPARAM)SIG_INIT);
 	return 1;
 }
 
 
 int Service_DisableIM(WPARAM wParam,LPARAM lParam) {
 
-	WPARAM flags = 0;
-	HANDLE hMetaContact = getMetaContact((HANDLE)wParam);
-	if( hMetaContact ) {
-		wParam = (WPARAM)hMetaContact;
-		flags = PREF_METANODB;
-	}
+//	WPARAM flags = 0;
+//	HANDLE hMetaContact = getMetaContact((HANDLE)wParam);
+//	if( hMetaContact ) {
+//		wParam = (WPARAM)hMetaContact;
+//		flags = PREF_METANODB;
+//	}
 
-	CallContactService((HANDLE)wParam,PSS_MESSAGE,flags,(LPARAM)SIG_DEIN);
+	CallContactService((HANDLE)wParam,PSS_MESSAGE,PREF_METANODB,(LPARAM)SIG_DEIN);
 	return 1;
 }
 
@@ -103,13 +103,13 @@ int Service_Status2(WPARAM wParam, LPARAM lParam) {
 int Service_PGPdelKey(WPARAM wParam, LPARAM lParam) {
 
 	if(bPGPloaded) {
-    	DBDeleteContactSetting((HANDLE)wParam, szModuleName, "pgp");
-    	DBDeleteContactSetting((HANDLE)wParam, szModuleName, "pgp_mode");
-    	DBDeleteContactSetting((HANDLE)wParam, szModuleName, "pgp_abbr");
+    	    DBDeleteContactSetting((HANDLE)wParam, szModuleName, "pgp");
+    	    DBDeleteContactSetting((HANDLE)wParam, szModuleName, "pgp_mode");
+    	    DBDeleteContactSetting((HANDLE)wParam, szModuleName, "pgp_abbr");
 	}
 	{
-		pUinKey ptr = getUinKey((HANDLE)wParam);
-		cpp_delete_context(ptr->cntx); ptr->cntx=0;
+	    pUinKey ptr = getUinKey((HANDLE)wParam);
+	    cpp_delete_context(ptr->cntx); ptr->cntx=0;
 	}
 	ShowStatusIconNotify((HANDLE)wParam);
 	return 1;
@@ -119,11 +119,11 @@ int Service_PGPdelKey(WPARAM wParam, LPARAM lParam) {
 int Service_GPGdelKey(WPARAM wParam, LPARAM lParam) {
 
 	if(bGPGloaded) {
-    	DBDeleteContactSetting((HANDLE)wParam, szModuleName, "gpg");
+    	    DBDeleteContactSetting((HANDLE)wParam, szModuleName, "gpg");
 	}
 	{
-		pUinKey ptr = getUinKey((HANDLE)wParam);
-		cpp_delete_context(ptr->cntx); ptr->cntx=0;
+	    pUinKey ptr = getUinKey((HANDLE)wParam);
+	    cpp_delete_context(ptr->cntx); ptr->cntx=0;
 	}
 	ShowStatusIconNotify((HANDLE)wParam);
 	return 1;
@@ -135,21 +135,21 @@ int Service_PGPsetKey(WPARAM wParam, LPARAM lParam) {
 	BOOL del = true;
 	if(bPGPloaded) {
     	if(bPGPkeyrings) {
-    		char szKeyID[128] = {0};
+	    char szKeyID[128] = {0};
     	    PVOID KeyID = pgp_select_keyid(GetForegroundWindow(),szKeyID);
-    		if(szKeyID[0]) {
-    			DBDeleteContactSetting((HANDLE)wParam,szModuleName,"pgp");
-    			DBCONTACTWRITESETTING cws;
-    			cws.szModule = szModuleName;
-    			cws.szSetting = "pgp";
-    			cws.value.type = DBVT_BLOB;
-    			cws.value.pbVal = (LPBYTE)KeyID;
-    			cws.value.cpbVal = pgp_size_keyid();
-    			CallService(MS_DB_CONTACT_WRITESETTING,wParam,(LPARAM)&cws);
-    		    DBWriteContactSettingByte((HANDLE)wParam,szModuleName,"pgp_mode",0);
-    		    DBWriteContactSettingString((HANDLE)wParam,szModuleName,"pgp_abbr",szKeyID);
-    	  		del = false;
-    		}
+	    if(szKeyID[0]) {
+    		DBDeleteContactSetting((HANDLE)wParam,szModuleName,"pgp");
+    		DBCONTACTWRITESETTING cws;
+    		cws.szModule = szModuleName;
+    		cws.szSetting = "pgp";
+    		cws.value.type = DBVT_BLOB;
+    		cws.value.pbVal = (LPBYTE)KeyID;
+    		cws.value.cpbVal = pgp_size_keyid();
+    		CallService(MS_DB_CONTACT_WRITESETTING,wParam,(LPARAM)&cws);
+    		DBWriteContactSettingByte((HANDLE)wParam,szModuleName,"pgp_mode",0);
+    		DBWriteContactSettingString((HANDLE)wParam,szModuleName,"pgp_abbr",szKeyID);
+    	  	del = false;
+	    }
     	}
     	else
     	if(bPGPprivkey) {
@@ -234,7 +234,6 @@ int Load(PLUGINLINK *link) {
 
 	pluginLink = link;
 	DisableThreadLibraryCalls(g_hInst);
-
 	InitializeCriticalSection(&localQueueMutex);
 
 	{
@@ -275,10 +274,11 @@ int Load(PLUGINLINK *link) {
 	char version[512];
 	CallService(MS_SYSTEM_GETVERSIONTEXT, sizeof(version), (LPARAM)&version);
 	bCoreUnicode = strstr(version, "Unicode")!=0;
+	iCoreVersion = CallService(MS_SYSTEM_GETVERSION,0,0);
 
 	// load crypo++ dll
 	if (!loadlib()) {
-		msgbox(0,sim107,szModuleName,MB_OK|MB_ICONSTOP);
+		msgbox1(0,sim107,szModuleName,MB_OK|MB_ICONSTOP);
 		return 1;
 	}
 
@@ -315,13 +315,13 @@ int Load(PLUGINLINK *link) {
 
 HANDLE AddMenuItem(LPCSTR name,int pos,HICON hicon,LPCSTR service,int flags=0,WPARAM wParam=0) {
 
-    CLISTMENUITEM mi={0};
-    mi.cbSize=sizeof(mi);
+	CLISTMENUITEM mi={0};
+	mi.cbSize=sizeof(mi);
 	mi.flags=flags | CMIF_HIDDEN;
 	mi.position=pos;
 	mi.hIcon=hicon;
 	mi.pszName=Translate(name);
-    mi.pszPopupName=(char*)-1;
+	mi.pszPopupName=(char*)-1;
 	mi.pszService=(char*)service;
 	return((HANDLE)CallService(MS_CLIST_ADDCONTACTMENUITEM,wParam,(LPARAM)&mi));
 }
@@ -343,23 +343,23 @@ HANDLE AddSubItem(HANDLE rootid,LPCSTR name,int pos,int poppos,LPCSTR service,WP
 
 
 int onModulesLoaded(WPARAM wParam,LPARAM lParam) {
-
-	InitNetlib();
-
+#ifdef _DEBUG
+    InitNetlib();
+#endif
     bMetaContacts = ServiceExists(MS_MC_GETMETACONTACT)!=0;
     bPopupExists = ServiceExists(MS_POPUP_ADDPOPUPEX)!=0;
     bPopupUnicode = ServiceExists(MS_POPUP_ADDPOPUPW)!=0;
 
-	InitIcons();
+    InitIcons();
     GetFlags();
 
-    {
+    { // RSA/AES
 		rsa_init(&exp,&imp);
 
 		DBVARIANT dbv1, dbv2;
 		dbv1.type = dbv2.type = DBVT_BLOB;
 
-		if(	DBGetContactSetting(0,szModuleName,"rsa_priv_2048",&dbv1) == 0 ) {
+		if( DBGetContactSetting(0,szModuleName,"rsa_priv_2048",&dbv1) == 0 ) {
 			if( DBGetContactSetting(0,szModuleName,"rsa_pub_2048",&dbv2) == 0 ) {
 				exp->rsa_set_keypair(MODE_RSA_2048,dbv1.pbVal,dbv1.cpbVal,dbv2.pbVal,dbv2.cpbVal);
 				rsa_2048=1;
@@ -367,7 +367,7 @@ int onModulesLoaded(WPARAM wParam,LPARAM lParam) {
 			}
 			DBFreeVariant(&dbv1);
 		}
-		if(	DBGetContactSetting(0,szModuleName,"rsa_priv_4096",&dbv1) == 0 ) {
+		if( DBGetContactSetting(0,szModuleName,"rsa_priv_4096",&dbv1) == 0 ) {
 			if( DBGetContactSetting(0,szModuleName,"rsa_pub_4096",&dbv2) == 0 ) {
 				exp->rsa_set_keypair(MODE_RSA_4096,dbv1.pbVal,dbv1.cpbVal,dbv2.pbVal,dbv2.cpbVal);
 				rsa_4096=1;
@@ -380,9 +380,9 @@ int onModulesLoaded(WPARAM wParam,LPARAM lParam) {
 		}
 	}
 
-    bPGP = DBGetContactSettingByte(0, szModuleName, "pgp", 0);
+	bPGP = DBGetContactSettingByte(0, szModuleName, "pgp", 0);
 	if(bPGP) { //PGP
-    	bPGPloaded = pgp_init();
+	    bPGPloaded = pgp_init();
    	    bUseKeyrings = DBGetContactSettingByte(0,szModuleName,"ukr",1);
    	    char *priv = DBGetStringDecode(0,szModuleName,"pgpPrivKey");
    	    if(priv) {
@@ -390,40 +390,40 @@ int onModulesLoaded(WPARAM wParam,LPARAM lParam) {
 		    if(bPGPloaded)
 				pgp_set_key(-1,priv);
 	   	    mir_free(priv);
-	   	}// if(priv)
-        if(bPGPloaded && bUseKeyrings) {
+	    }// if(priv)
+            if(bPGPloaded && bUseKeyrings) {
     		char PubRingPath[MAX_PATH] = {0}, SecRingPath[MAX_PATH] = {0};
     		if(pgp_get_version()<0x02000000) { // 6xx
     		    bPGPkeyrings = pgp_open_keyrings(PubRingPath,SecRingPath);
+		}
+        	else {
+        		LPSTR tmp;
+        		tmp = DBGetString(0,szModuleName,"pgpPubRing");
+        		if(tmp) {
+        			memcpy(PubRingPath,tmp,strlen(tmp));
+        			mir_free(tmp);
+        		}
+        		tmp = DBGetString(0,szModuleName,"pgpSecRing");
+        		if(tmp) {
+        			memcpy(SecRingPath,tmp,strlen(tmp));
+        			mir_free(tmp);
+        		}
+        	   	if(PubRingPath[0] && SecRingPath[0]) {
+        			bPGPkeyrings = pgp_open_keyrings(PubRingPath,SecRingPath);
+        			if(bPGPkeyrings) {
+        				DBWriteContactSettingString(0,szModuleName,"pgpPubRing",PubRingPath);
+        				DBWriteContactSettingString(0,szModuleName,"pgpSecRing",SecRingPath);
+        			}
+        			else {
+        				DBDeleteContactSetting(0, szModuleName, "pgpPubRing");
+        				DBDeleteContactSetting(0, szModuleName, "pgpSecRing");
+        			}
+        		}
     		}
-    		else {
-    			LPSTR tmp;
-    			tmp = DBGetString(0,szModuleName,"pgpPubRing");
-    			if(tmp) {
-    				memcpy(PubRingPath,tmp,strlen(tmp));
-    				mir_free(tmp);
-    			}
-    			tmp = DBGetString(0,szModuleName,"pgpSecRing");
-    			if(tmp) {
-    				memcpy(SecRingPath,tmp,strlen(tmp));
-    				mir_free(tmp);
-    			}
-    	   	    if(PubRingPath[0] && SecRingPath[0]) {
-    			    bPGPkeyrings = pgp_open_keyrings(PubRingPath,SecRingPath);
-    				if(bPGPkeyrings) {
-    					DBWriteContactSettingString(0,szModuleName,"pgpPubRing",PubRingPath);
-    					DBWriteContactSettingString(0,szModuleName,"pgpSecRing",SecRingPath);
-    				}
-    				else {
-    					DBDeleteContactSetting(0, szModuleName, "pgpPubRing");
-    					DBDeleteContactSetting(0, szModuleName, "pgpSecRing");
-    				}
-    			}
-    		}
-    	}// if(bPGPloaded && bUseKeyrings)
-   	}
+    	    }// if(bPGPloaded && bUseKeyrings)
+   	}// if(bPGP)
 
-    bGPG = DBGetContactSettingByte(0, szModuleName, "gpg", 0);
+	bGPG = DBGetContactSettingByte(0, szModuleName, "gpg", 0);
 	if(bGPG) { //GPG
 
 		LPSTR tmp;
@@ -471,7 +471,6 @@ int onModulesLoaded(WPARAM wParam,LPARAM lParam) {
 	    }
 	}
 
-	loadSupportedProtocols();
 	loadContactList();
 
 	// init adv? icons
@@ -495,6 +494,7 @@ int onModulesLoaded(WPARAM wParam,LPARAM lParam) {
 	g_hHook[iHook++] = HookEvent(ME_PROTO_ACK, onProtoAck);
 	g_hHook[iHook++] = HookEvent(ME_DB_CONTACT_SETTINGCHANGED, onContactSettingChanged);
 	g_hHook[iHook++] = HookEvent(ME_DB_CONTACT_ADDED, onContactAdded);
+	g_hHook[iHook++] = HookEvent(ME_DB_CONTACT_DELETED, onContactDeleted);
 
 	// hook message transport
 	g_hService[iService++] = CreateProtoServiceFunction(szModuleName, PSR_MESSAGE, onRecvMsg);
@@ -503,8 +503,8 @@ int onModulesLoaded(WPARAM wParam,LPARAM lParam) {
 	g_hService[iService++] = CreateProtoServiceFunction(szModuleName, PSS_FILE, onSendFile);
 
 	// create a menu item for creating a secure im connection to the user.
-    g_hMenu[0] = AddMenuItem(sim301,110000,g_hIEC[IEC_SHIELD],MODULENAME"/SIM_EST",CMIF_NOTOFFLINE);
-    g_hMenu[1] = AddMenuItem(sim302,110001,g_hIEC[IEC_OFF],MODULENAME"/SIM_DIS",CMIF_NOTOFFLINE);
+	g_hMenu[0] = AddMenuItem(sim301,110000,g_hIEC[IEC_SHIELD],MODULENAME"/SIM_EST",CMIF_NOTOFFLINE);
+	g_hMenu[1] = AddMenuItem(sim302,110001,g_hIEC[IEC_OFF],MODULENAME"/SIM_DIS",CMIF_NOTOFFLINE);
 
 	if(ServiceExists(MS_CLIST_ADDSUBGROUPMENUITEM)) {
 	    g_hMenu[2] = AddMenuItem(sim303,110002,NULL,NULL,CMIF_ROOTPOPUP);
@@ -519,26 +519,26 @@ int onModulesLoaded(WPARAM wParam,LPARAM lParam) {
 	    g_hMenu[5] = AddMenuItem(sim232[2],110005,NULL,MODULENAME"/SIM_ST_TRY");
 	}
 
-    if(bPGPloaded) {
+	if(bPGPloaded) {
 		g_hMenu[6] = AddMenuItem(sim306,110006,g_hIEC[IEC_PGP],MODULENAME"/SIM_PGP_SET",0);
 		g_hMenu[7] = AddMenuItem(sim307,110007,g_hIEC[IEC_PGP],MODULENAME"/SIM_PGP_DEL",0);
-    }
+	}
 
-    if(bGPGloaded) {
+    	if(bGPGloaded) {
 		g_hMenu[8] = AddMenuItem(sim308,110008,g_hIEC[IEC_GPG],MODULENAME"/SIM_GPG_SET",0);
 		g_hMenu[9] = AddMenuItem(sim309,110009,g_hIEC[IEC_GPG],MODULENAME"/SIM_GPG_DEL",0);
-    }
+    	}
 
 	// hook events
-    g_hHook[iHook++] = HookEvent(ME_CLIST_PREBUILDCONTACTMENU, onRebuildContactMenu);
+	g_hHook[iHook++] = HookEvent(ME_CLIST_PREBUILDCONTACTMENU, onRebuildContactMenu);
 	g_hHook[iHook++] = HookEvent(ME_CLIST_EXTRA_LIST_REBUILD, onExtraImageListRebuilding);
 	g_hHook[iHook++] = HookEvent(ME_CLIST_EXTRA_IMAGE_APPLY, onExtraImageApplying);
 
 //	g_hMC = HookEvent(ME_MC_SUBCONTACTSCHANGED, onMC);
 
 
-    // updater plugin support
-    if(ServiceExists(MS_UPDATE_REGISTERFL)) {
+    	// updater plugin support
+        if(ServiceExists(MS_UPDATE_REGISTERFL)) {
 		CallService(MS_UPDATE_REGISTERFL, (WPARAM)2445, (LPARAM)&pluginInfo);
 	}
 
@@ -567,12 +567,12 @@ int onModulesLoaded(WPARAM wParam,LPARAM lParam) {
 int onSystemOKToExit(WPARAM wParam,LPARAM lParam) {
 
     if(bSavePass) {
-		LPSTR tmp = gpg_get_passphrases();
-	    DBWriteContactSettingString(0,szModuleName,"gpgSave",tmp);
-		LocalFree(tmp);
+	LPSTR tmp = gpg_get_passphrases();
+	DBWriteContactSettingString(0,szModuleName,"gpgSave",tmp);
+	LocalFree(tmp);
     }
     else {
-	    DBDeleteContactSetting(0,szModuleName,"gpgSave");
+	DBDeleteContactSetting(0,szModuleName,"gpgSave");
     }
 	if(bPGPloaded) pgp_done();
 	if(bGPGloaded) gpg_done();
@@ -582,10 +582,10 @@ int onSystemOKToExit(WPARAM wParam,LPARAM lParam) {
 	DestroyHookableEvent(g_hEvent[0]);
 	DestroyHookableEvent(g_hEvent[1]);
 	freeContactList();
-	freeSupportedProtocols();
-	freeTranslateX();
 	free_rtfconv();
+#ifdef _DEBUG
 	DeinitNetlib();
+#endif
 	return 0;
 }
 
