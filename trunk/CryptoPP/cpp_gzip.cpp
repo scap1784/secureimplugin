@@ -29,3 +29,29 @@ BYTE *cpp_gunzip(BYTE *pCompressedData, int nCompressedLen, int& nLen) {
 
 	return pData;
 }
+
+// zlibc data
+string cpp_zlibc(string& pData) {
+
+	string zipped;
+
+	ZlibCompressor zlib(new StringSink(zipped),5);    // 1 is fast, 9 is slow
+	zlib.Put((PBYTE)pData.data(), pData.length());
+	zlib.MessageEnd();
+
+	return zipped;
+}
+
+// zlibd data
+string cpp_zlibd(string& pData) {
+
+	string unzipped;
+
+	ZlibDecompressor zlib(new StringSink(unzipped));
+	zlib.Put((PBYTE)pData.data(),pData.length());
+	zlib.MessageEnd();
+
+	return unzipped;
+}
+
+// EOF

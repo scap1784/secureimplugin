@@ -12,16 +12,12 @@
 #define KEY_A_SIG	0x000000
 #define KEY_B_SIG	0x010000
 
-struct A2U{
-	LPCSTR a;
-	LPWSTR u;
-};
-typedef A2U* pA2U;
-
 // struct to store all supported protocols
 struct SupPro {
-	char *uniqueName;
+	LPSTR name;
 	BOOL inspecting;
+	int split_on,tsplit_on;
+	int split_off,tsplit_off;
 };
 typedef SupPro *pSupPro;
 
@@ -42,26 +38,27 @@ typedef partitionMessage* pPM;
 
 // memory struct for keys
 struct UinKey {
-	HANDLE hContact;
-	char *szProto;		// protocol (ICQ,MSN...)
-	BYTE mode,tmode;		// mode: Native,PGP,GPG,RSA/AES,RSA [0..4]
+	HANDLE hContact;	// handle of contact
+	pSupPro proto;		// proto struct
+	BYTE mode,tmode;	// mode: Native,PGP,GPG,RSA/AES,RSA [0..4]
 	BYTE status,tstatus;	// status: Disabled,Enabled,AlwaysTry [0..2] for Native mode
-	char *msgSplitted;	// message to combine
+	LPSTR msgSplitted;	// message to combine
 	pPM msgPart;		// parts of message
 	pWM msgQueue;		// last messages not sended or to resend;
 	BOOL sendQueue;
 	BOOL offlineKey;
 	BOOL waitForExchange;
-	BOOL decoded;	// false on decode error
+	BOOL decoded;		// false on decode error
 	short features;
 	int cntx;		// crypto context
-	BYTE keyLoaded; // 1-PGP, 2-GPG
-	BYTE gpgMode,tgpgMode; // 0-UTF8,1-ANSI
+	BYTE keyLoaded;		// ( 1-PGP, 2-GPG ) | 1-RSA
+	BYTE gpgMode,tgpgMode;	// 0-UTF8, 1-ANSI
 	char *lastFileRecv;
 	char *lastFileSend;
 	char **fileSend;
 	BOOL finFileRecv;
 	BOOL finFileSend;
+	LPSTR tmp;		// tmp text string
 };
 typedef UinKey* pUinKey;
 
@@ -96,9 +93,8 @@ extern int clist_cnt;
 // crypt_lists.cpp
 void loadContactList();
 void freeContactList();
-void addinContactList(HANDLE);
-void loadSupportedProtocols();
-void freeSupportedProtocols();
+pUinKey addContact(HANDLE);
+void delContact(HANDLE);
 pSupPro getSupPro(HANDLE);
 pUinKey getUinKey(HANDLE);
 pUinKey getUinCtx(int);
@@ -119,6 +115,8 @@ BOOL isContactInvisible(HANDLE);
 BOOL isContactNewPG(HANDLE);
 BOOL isContactPGP(HANDLE);
 BOOL isContactGPG(HANDLE);
+BOOL isContactRSAAES(HANDLE);
+BOOL isContactRSA(HANDLE);
 BOOL isChatRoom(HANDLE);
 BOOL isFileExist(LPCSTR);
 BOOL isSecureIM(HANDLE);
@@ -154,21 +152,23 @@ LPSTR decodeMsg(pUinKey,LPARAM,LPSTR);
 BOOL LoadKeyPGP(pUinKey);
 BOOL LoadKeyGPG(pUinKey);
 
-// crypt_other.cpp
+// crypt_misc.cpp
 DWORD CALLBACK sttFakeAck(LPVOID);
 void __cdecl sttWaitForExchange(LPVOID);
 
 // crypt_svcs.cpp
+int sendSplitMessage(pUinKey,LPSTR);
 int onRecvMsg(WPARAM,LPARAM);
 int onSendMsgW(WPARAM,LPARAM);
 int onSendMsg(WPARAM,LPARAM);
 int onSendFile(WPARAM,LPARAM);
 int onProtoAck(WPARAM,LPARAM);
 int onContactSettingChanged(WPARAM,LPARAM);
-int onContactAdded(WPARAM,LPARAM);
 int onRebuildContactMenu(WPARAM,LPARAM);
 int onExtraImageListRebuilding(WPARAM,LPARAM);
 int onExtraImageApplying(WPARAM,LPARAM);
+int onContactAdded(WPARAM,LPARAM);
+int onContactDeleted(WPARAM,LPARAM);
 
 // crypt_rsa.cpp
 extern pRSA_EXPORT exp;

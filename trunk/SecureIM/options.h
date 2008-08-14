@@ -30,6 +30,6 @@ BOOL ShowSelectKeyDlg(HWND,LPSTR);
 LPSTR LoadKeys(LPCSTR,BOOL);
 
 #define getListViewContact(h,i)	(HANDLE)getListViewParam(h,i)
-#define getListViewProto(h,i)	(char*)getListViewParam(h,i)
+#define getListViewProto(h,i)	(int)getListViewParam(h,i)
 
 #endif

@@ -1,9 +1,9 @@
 #include "commonheaders.h"
 
 
-int rsa_inject(int,LPCSTR);
-int rsa_check_pub(int,PBYTE,int,PBYTE,int);
-void rsa_notify(int,int);
+int __cdecl rsa_inject(int,LPCSTR);
+int __cdecl rsa_check_pub(int,PBYTE,int,PBYTE,int);
+void __cdecl rsa_notify(int,int);
 
 pRSA_EXPORT exp = NULL;
 RSA_IMPORT imp = {
@@ -15,26 +15,76 @@ RSA_IMPORT imp = {
 BOOL rsa_2048=0, rsa_4096=0;
 
 
-int rsa_inject(int context, LPCSTR msg) {
-	pUinKey ptr = getUinCtx(context);
-	if(!ptr) return 0;
-	CallContactService(ptr->hContact,PSS_MESSAGE,(WPARAM)PREF_METANODB,(LPARAM)msg);
+int __cdecl rsa_inject(int context, LPCSTR msg) {
+	pUinKey ptr = getUinCtx(context); if(!ptr) return 0;
+	LPSTR buf = (LPSTR) mir_alloc(strlen(msg)+LEN_SECU+1);
+	memcpy(buf,SIG_SECU,LEN_SECU); memcpy(buf+LEN_SECU,msg,strlen(msg)+1);
+#ifdef _DEBUG
+	Sent_NetLog("rsa_inject: '%s'", msg);
+#endif
+	// отправляем сообщение
+	sendSplitMessage(ptr,buf);
+	mir_free(buf);
 	return 1;
 }
 
 
-int rsa_check_pub(int context, PBYTE pub, int pubLen, PBYTE sig, int sigLen) {
-	pUinKey ptr = getUinCtx(context);
-	if(!ptr) return 0;
-	//
-	return 1;
+int __cdecl rsa_check_pub(int context, PBYTE pub, int pubLen, PBYTE sig, int sigLen) {
+	pUinKey ptr = getUinCtx(context); if(!ptr) return 0;
+	LPSTR sha = mir_strdup(to_hex(sig,sigLen));
+	LPSTR cnm = (LPSTR) alloca(128); getContactNameA(ptr->hContact,cnm);
+	LPSTR msg = (LPSTR) alloca(512); sprintf(msg,Translate(sim404),cnm,sha);
+	int v=(msgbox(0,msg,szModuleName,MB_YESNO|MB_ICONQUESTION)==IDYES);
+	if( v ) {
+            DBCONTACTWRITESETTING cws;
+            cws.szModule = szModuleName;
+            cws.szSetting = "rsa_pub";
+            cws.value.type = DBVT_BLOB;
+            cws.value.pbVal = pub;
+            cws.value.cpbVal = pubLen;
+            CallService(MS_DB_CONTACT_WRITESETTING, (WPARAM)ptr->hContact, (LPARAM)&cws);
+	}
+	mir_free(sha);
+	return v;
 }
 
 
-void rsa_notify(int context, int state) {
-	pUinKey ptr = getUinCtx(context);
-	if(!ptr) return;
-	//
+void __cdecl rsa_notify(int context, int state) {
+	pUinKey ptr = getUinCtx(context); if(!ptr) return;
+	switch( state ) {
+	case 1: {
+		showPopUpEC(ptr->hContact);
+		ShowStatusIconNotify(ptr->hContact);
+		return;
+	} break;
+	case -1: // сессия разорвана по ошибке, неверный тип сообщения
+	case -2: // сессия разорвана по ошибке другой стороной
+	case -5: // ошибка декодирования AES сообщения
+	case -6: // ошибка декодирования RSA сообщения
+	case -7: // таймаут установки соединения (10 секунд)
+	break;
+	case -0x10: // сессия разорвана по ошибке
+	case -0x21:
+	case -0x22:
+	case -0x23:
+	case -0x24:
+	case -0x32:
+	case -0x33:
+	case -0x34:
+	case -0x40:
+	case -0x50:
+	case -0x60:
+	return;
+	case -3: // соединение разорвано вручную
+	case -4: { // соединение разорвано вручную другой стороной
+		showPopUpDC(ptr->hContact);
+		ShowStatusIconNotify(ptr->hContact);
+		return;
+	} break;
+	}
+	char buf[128];
+	sprintf(buf,"CryptoPP state: %d",state);
+	msgbox0(0,buf,szModuleName,MB_OK);
 }
 
 

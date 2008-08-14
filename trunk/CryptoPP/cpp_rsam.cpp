@@ -2,6 +2,9 @@
 
 ///////////////////////////////////////////////////////////////////////////
 
+//#define _DEBUG
+#define RAND_SIZE 32
+
 string tlv(int,const string&);
 string tlv(int,const char*);
 string tlv(int,int);
@@ -28,19 +31,22 @@ BOOL	RSAVerifyString(const RSA::PublicKey&,const string&,const string&);
 
 ///////////////////////////////////////////////////////////////////////////
 
-int rsa_gen_keypair(short);
-int rsa_get_keypair(short,PBYTE,int*,PBYTE,int*);
-int rsa_set_keypair(short,PBYTE,int,PBYTE,int);
-int rsa_connect(int,PBYTE,int);
-int rsa_disconnect(int);
-LPSTR rsa_recv(int,LPCSTR);
-int rsa_send(int,LPCSTR);
+int __cdecl rsa_gen_keypair(short);
+int __cdecl rsa_get_keypair(short,PBYTE,int*,PBYTE,int*);
+int __cdecl rsa_get_keyhash(short,PBYTE,int*,PBYTE,int*);
+int __cdecl rsa_set_keypair(short,PBYTE,int,PBYTE,int);
+int __cdecl rsa_set_pubkey(int,PBYTE,int);
+int __cdecl rsa_get_state(int);
+int __cdecl rsa_connect(int);
+int __cdecl rsa_disconnect(int);
+LPSTR __cdecl rsa_recv(int,LPCSTR);
+int __cdecl rsa_send(int,LPCSTR);
 
 void inject_msg(int,int,const string&);
-string encode_msg(pRSADATA,string&);
-string encode_msg(pRSADATA,LPCSTR);
-string encode_msg(pRSADATA,LPCSTR,int);
+string encode_msg(short,pRSADATA,string&);
 string decode_msg(pRSADATA,string&);
+string encode_rsa(short,pRSADATA,pRSAPRIV,string&);
+string decode_rsa(pRSADATA,pRSAPRIV,string&);
 string gen_aes_key_iv(short,pRSADATA,pRSAPRIV);
 void init_pub(pRSADATA,string&);
 void null_msg(int,int,int);
@@ -50,11 +56,16 @@ void null_msg(int,int,int);
 RSA_EXPORT exp = {
     rsa_gen_keypair,
     rsa_get_keypair,
+    rsa_get_keyhash,
     rsa_set_keypair,
+    rsa_set_pubkey,
+    rsa_get_state,
     rsa_connect,
     rsa_disconnect,
     rsa_recv,
-    rsa_send
+    rsa_send,
+    utf8encode,
+    utf8decode
 };
 
 pRSA_IMPORT imp;
@@ -96,7 +107,7 @@ pRSAPRIV rsa_gen_keys(int context) {
 	r->priv_s = sign(priv);
 	
 	pub = tlv(1, IntegerToBinary(Encryptor.GetTrapdoorFunction().GetModulus())) +
-		  tlv(2, IntegerToBinary(Encryptor.GetTrapdoorFunction().GetPublicExponent()));
+	      tlv(2, IntegerToBinary(Encryptor.GetTrapdoorFunction().GetPublicExponent()));
 	r->pub_k = pub;
 	r->pub_s = sign(pub);
 
@@ -104,7 +115,7 @@ pRSAPRIV rsa_gen_keys(int context) {
 }
 
 
-int rsa_gen_keypair(short mode) {
+int __cdecl rsa_gen_keypair(short mode) {
 
 	if( mode&MODE_RSA_2048 )	rsa_gen_keys(-2); // 2048
 	if( mode&MODE_RSA_4096 )	rsa_gen_keys(-3); // 4096
@@ -113,7 +124,7 @@ int rsa_gen_keypair(short mode) {
 }
 
 
-int rsa_get_keypair(short mode, PBYTE privKey, int* privKeyLen, PBYTE pubKey, int* pubKeyLen) {
+int __cdecl rsa_get_keypair(short mode, PBYTE privKey, int* privKeyLen, PBYTE pubKey, int* pubKeyLen) {
 
 	pCNTX ptr = get_context_on_id((mode&MODE_RSA_4096)?-3:-2);
 	pRSAPRIV r = (pRSAPRIV) ptr->pdata;
@@ -125,7 +136,19 @@ int rsa_get_keypair(short mode, PBYTE privKey, int* privKeyLen, PBYTE pubKey, in
 }
 
 
-int rsa_set_keypair(short mode, PBYTE privKey, int privKeyLen, PBYTE pubKey, int pubKeyLen) {
+int __cdecl rsa_get_keyhash(short mode, PBYTE privKey, int* privKeyLen, PBYTE pubKey, int* pubKeyLen) {
+
+	pCNTX ptr = get_context_on_id((mode&MODE_RSA_4096)?-3:-2);
+	pRSAPRIV r = (pRSAPRIV) ptr->pdata;
+
+	if( privKey ) { *privKeyLen = r->priv_s.length(); r->priv_s.copy((char*)privKey, *privKeyLen); }
+	if( pubKey ) { *pubKeyLen = r->pub_s.length(); r->pub_s.copy((char*)pubKey, *pubKeyLen); }
+
+	return 1;
+}
+
+
+int __cdecl rsa_set_keypair(short mode, PBYTE privKey, int privKeyLen, PBYTE pubKey, int pubKeyLen) {
 
 	pCNTX ptr = get_context_on_id((mode&MODE_RSA_4096)?-3:-2);
 	pRSAPRIV r = (pRSAPRIV) ptr->pdata;
@@ -140,67 +163,103 @@ int rsa_set_keypair(short mode, PBYTE privKey, int privKeyLen, PBYTE pubKey, int
 }
 
 
-int rsa_connect(int context, PBYTE pubKey, int pubKeyLen) {
+int __cdecl rsa_set_pubkey(int context, PBYTE pubKey, int pubKeyLen) {
 
-	pCNTX ptr = get_context_on_id(context);
-	if(!ptr) return 0;
+	pCNTX ptr = get_context_on_id(context);	if(!ptr) return 0;
+	pRSADATA p = (pRSADATA) cpp_alloc_pdata(ptr);
 
-	cpp_alloc_pdata(ptr); pRSADATA p = (pRSADATA) ptr->pdata;
-	if(p->state) return p->state;
-
-	string pub;	pub.assign((char*)pubKey, pubKeyLen);
-	init_pub(p,pub);
-
-	pRSAPRIV r = (pRSAPRIV) (get_context_on_id((ptr->mode&MODE_RSA_4096)?-3:-2))->pdata;
-
-	inject_msg(context,0x10,tlv(0,0)+tlv(1,r->pub_s)+tlv(2,p->pub_s));
-	p->state = 2;
-
-	return p->state;
-}
-
-
-int rsa_disconnect(int context) {
-
-	pCNTX ptr = get_context_on_id(context);
-	if(!ptr) return 0;
-
-	cpp_alloc_pdata(ptr); pRSADATA p = (pRSADATA) ptr->pdata;
-	if(!p->state) return 1;
-
-	null_msg(context,0xF0,-3); // соединение разорвано вручную
-	p->state = 0;
+#ifdef _DEBUG
+	Sent_NetLog("rsa_set_pubkey: '%s'", pubKey);
+#endif
+	if( pubKey && pubKeyLen ) {
+	    string pub;	pub.assign((char*)pubKey, pubKeyLen);
+	    init_pub(p,pub);
+	}
 
 	return 1;
 }
 
 
-LPSTR rsa_recv(int context, LPCSTR msg) {
+int __cdecl rsa_connect(int context) {
 
-	pCNTX ptr = get_context_on_id(context);
-	if(!ptr) return 0;
+	pCNTX ptr = get_context_on_id(context); if(!ptr) return 0;
+	pRSADATA p = (pRSADATA) cpp_alloc_pdata(ptr); if(p->state) return p->state;
+	pRSAPRIV r = (pRSAPRIV) (get_context_on_id((ptr->mode&MODE_RSA_4096)?-3:-2))->pdata;
 
-	cpp_alloc_pdata(ptr); pRSADATA p = (pRSADATA) ptr->pdata;
+#ifdef _DEBUG
+	Sent_NetLog("rsa_connect: '%s' '%s'", r->pub_s.c_str(), p->pub_s.c_str());
+#endif
+        if(ptr->mode&MODE_RSA_ONLY) {
+		inject_msg(context,0x0D,tlv(0,0)+tlv(1,r->pub_k)+tlv(2,p->pub_s));
+		p->state = 0x0D;
+        }
+        else {
+		inject_msg(context,0x10,tlv(0,0)+tlv(1,r->pub_s)+tlv(2,p->pub_s));
+		p->state = 2;
+	}
+	p->time = gettime()+10;
+
+	return p->state;
+}
+
+
+int __cdecl rsa_disconnect(int context) {
+
+	pCNTX ptr = get_context_on_id(context); if(!ptr) return 0;
+	pRSADATA p = (pRSADATA) cpp_alloc_pdata(ptr); if(!p->state) return 1;
+
+#ifdef _DEBUG
+	Sent_NetLog("rsa_disconnect: '%s'", p->pub_s.c_str());
+#endif
+	PBYTE buffer=(PBYTE) alloca(RAND_SIZE);
+	GlobalRNG().GenerateBlock(buffer,RAND_SIZE);
+	inject_msg(context,0xF0,encode_msg(0,p,sign(buffer,RAND_SIZE)));
+
+	p->state = 0;
+	imp->rsa_notify(context,-3); // соединение разорвано вручную
+
+	return 1;
+}
+
+
+int __cdecl rsa_get_state(int context) {
+
+	pCNTX ptr = get_context_on_id(context);	if(!ptr) return 0;
+	pRSADATA p = (pRSADATA) cpp_alloc_pdata(ptr);
+
+	return p->state;
+}
+
+
+LPSTR __cdecl rsa_recv(int context, LPCSTR msg) {
+
+	pCNTX ptr = get_context_on_id(context);	if(!ptr) return 0;
+	pRSADATA p = (pRSADATA) cpp_alloc_pdata(ptr);
 	pRSAPRIV r = (pRSAPRIV) (get_context_on_id((ptr->mode&MODE_RSA_4096)?-3:-2))->pdata;
 
 	int len = strlen(msg); PBYTE buf = (PBYTE)base64decode(msg,&len);
 	string data; int type; un_tlv(buf,len,type,data);
 
-	if( p->state && type>0x00 && type<0xF0 && p->state!=(type>>8) ) {
+#ifdef _DEBUG
+	Sent_NetLog("rsa_recv(%02x): '%s'", type, data.c_str());
+#endif
+        if( type>0x10 && type<0xE0 ) 
+	    if( p->state==0 || p->state!=(type>>4) ) {
 		// шлем перерывание сессии
-		null_msg(context,0x00,-1); // сессия разорвана по ошибке
-		p->state=0;
+		p->state=0; p->time=0;
+		null_msg(context,0x00,-1); // сессия разорвана по ошибке, неверный тип сообщения
 		return 0;
-	}
+	    }
 
-	int t[3];
+	int t[4];
 
 	switch( type ) {
 
 	case 0x00:
 	{
+		if( p->state == 0 || p->state == 7 ) return 0;
+		p->state=0; p->time=0;
 		imp->rsa_notify(context,-2); // сессия разорвана по ошибке другой стороной
-		p->state=0;
 	} break;
 
 	case 0x10:
@@ -208,7 +267,7 @@ LPSTR rsa_recv(int context, LPCSTR msg) {
 		int features; string sha1,sha2;
 		un_tlv(un_tlv(un_tlv(data,t[0],features),t[1],sha1),t[2],sha2);
 		BOOL lr = (p->pub_s==sha1); BOOL ll = (r->pub_s==sha2);
-		switch( (ll<<8)|lr ){
+		switch( (lr<<4)|ll ){
 		case 0x11: {
 			inject_msg(context,0x21,gen_aes_key_iv(ptr->mode,p,r));
 			p->state=5;
@@ -218,47 +277,24 @@ LPSTR rsa_recv(int context, LPCSTR msg) {
 			p->state=3;
 		} break;
 		case 0x01: {
-			inject_msg(context,0x23,tlv(0,features)+tlv(1,p->pub_s));
+			inject_msg(context,0x23,tlv(0,features));
 			p->state=3;
 		} break;
-		default: {
+		case 0x00: {
 			inject_msg(context,0x24,tlv(0,features)+tlv(1,r->pub_k)+tlv(2,r->pub_s));
 			p->state=3;
 		} break;
 		}
 	} break;
 
-	case 0x21:
-	case 0x32:
-	case 0x40:
-	{
-		string enc,sig;	un_tlv(un_tlv(data,t[0],enc),t[1],sig);
-		string key = RSADecryptString(r->priv_k,enc);
-		if( !key.length() || !RSAVerifyString(p->pub,key,sig) ) {
-			null_msg(context,0x00,-1); // сессия разорвана по ошибке
-			p->state=0;
-			return 0;
-		}
-		un_tlv(un_tlv(key,t[0],p->aes_k),t[1],p->aes_v);
-		#undef BUFSIZE
-		#define BUFSIZE 512
-		PBYTE buffer=(PBYTE) mir_alloc(BUFSIZE);
-		GlobalRNG().GenerateBlock(buffer, BUFSIZE);
-        	inject_msg(context,0x50,encode_msg(p,sign(buffer,BUFSIZE)));
-		mir_free(buffer);
-		p->state=6;
-	} break;
-
 	case 0x22:
-	case 0x33:
-	case 0x34:
 	{
 		int features; string pub;
 		un_tlv(un_tlv(data,t[0],features),t[1],pub);
 		string sig = sign(pub);
 		if( !imp->rsa_check_pub(context,(PBYTE)pub.data(),pub.length(),(PBYTE)sig.data(),sig.length()) ) {
-			null_msg(context,0x00,-1); // сессия разорвана по ошибке
-			p->state=0;
+			p->state=0; p->time=0;
+			null_msg(context,0x00,-type); // сессия разорвана по ошибке
 			return 0;
 		}
 		init_pub(p,pub);
@@ -266,20 +302,22 @@ LPSTR rsa_recv(int context, LPCSTR msg) {
 		p->state=5;
 	} break;
 
-	case 0x23: {
+	case 0x23:
+	{
 		int features;
 		un_tlv(data,t[0],features);
 		inject_msg(context,0x33,tlv(1,r->pub_k)+tlv(2,r->pub_s));
 		p->state=4;
 	} break;
 
-	case 0x24: {
+	case 0x24:
+	{
 		int features; string pub;
 		un_tlv(un_tlv(data,t[0],features),t[1],pub);
 		string sig = sign(pub);
 		if( !imp->rsa_check_pub(context,(PBYTE)pub.data(),pub.length(),(PBYTE)sig.data(),sig.length()) ) {
-			null_msg(context,0x00,-1); // сессия разорвана по ошибке
-			p->state=0;
+			p->state=0; p->time=0;
+			null_msg(context,0x00,-type); // сессия разорвана по ошибке
 			return 0;
 		}
 		init_pub(p,pub);
@@ -287,34 +325,64 @@ LPSTR rsa_recv(int context, LPCSTR msg) {
 		p->state=4;
 	} break;
 
+	case 0x33:
+	case 0x34:
+	{
+		string pub;
+		un_tlv(data,t[0],pub);
+		string sig = sign(pub);
+		if( !imp->rsa_check_pub(context,(PBYTE)pub.data(),pub.length(),(PBYTE)sig.data(),sig.length()) ) {
+			p->state=0; p->time=0;
+			null_msg(context,0x00,-type); // сессия разорвана по ошибке
+			return 0;
+		}
+		init_pub(p,pub);
+		inject_msg(context,0x40,gen_aes_key_iv(ptr->mode,p,r));
+		p->state=5;
+	} break;
+
+	case 0x21:
+	case 0x32:
+	case 0x40:
+	{
+		string key = decode_rsa(p,r,data);
+		if( !key.length() ) {
+			p->state=0; p->time=0;
+			null_msg(context,0x00,-type); // сессия разорвана по ошибке
+			return 0;
+		}
+		un_tlv(un_tlv(key,t[0],p->aes_k),t[1],p->aes_v);
+		PBYTE buffer=(PBYTE) alloca(RAND_SIZE);
+		GlobalRNG().GenerateBlock(buffer,RAND_SIZE);
+		inject_msg(context,0x50,encode_msg(0,p,sign(buffer,RAND_SIZE)));
+		p->state=6;
+	} break;
+
 	case 0x50:
 	{
 		string msg = decode_msg(p,data);
 		if( msg.length() == 0 ) {
-			null_msg(context,0x00,-1); // сессия разорвана по ошибке
-			p->state=0;
+			p->state=0; p->time=0;
+			null_msg(context,0x00,-type); // сессия разорвана по ошибке
 			return 0;
 		}
-		#undef BUFSIZE
-		#define BUFSIZE 512
-		PBYTE buffer=(PBYTE) mir_alloc(BUFSIZE);
-		GlobalRNG().GenerateBlock(buffer, BUFSIZE);
-        	inject_msg(context,0x60,encode_msg(p,sign(buffer,BUFSIZE)));
-		mir_free(buffer);
+		PBYTE buffer=(PBYTE) alloca(RAND_SIZE);
+		GlobalRNG().GenerateBlock(buffer,RAND_SIZE);
+        	inject_msg(context,0x60,encode_msg(0,p,sign(buffer,RAND_SIZE)));
+		p->state=7; p->time=0;
 		imp->rsa_notify(context,1);	// заебися, криптосессия установлена
-		p->state=7;
 	} break;
 
 	case 0x60:
 	{
 		string msg = decode_msg(p,data);
 		if( msg.length() == 0 ) {
-			null_msg(context,0x00,-1); // сессия разорвана по ошибке
-			p->state=0;
+			p->state=0; p->time=0;
+			null_msg(context,0x00,-type); // сессия разорвана по ошибке
 			return 0;
 		}
+		p->state=7; p->time=0;
 		imp->rsa_notify(context,1);	// заебися, криптосессия установлена
-		p->state=7;
 	} break;
 
 	case 0x70:
@@ -326,31 +394,72 @@ LPSTR rsa_recv(int context, LPCSTR msg) {
 			memcpy(ptr->tmp,msg.c_str(),msg.length()+1);
 		}
 		else {
-			imp->rsa_notify(context,-5); // ошибка дэкодирования сообщения
+			imp->rsa_notify(context,-5); // ошибка декодирования AES сообщения
+		}
+		return ptr->tmp;
+	} break;
+
+	case 0x0D: // запрос паблика
+	case 0xD0: // ответ пабликом
+	{
+		int features; string pub,sha;
+		un_tlv(un_tlv(un_tlv(data,t[0],features),t[1],pub),t[2],sha);
+		if( p->pub_k!=pub ) { // пришел новый паблик
+			string sig = sign(pub);
+			if( !imp->rsa_check_pub(context,(PBYTE)pub.data(),pub.length(),(PBYTE)sig.data(),sig.length()) ) {
+				p->state=0; p->time=0;
+				null_msg(context,0x00,-type); // сессия разорвана по ошибке
+				return 0;
+			}
+			init_pub(p,pub);
+		}
+		if( type == 0x0D ) { // нужно отправить мой паблик
+			inject_msg(context,0xD0,tlv(0,features)+tlv(1,r->pub_k)+tlv(2,p->pub_s));
+		}
+		p->state=0; p->time=0;
+	} break;
+	case 0xE0:
+	{
+		SAFE_FREE(ptr->tmp);
+		string msg = decode_rsa(p,r,data);
+		if( msg.length() ) {
+			ptr->tmp = (LPSTR) mir_alloc(msg.length()+1);
+			memcpy(ptr->tmp,msg.c_str(),msg.length()+1);
+		}
+		else {
+			imp->rsa_notify(context,-6); // ошибка декодирования RSA сообщения
 		}
 		return ptr->tmp;
 	} break;
 
 	case 0xF0:
 	{
-		imp->rsa_notify(context,-4); // соединение разорвано вручную другой стороной
+		if( p->state != 7 ) return 0;
+		string msg = decode_msg(p,data);
+		if( msg.length() == 0 ) return 0;
 		p->state=0;
+		imp->rsa_notify(context,-4); // соединение разорвано вручную другой стороной
 	} break;
 	}
-	p->time = gettime()+10;
+	if( p->state != 0 && p->state != 7 ) p->time = gettime()+10;
 	return 0;
 }
 
 
-int rsa_send(int context, LPCSTR msg) {
+int __cdecl rsa_send(int context, LPCSTR msg) {
 
-	pCNTX ptr = get_context_on_id(context);
-	if(!ptr) return 0;
+	pCNTX ptr = get_context_on_id(context);	if(!ptr) return 0;
+	pRSADATA p = (pRSADATA) cpp_alloc_pdata(ptr); if(p->state!=0 && p->state!=7) return 0;
 
-	cpp_alloc_pdata(ptr); pRSADATA p = (pRSADATA) ptr->pdata;
-	if(p->state!=7) return 0;
-
-	inject_msg(context,0x70,encode_msg(p,msg));
+	if( p->state == 7 )
+		inject_msg(context,0x70,encode_msg(1,p,string(msg)));
+	else
+	if( p->state == 0 ) {
+		if( !p->pub_k.length() ) return 0;
+		// есть паблик ключ - отправим сообщение
+		pRSAPRIV r = (pRSAPRIV) (get_context_on_id((ptr->mode&MODE_RSA_4096)?-3:-2))->pdata;
+		inject_msg(context,0xE0,encode_rsa(1,p,r,string(msg)));
+	}
 
 	return 1;
 }
@@ -364,49 +473,68 @@ void inject_msg(int context, int type, const string& msg) {
 }
 
 
-string encode_msg(pRSADATA p, string& msg) {
-	return encode_msg(p,msg.data(),msg.length());
-}
+string encode_msg(short z,pRSADATA p, string& msg) {
 
-
-string encode_msg(pRSADATA p, LPCSTR msg) {
-	return encode_msg(p,msg,strlen(msg));
-}
-
-
-string encode_msg(pRSADATA p, LPCSTR msg, int len) {
+	string zlib = (z) ? cpp_zlibc(msg) : msg;
+	string sig = sign(zlib);
 
 	string ciphered;
-	string sig = sign((PBYTE)msg,len);
-
-	CBC_Mode<AES>::Encryption enc((PBYTE)p->aes_k.data(),p->aes_k.length(),(PBYTE)p->aes_v.data());
-
-	StreamTransformationFilter cbcEncryptor(enc,new StringSink(ciphered));
-	cbcEncryptor.Put((PBYTE)msg,len);
-	cbcEncryptor.MessageEnd();
-
-	return tlv(1,ciphered)+tlv(2,sig);
+	try {
+		CBC_Mode<AES>::Encryption enc((PBYTE)p->aes_k.data(),p->aes_k.length(),(PBYTE)p->aes_v.data());
+		StreamTransformationFilter cbcEncryptor(enc,new StringSink(ciphered));
+		cbcEncryptor.Put((PBYTE)zlib.data(),zlib.length());
+		cbcEncryptor.MessageEnd();
+	}
+	catch (...) {
+		;
+	}
+	return tlv(z,ciphered)+tlv(2,sig);
 }
 
 
 string decode_msg(pRSADATA p, string& msg) {
 
-	int t; string ciphered,sig; un_tlv(un_tlv(msg,t,ciphered),t,sig);
+	string ciphered,sig; int t1,t2;
+	un_tlv(un_tlv(msg,t1,ciphered),t2,sig);
 
-	string unciphered;
+	string unciphered,zlib;
 	try {
 		CBC_Mode<AES>::Decryption dec((PBYTE)p->aes_k.data(),p->aes_k.length(),(PBYTE)p->aes_v.data());
-		StreamTransformationFilter cbcDecryptor(dec,new StringSink(unciphered));
-
+		StreamTransformationFilter cbcDecryptor(dec,new StringSink(zlib));
 		cbcDecryptor.Put((PBYTE)ciphered.data(),ciphered.length());
 		cbcDecryptor.MessageEnd();
 
-		if( sig != sign(unciphered) ) {
-			unciphered.erase();
+		if( sig == sign(zlib) ) {
+			unciphered = (t1==1) ? cpp_zlibd(zlib) : zlib;
 		}
 	}
-	catch (...)	{
+	catch (...) {
 		;
+	}
+	return unciphered;
+}
+
+
+string encode_rsa(short z,pRSADATA p,pRSAPRIV r,string& msg) {
+
+	string zlib = (z) ? cpp_zlibc(msg) : msg;
+
+	string enc = RSAEncryptString(p->pub,zlib);
+	string sig = RSASignString(r->priv_k,zlib);
+
+	return tlv(z,enc)+tlv(2,sig);
+}
+
+
+string decode_rsa(pRSADATA p,pRSAPRIV r,string& msg) {
+
+	string ciphered,sig; int t1,t2;
+	un_tlv(un_tlv(msg,t1,ciphered),t2,sig);
+
+	string unciphered,zlib;
+	zlib = RSADecryptString(r->priv_k,ciphered);
+	if( zlib.length() && RSAVerifyString(p->pub,zlib,sig) ) {
+		unciphered = (t1==1) ? cpp_zlibd(zlib) : zlib;
 	}
 	return unciphered;
 }
@@ -414,23 +542,20 @@ string decode_msg(pRSADATA p, string& msg) {
 
 string gen_aes_key_iv(short m,pRSADATA p,pRSAPRIV r) {
 
-	#undef BUFSIZE
-	#define BUFSIZE 512
-	PBYTE buffer=(PBYTE) mir_alloc(BUFSIZE);
+	PBYTE buffer=(PBYTE) alloca(RAND_SIZE);
 
-	GlobalRNG().GenerateBlock(buffer, BUFSIZE);
-	p->aes_k = ( m&MODE_RSA_4096 ) ? sign256(buffer,BUFSIZE) : sign128(buffer,BUFSIZE);
+	GlobalRNG().GenerateBlock(buffer, RAND_SIZE);
+	p->aes_k = ( m&MODE_RSA_4096 ) ? sign256(buffer,RAND_SIZE) : sign128(buffer,RAND_SIZE);
 	
-	GlobalRNG().GenerateBlock(buffer, BUFSIZE);
-	p->aes_v = ( m&MODE_RSA_4096 ) ? sign256(buffer,BUFSIZE) : sign128(buffer,BUFSIZE);
-
-	mir_free(buffer);
+	GlobalRNG().GenerateBlock(buffer, RAND_SIZE);
+	p->aes_v = ( m&MODE_RSA_4096 ) ? sign256(buffer,RAND_SIZE) : sign128(buffer,RAND_SIZE);
 
 	string buf = tlv(10,p->aes_k)+tlv(11,p->aes_v);
-	string enc = RSAEncryptString(p->pub,buf);
-	string sig = RSASignString(r->priv_k,buf);
+//	string enc = RSAEncryptString(p->pub,buf);
+//	string sig = RSASignString(r->priv_k,buf);
+//	return tlv(1,enc)+tlv(2,sig);
 
-	return tlv(1,enc)+tlv(2,sig);
+	return encode_rsa(0,p,r,buf);
 }
 
 
@@ -439,7 +564,8 @@ void init_pub(pRSADATA p, string& pub) {
 	p->pub_k = pub;
 	p->pub_s = sign(pub);
 
-	int t; string mod, exp;	un_tlv(un_tlv(pub,t,mod),t,exp);
+	int t; string mod, exp;
+	un_tlv(un_tlv(pub,t,mod),t,exp);
 	p->pub.Initialize(BinaryToInteger(mod),BinaryToInteger(exp));
 }
 
@@ -447,6 +573,12 @@ void init_pub(pRSADATA p, string& pub) {
 void null_msg(int context, int type, int status) {
 	inject_msg(context,type,null);
 	imp->rsa_notify(context,status);
+}
+
+
+void rsa_timeout(int context, pRSADATA p) {
+	p->state=0; p->time=0;
+	null_msg(context,0x00,-7); // сессия разорвана по таймауту
 }
 
 

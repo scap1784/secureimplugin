@@ -44,8 +44,7 @@ typedef int   (__cdecl * _pgp_set_key) (int,LPCSTR);
 typedef int   (__cdecl * _pgp_set_keyid) (int,PVOID);
 typedef int   (__cdecl * _pgp_size_keyid) (void);
 typedef PVOID (__cdecl * _pgp_select_keyid) (HWND,LPSTR);
-typedef LPSTR (__cdecl * _pgp_encodeA) (int,LPCSTR);
-typedef LPSTR (__cdecl * _pgp_encodeW) (int,LPCWSTR);
+typedef LPSTR (__cdecl * _pgp_encode) (int,LPCSTR);
 typedef LPSTR (__cdecl * _pgp_decode) (int,LPCSTR);
 
 typedef int   (__cdecl * _gpg_init) (void);
@@ -57,8 +56,7 @@ typedef LPSTR (__cdecl * _gpg_get_error) (void);
 typedef int   (__cdecl * _gpg_set_keyid) (int,LPCSTR);
 typedef int   (__cdecl * _gpg_size_keyid) (void);
 typedef int   (__cdecl * _gpg_select_keyid) (HWND,LPSTR);
-typedef LPSTR (__cdecl * _gpg_encodeA) (int,LPCSTR);
-typedef LPSTR (__cdecl * _gpg_encodeW) (int,LPCWSTR);
+typedef LPSTR (__cdecl * _gpg_encode) (int,LPCSTR);
 typedef LPSTR (__cdecl * _gpg_decode) (int,LPCSTR);
 typedef LPSTR (__cdecl * _gpg_get_passphrases) (void);
 typedef void  (__cdecl * _gpg_set_passphrases) (LPCSTR);
@@ -105,8 +103,7 @@ typedef struct {
 	_pgp_set_key		pgp_sk;
 	_pgp_size_keyid		pgp_szki;
 	_pgp_select_keyid	pgp_slki;
-	_pgp_encodeA		pgp_ea;
-	_pgp_encodeW		pgp_ew;
+	_pgp_encode		pgp_eu;
 	_pgp_decode			pgp_de;
 	_gpg_init			gpg_i;
 	_gpg_done			gpg_d;
@@ -117,8 +114,7 @@ typedef struct {
 	_gpg_set_keyid		gpg_ski;
 	_gpg_size_keyid		gpg_szki;
 	_gpg_select_keyid	gpg_slki;
-	_gpg_encodeA		gpg_ea;
-	_gpg_encodeW		gpg_ew;
+	_gpg_encode		gpg_eu;
 	_gpg_decode			gpg_de;
 	_gpg_get_passphrases gpg_gph;
 	_gpg_set_passphrases gpg_sph;
@@ -165,8 +161,7 @@ extern CRYPTOPP_INFO cpp;
 #define pgp_set_keyid		cpp.pgp_ski
 #define pgp_size_keyid		cpp.pgp_szki
 #define	pgp_select_keyid	cpp.pgp_slki
-#define pgp_encodeA			cpp.pgp_ea
-#define pgp_encodeW			cpp.pgp_ew
+#define pgp_encode			cpp.pgp_eu
 #define pgp_decode			cpp.pgp_de
 #define gpg_init			cpp.gpg_i
 #define gpg_done			cpp.gpg_d
@@ -177,8 +172,7 @@ extern CRYPTOPP_INFO cpp;
 #define gpg_set_keyid		cpp.gpg_ski
 #define gpg_size_keyid		cpp.gpg_szki
 #define	gpg_select_keyid	cpp.gpg_slki
-#define gpg_encodeA			cpp.gpg_ea
-#define gpg_encodeW			cpp.gpg_ew
+#define gpg_encode			cpp.gpg_eu
 #define gpg_decode			cpp.gpg_de
 #define gpg_get_passphrases	cpp.gpg_gph
 #define gpg_set_passphrases	cpp.gpg_sph

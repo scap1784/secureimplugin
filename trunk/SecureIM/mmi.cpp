@@ -1,18 +1,20 @@
 #include "commonheaders.h"
 
 
+#ifndef _DEBUG
 void *operator new(size_t sz) {
 	return mir_alloc(sz);
+}
+#endif
+
+
+void *operator new[](size_t size) {
+	return operator new(size);
 }
 
 
 void operator delete(void *p) {
 	mir_free(p);
-}
-
-
-void *operator new[](size_t size) {
-	return operator new(size);
 }
 
 
@@ -56,5 +58,53 @@ char *m_aastrcat(LPCSTR strA, LPCSTR strB) {
 	MultiByteToWideChar(CP_ACP, 0, str, -1, (LPWSTR)(str+lenA+lenB+1), (lenA+lenB+1)*sizeof(WCHAR));
 	return str;
 }
+
+
+LPSTR m_string = NULL;
+
+// ANSIz + ANSIz = ANSIz
+char *m_ustrcat(LPCSTR strA, LPCSTR strB) {
+	SAFE_FREE(m_string);
+	m_string = (LPSTR) mir_alloc(strlen(strA)+strlen(strB)+1);
+	strcpy(m_string,strA); strcat(m_string,strB);
+	return m_string;
+}
+
+
+LPSTR m_hex = NULL;
+
+LPSTR to_hex(PBYTE bin, int len) {
+	SAFE_FREE(m_hex);
+	m_hex = (LPSTR) mir_alloc(len*3+1);
+	LPSTR m_ptr = m_hex;
+	for( int i=0; i<len; i++ ) {
+	   if( i ) {
+ 		*m_ptr = ' '; m_ptr++;
+ 	   }
+	   sprintf(m_ptr,"%02X",bin[i]);
+	   m_ptr += 2;
+	}
+	*m_ptr = 0;
+	return m_hex;
+}
+
+
+void __fastcall safe_free(void** p)
+{
+  if (*p) {
+    mir_free(*p);
+    *p = NULL;
+  }
+}
+
+
+void __fastcall safe_delete(void** p)
+{
+  if (*p) {
+    delete(*p);
+    *p = NULL;
+  }
+}
+
 
 // EOF

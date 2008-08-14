@@ -2,28 +2,27 @@
 
 
 BOOL isProtoMetaContacts(HANDLE hContact) {
-
-	if(bMetaContacts)
-	for(int j=0;j<clist_cnt;j++)
-		if(clist[j].hContact==hContact && clist[j].szProto)
-			return strstr(clist[j].szProto,"MetaContacts")!=NULL;
-	return false;
+    if(bMetaContacts)
+    for(int j=0;j<clist_cnt;j++)
+	if(clist[j].hContact==hContact && proto->inspecting)
+	    return strstr(clist[j].proto->name,"MetaContacts")!=NULL;
+    return false;
 }
 
 
 BOOL isDefaultSubContact(HANDLE hContact) {
 
-	if(bMetaContacts) {
-		return (HANDLE)CallService(MS_MC_GETDEFAULTCONTACT,(WPARAM)CallService(MS_MC_GETMETACONTACT,(WPARAM)hContact,0),0)==hContact;
+    if(bMetaContacts) {
+	return (HANDLE)CallService(MS_MC_GETDEFAULTCONTACT,(WPARAM)CallService(MS_MC_GETMETACONTACT,(WPARAM)hContact,0),0)==hContact;
     }
-	return false;
+    return false;
 }
 
 
 HANDLE getMetaContact(HANDLE hContact) {
 
-	if(bMetaContacts) {
-		return (HANDLE)CallService(MS_MC_GETMETACONTACT,(WPARAM)hContact,0);
+    if(bMetaContacts) {
+	return (HANDLE)CallService(MS_MC_GETMETACONTACT,(WPARAM)hContact,0);
     }
     return 0;
 }
@@ -31,8 +30,8 @@ HANDLE getMetaContact(HANDLE hContact) {
 
 HANDLE getMostOnline(HANDLE hContact) {
 
-	if(bMetaContacts) {
-		return (HANDLE)CallService(MS_MC_GETMOSTONLINECONTACT,(WPARAM)hContact,0);
+    if(bMetaContacts) {
+	return (HANDLE)CallService(MS_MC_GETMOSTONLINECONTACT,(WPARAM)hContact,0);
     }
     return 0;
 }

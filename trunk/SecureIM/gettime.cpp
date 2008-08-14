@@ -15,7 +15,7 @@ DWORD gettime(void) {
 
 		ULONGLONG diff_100_nsec;
 		union {
-			FILETIME		f;
+			FILETIME	f;
 			ULARGE_INTEGER	u;
 		} now;
 

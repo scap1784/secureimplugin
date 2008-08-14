@@ -15,10 +15,10 @@ PLUGININFO pluginInfo = {
 	sizeof(PLUGININFO),
 		MODULENAME,
 		__VERSION_DWORD,
-		MODULENAME" library for SecureIM plugin",
+		MODULENAME" library for SecureIM plugin ("__DATE__")",
 		"Baloo",
 		"baloo@bk.ru",
-		"© 2006-07 Baloo",
+		"© 2006-08 Baloo",
 		"http://miranda-im.org/download/details.php?action=viewfile&id=2669",
 		0, 0
 };
@@ -27,10 +27,10 @@ PLUGININFOEX pluginInfoEx = {
 	sizeof(PLUGININFOEX),
 		MODULENAME,
 		__VERSION_DWORD,
-		MODULENAME" library for SecureIM plugin",
+		MODULENAME" library for SecureIM plugin ("__DATE__")",
 		"Baloo",
 		"baloo@bk.ru",
-		"© 2006-07 Baloo",
+		"© 2006-08 Baloo",
 		"http://miranda-im.org/download/details.php?action=viewfile&id=2669",
 		0, 0,	
 		MIID_CRYPTOPP
@@ -65,3 +65,38 @@ void ExtractFile( char *FileName, int ResType, int ResId )
     CloseHandle( FH );
 }
 
+
+#ifdef _DEBUG
+HANDLE hNetlibUser;
+
+void InitNetlib() {
+	NETLIBUSER nl_user = {0};
+	nl_user.cbSize = sizeof(nl_user);
+	nl_user.szSettingsModule = (LPSTR)szModuleName;
+	nl_user.szDescriptiveName = (LPSTR)szModuleName;
+	nl_user.flags = NUF_NOOPTIONS;
+
+	hNetlibUser = (HANDLE)CallService(MS_NETLIB_REGISTERUSER, 0, (LPARAM)&nl_user);
+}
+
+void DeinitNetlib() {
+	if(hNetlibUser)
+		CallService(MS_NETLIB_CLOSEHANDLE, (WPARAM)hNetlibUser, 0);
+}
+
+int Sent_NetLog(const char *fmt,...)
+{
+  va_list va;
+  char szText[1024];
+
+  va_start(va,fmt);
+  mir_vsnprintf(szText,sizeof(szText),fmt,va);
+  va_end(va);
+  if(hNetlibUser)
+      return CallService(MS_NETLIB_LOG,(WPARAM)hNetlibUser,(LPARAM)szText);
+  return 0;
+}
+#endif
+
+
+// EOF

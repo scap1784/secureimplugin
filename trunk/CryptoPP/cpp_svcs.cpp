@@ -51,7 +51,6 @@ LPSTR __cdecl cpp_encrypt(pCNTX ptr, LPCSTR szPlainMsg) {
 
 	SAFE_FREE(ptr->tmp);
 	if(ptr->features & FEATURES_BASE64) {
-//MessageBoxA(0,"base64","keyB",MB_OK | MB_ICONSTOP);
 		ptr->tmp = base64encode(ciphered.data(),clen);
 	}
 	else {
@@ -139,10 +138,10 @@ LPSTR __cdecl cpp_decrypt(pCNTX ptr, LPCSTR szEncMsg) {
 // encode message from ANSI into UTF8 if need
 LPSTR __cdecl cpp_encodeA(int context, LPCSTR msg) {
 
-    pCNTX ptr = get_context_on_id(context);
-    if(!ptr) return NULL;
+	pCNTX ptr = get_context_on_id(context);
+	if(!ptr) return NULL;
 	cpp_alloc_pdata(ptr); pSIMDATA p = (pSIMDATA) ptr->pdata;
-    if(!p->KeyX) { ptr->error = ERROR_NO_KEYX; return NULL; }
+	if(!p->KeyX) { ptr->error = ERROR_NO_KEYX; return NULL; }
 
 	LPSTR szNewMsg = NULL;
 	LPSTR szOldMsg = (LPSTR) msg;
@@ -152,10 +151,8 @@ LPSTR __cdecl cpp_encodeA(int context, LPCSTR msg) {
 		int slen = strlen(szOldMsg)+1;
 		LPWSTR wstring = (LPWSTR) alloca(slen*sizeof(WCHAR));
 		MultiByteToWideChar(CP_ACP, 0, szOldMsg, -1, wstring, slen*sizeof(WCHAR));
-		LPSTR szUtfMsg = utf8encode(wstring);
 		// encrypt
-		szNewMsg = cpp_encrypt(ptr, szUtfMsg);
-		mir_free(szUtfMsg);
+		szNewMsg = cpp_encrypt(ptr, utf8encode(wstring));
 	}
 	else {
 		// ansi message: encrypt.
@@ -168,10 +165,10 @@ LPSTR __cdecl cpp_encodeA(int context, LPCSTR msg) {
 // encode message from UTF8
 LPSTR __cdecl cpp_encodeU(int context, LPCSTR msg) {
 
-    pCNTX ptr = get_context_on_id(context);
-    if(!ptr) return NULL;
+	pCNTX ptr = get_context_on_id(context);
+	if(!ptr) return NULL;
 	cpp_alloc_pdata(ptr); pSIMDATA p = (pSIMDATA) ptr->pdata;
-    if(!p->KeyX) { ptr->error = ERROR_NO_KEYX; return NULL; }
+	if(!p->KeyX) { ptr->error = ERROR_NO_KEYX; return NULL; }
 
 	LPSTR szNewMsg = NULL;
 	LPSTR szOldMsg = (LPSTR) msg;
@@ -182,12 +179,11 @@ LPSTR __cdecl cpp_encodeU(int context, LPCSTR msg) {
 	}
 	else {
 		// utf8 message: convert to ansi and encrypt.
-		WCHAR *wstring = utf8decode(szOldMsg);
+		LPWSTR wstring = utf8decode(szOldMsg);
 		int wlen = wcslen(wstring)+1;
 		szNewMsg = (LPSTR) mir_alloc(wlen*(sizeof(WCHAR)+2));
 		WideCharToMultiByte(CP_ACP, 0, wstring, -1, szNewMsg, wlen, 0, 0);
 		memcpy(szNewMsg+strlen(szNewMsg)+1, wstring, wlen*sizeof(WCHAR));
-		mir_free(wstring);
 	}
 
 	return szNewMsg;
@@ -196,19 +192,17 @@ LPSTR __cdecl cpp_encodeU(int context, LPCSTR msg) {
 // encode message from UNICODE into UTF8 if need
 LPSTR __cdecl cpp_encodeW(int context, LPWSTR msg) {
 
-    pCNTX ptr = get_context_on_id(context);
-    if(!ptr) return NULL;
+	pCNTX ptr = get_context_on_id(context);
+	if(!ptr) return NULL;
 	cpp_alloc_pdata(ptr); pSIMDATA p = (pSIMDATA) ptr->pdata;
-    if(!p->KeyX) { ptr->error = ERROR_NO_KEYX; return NULL; }
+	if(!p->KeyX) { ptr->error = ERROR_NO_KEYX; return NULL; }
 
 	LPSTR szNewMsg = NULL;
 	LPSTR szOldMsg = (LPSTR) msg;
 
 	if(ptr->features & FEATURES_UTF8) {
 		// unicode message: convert to utf-8 and encrypt.
-		LPSTR szUtfMsg = utf8encode((LPWSTR)szOldMsg);
-		szNewMsg = cpp_encrypt(ptr, szUtfMsg);
-		mir_free(szUtfMsg);
+		szNewMsg = cpp_encrypt(ptr, utf8encode((LPWSTR)szOldMsg));
 	}
 	else {
 		// unicode message: convert to ansi and encrypt.
@@ -224,10 +218,10 @@ LPSTR __cdecl cpp_encodeW(int context, LPWSTR msg) {
 // decode message from UTF8 if need, return ANSIzUCS2z
 LPSTR __cdecl cpp_decode(int context, LPCSTR szEncMsg) {
 
-    pCNTX ptr = get_context_on_id(context);
-    if(!ptr) return NULL;
+	pCNTX ptr = get_context_on_id(context);
+	if(!ptr) return NULL;
 	cpp_alloc_pdata(ptr); pSIMDATA p = (pSIMDATA) ptr->pdata;
-    if(!p->KeyX) { ptr->error = ERROR_NO_KEYX; return NULL; }
+	if(!p->KeyX) { ptr->error = ERROR_NO_KEYX; return NULL; }
 
 	LPSTR szNewMsg = NULL;
 	LPSTR szOldMsg = cpp_decrypt(ptr, szEncMsg);
@@ -235,12 +229,11 @@ LPSTR __cdecl cpp_decode(int context, LPCSTR szEncMsg) {
 	if(szOldMsg) {
 		if(ptr->features & FEATURES_UTF8) {
 			// utf8 message: convert to unicode -> ansii
-			WCHAR *wstring = utf8decode(szOldMsg);
+			LPWSTR wstring = utf8decode(szOldMsg);
 			int wlen = wcslen(wstring)+1;
 			szNewMsg = (LPSTR) mir_alloc(wlen*(sizeof(WCHAR)+2));				// work.zy@gmail.com
 			WideCharToMultiByte(CP_ACP, 0, wstring, -1, szNewMsg, wlen, 0, 0);
 			memcpy(szNewMsg+strlen(szNewMsg)+1, wstring, wlen*sizeof(WCHAR));	// work.zy@gmail.com
-			mir_free(wstring);
 		}
 		else {
 			// ansi message: convert to unicode
@@ -260,10 +253,10 @@ LPSTR __cdecl cpp_decode(int context, LPCSTR szEncMsg) {
 // decode message return UTF8z
 LPSTR __cdecl cpp_decodeU(int context, LPCSTR szEncMsg) {
 
-    pCNTX ptr = get_context_on_id(context);
-    if(!ptr) return NULL;
+	pCNTX ptr = get_context_on_id(context);
+	if(!ptr) return NULL;
 	cpp_alloc_pdata(ptr); pSIMDATA p = (pSIMDATA) ptr->pdata;
-    if(!p->KeyX) { ptr->error = ERROR_NO_KEYX; return NULL; }
+	if(!p->KeyX) { ptr->error = ERROR_NO_KEYX; return NULL; }
 
 	LPSTR szNewMsg = NULL;
 	LPSTR szOldMsg = cpp_decrypt(ptr, szEncMsg);
@@ -271,16 +264,14 @@ LPSTR __cdecl cpp_decodeU(int context, LPCSTR szEncMsg) {
 	if(szOldMsg) {
 		if(ptr->features & FEATURES_UTF8) {
 			// utf8 message: copy
-			int slen = strlen(szOldMsg)+1;
-			szNewMsg = (LPSTR) mir_alloc(slen);
-			memcpy(szNewMsg,szOldMsg,slen);
+			szNewMsg = mir_strdup(szOldMsg);
 		}
 		else {
 			// ansi message: convert to utf8
 			int slen = strlen(szOldMsg)+1;
 			LPWSTR wstring = (LPWSTR) alloca(slen*sizeof(WCHAR));
 			MultiByteToWideChar(CP_ACP, 0, szOldMsg, -1, wstring, slen*sizeof(WCHAR));
-			szNewMsg = utf8encode(wstring);
+			szNewMsg = mir_strdup(utf8encode(wstring));
 		}
 	}
 	SAFE_FREE(ptr->tmp);
@@ -290,10 +281,10 @@ LPSTR __cdecl cpp_decodeU(int context, LPCSTR szEncMsg) {
 
 int __cdecl cpp_encrypt_file(int context,LPCSTR file_in,LPCSTR file_out) {
 
-    pCNTX ptr = get_context_on_id(context);
-    if(!ptr) return 0;
+	pCNTX ptr = get_context_on_id(context);
+	if(!ptr) return 0;
 	cpp_alloc_pdata(ptr); pSIMDATA p = (pSIMDATA) ptr->pdata;
-    if(!p->KeyX) return 0;
+	if(!p->KeyX) return 0;
 
 	CBC_Mode<AES>::Encryption enc(p->KeyX,Tiger::DIGESTSIZE,IV);
 	FileSource *f = new FileSource(file_in,true,new StreamTransformationFilter (enc,new FileSink(file_out)));
@@ -303,10 +294,10 @@ int __cdecl cpp_encrypt_file(int context,LPCSTR file_in,LPCSTR file_out) {
 
 int __cdecl cpp_decrypt_file(int context,LPCSTR file_in,LPCSTR file_out) {
 
-    pCNTX ptr = get_context_on_id(context);
-    if(!ptr) return 0;
+	pCNTX ptr = get_context_on_id(context);
+	if(!ptr) return 0;
 	cpp_alloc_pdata(ptr); pSIMDATA p = (pSIMDATA) ptr->pdata;
-    if(!p->KeyX) return 0;
+	if(!p->KeyX) return 0;
 
 	CBC_Mode<AES>::Decryption dec(p->KeyX,Tiger::DIGESTSIZE,IV);
 	FileSource *f = new FileSource(file_in,true,new StreamTransformationFilter (dec,new FileSink(file_out)));
@@ -314,3 +305,4 @@ int __cdecl cpp_decrypt_file(int context,LPCSTR file_in,LPCSTR file_out) {
 	return 1;
 }
 
+// EOF

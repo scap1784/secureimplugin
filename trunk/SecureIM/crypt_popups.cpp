@@ -133,10 +133,12 @@ void showPopUpKR(HANDLE hContact) {
 void showPopUpSM(HANDLE hContact) {
 	int indic=DBGetContactSettingByte(0, szModuleName, "ss",0);
 	if (indic==1) showPopUp(sim009,hContact,g_hPOP[POP_SECMSS],2);
+	SkinPlaySound("OutgoingSecureMessage");
 }
 void showPopUpRM(HANDLE hContact) {
 	int indic=DBGetContactSettingByte(0, szModuleName, "sr",0);
 	if (indic==1) showPopUp(sim010,hContact,g_hPOP[POP_SECMSR],2);
+	SkinPlaySound("IncomingSecureMessage");
 }
 
 

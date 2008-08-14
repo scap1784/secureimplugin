@@ -8,6 +8,8 @@
 #else
 #include <afxwin.h>
 #endif
+#include <process.h>
+#include <winsock2.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -27,10 +29,8 @@
 #define M_API_H__
 
 // Miranda API
-#define _STATIC
-#define MIRANDA_VER 0x0700
-#define mir_snprintf _snprintf
 #include "newpluginapi.h"
+#include "m_stdhdr.h"
 #include "m_plugins.h"
 #include "m_system.h"
 #include "m_database.h"
@@ -38,6 +38,7 @@
 #include "m_protosvc.h"
 #include "m_utils.h"
 #include "m_updater.h"
+#include "m_netlib.h"
 
 #endif
 
@@ -51,6 +52,14 @@
 #include "base64.h"
 #include "gettime.h"
 
+#define MODULENAME "Crypto++"
+
+extern LPCSTR szModuleName;
+extern LPCSTR szVersionStr;
+extern char TEMP[MAX_PATH];
+extern int  TEMP_SIZE;
+extern BOOL isVista;
+
 // shared vars
 extern HINSTANCE g_hInst;
 extern PLUGINLINK *pluginLink;
@@ -59,15 +68,20 @@ extern PLUGININFOEX pluginInfoEx;
 extern MM_INTERFACE memoryManagerInterface;
 extern MUUID interfaces[];
 
-extern char TEMP[MAX_PATH];
-extern int  TEMP_SIZE;
-extern BOOL isVista;
-
 extern void ExtractFile(char*,int,int);
+
+#ifdef _DEBUG
+extern HANDLE hNetlibUser;
+void InitNetlib();
+void DeinitNetlib();
+int Sent_NetLog(const char *,...);
+#endif
 
 #define MIID_CRYPTOPP	{0x3613F2D9, 0xC040, 0x4361, { 0xA4, 0x4F, 0xDF, 0x7B, 0x5A, 0xAA, 0xCF, 0x6E }} //3613F2D9-C040-4361-A44F-DF7B5AAACF6E
 
 #define DLLEXPORT __declspec(dllexport)
+
+PBYTE cpp_alloc_pdata(pCNTX);
 
 extern "C" {
 
@@ -80,7 +94,6 @@ extern "C" {
  DLLEXPORT int   __cdecl cpp_create_context(int); // create crypt-context
  DLLEXPORT void  __cdecl cpp_delete_context(int); // delete crypt-context
  DLLEXPORT void  __cdecl cpp_reset_context(int);  // reset crypt-context (free all data)
-		   void  __cdecl cpp_alloc_pdata(pCNTX);
  DLLEXPORT LPSTR __cdecl cpp_init_keya(int,int);    // make KeyA
  DLLEXPORT int   __cdecl cpp_init_keyb(int,LPCSTR); // load KeyB
  DLLEXPORT int   __cdecl cpp_calc_keyx(int);        // calculate KeyX
@@ -116,8 +129,7 @@ extern "C" {
  DLLEXPORT int   __cdecl pgp_set_keyid(int,PVOID);
  DLLEXPORT int   __cdecl pgp_size_keyid(void);
  DLLEXPORT PVOID __cdecl pgp_select_keyid(HWND,LPSTR);
- DLLEXPORT LPSTR __cdecl pgp_encodeA(int,LPCSTR);
- DLLEXPORT LPSTR __cdecl pgp_encodeW(int,LPCWSTR);
+ DLLEXPORT LPSTR __cdecl pgp_encode(int,LPCSTR);
  DLLEXPORT LPSTR __cdecl pgp_decode(int,LPCSTR);
 
  DLLEXPORT int   __cdecl gpg_init(void);
@@ -130,8 +142,7 @@ extern "C" {
  DLLEXPORT int   __cdecl gpg_set_keyid(int,LPCSTR);
  DLLEXPORT int   __cdecl gpg_size_keyid(void);
  DLLEXPORT int   __cdecl gpg_select_keyid(HWND,LPSTR);
- DLLEXPORT LPSTR __cdecl gpg_encodeA(int,LPCSTR);
- DLLEXPORT LPSTR __cdecl gpg_encodeW(int,LPCWSTR);
+ DLLEXPORT LPSTR __cdecl gpg_encode(int,LPCSTR);
  DLLEXPORT LPSTR __cdecl gpg_decode(int,LPCSTR);
  DLLEXPORT LPSTR __cdecl gpg_get_passphrases();
  DLLEXPORT void  __cdecl gpg_set_passphrases(LPCSTR);

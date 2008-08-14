@@ -42,7 +42,10 @@ MUUID* MirandaPluginInterfaces(void)
 
 int onModulesLoaded(WPARAM wParam,LPARAM lParam) {
     // updater plugin support
-    if(ServiceExists(MS_UPDATE_REGISTERFL)) {
+#ifdef _DEBUG
+	InitNetlib();
+#endif
+	if(ServiceExists(MS_UPDATE_REGISTERFL)) {
 		CallService(MS_UPDATE_REGISTERFL, (WPARAM)2669, (LPARAM)&pluginInfo);
 	}
 	return 0;
@@ -53,11 +56,10 @@ int Load(PLUGINLINK *link) {
 
 	pluginLink = link;
 	DisableThreadLibraryCalls(g_hInst);
-	
+#ifdef _DEBUG
 	// get memoryManagerInterface address
-//	memoryManagerInterface.cbSize=sizeof(struct MM_INTERFACE);
-//	CallService(MS_SYSTEM_GET_MMI,0,(LPARAM)&memoryManagerInterface);
-
+	mir_getMMI(&memoryManagerInterface);
+#endif
 	// register plugin module
 	PROTOCOLDESCRIPTOR pd = {0};
 	pd.cbSize = sizeof(pd);

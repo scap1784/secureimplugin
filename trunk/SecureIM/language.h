@@ -71,10 +71,12 @@ extern LPCSTR sim306;
 extern LPCSTR sim307;
 extern LPCSTR sim308;
 extern LPCSTR sim309;
+extern LPCSTR sim310;
 
 //System messages
 extern LPCSTR sim401;
 extern LPCSTR sim402;
 extern LPCSTR sim403;
+extern LPCSTR sim404;
 
 #endif

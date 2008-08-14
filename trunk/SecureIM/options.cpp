@@ -112,7 +112,7 @@ BOOL CALLBACK OptionsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) 
 
          if(bGPG && bGPGloaded) {
          tci.lParam = (LPARAM)CreateDialog(g_hInst,MAKEINTRESOURCE(IDD_TAB_GPG),hwnd,DlgProcOptionsGPG);
-		 tci.pszText = (LPSTR)sim226;
+	 tci.pszText = (LPSTR)sim226;
          TC_InsertItem(GetDlgItem(hwnd, IDC_OPTIONSTAB), 4, &tci);
          MoveWindow((HWND)tci.lParam,5,26,rcClient.right-8,rcClient.bottom-29,1);
          ShowWindow((HWND)tci.lParam, SW_HIDE);
@@ -127,7 +127,7 @@ BOOL CALLBACK OptionsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) 
 
       case PSM_CHANGED: // used so tabs dont have to call SendMessage(GetParent(GetParent(hwnd)), PSM_CHANGED, 0, 0);
          if(!iInit)
-			SendMessage(GetParent(hwnd), PSM_CHANGED, 0, 0);
+		SendMessage(GetParent(hwnd), PSM_CHANGED, 0, 0);
          break;
 
 	  case WM_COMMAND: {
@@ -206,7 +206,7 @@ BOOL CALLBACK OptionsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) 
 
 BOOL CALLBACK DlgProcOptionsGeneral(HWND hDlg, UINT wMsg, WPARAM wParam, LPARAM lParam) {
 
-    static int iInit = TRUE;
+	static int iInit = TRUE;
 	static HIMAGELIST hLarge, hSmall;
 	int i,idx; pUinKey ptr;
 
@@ -373,7 +373,7 @@ BOOL CALLBACK DlgProcOptionsGeneral(HWND hDlg, UINT wMsg, WPARAM wParam, LPARAM 
 		case WM_NOTIFY: {
 			switch(((LPNMHDR)lParam)->idFrom) {
 				case 0: {
-                    if (((LPNMHDR)lParam)->code == (UINT)PSN_APPLY) {
+					if (((LPNMHDR)lParam)->code == (UINT)PSN_APPLY) {
 						iInit = TRUE;
 						ApplyGeneralSettings(hDlg);
 						RefreshContactListIcons();
@@ -387,56 +387,56 @@ BOOL CALLBACK DlgProcOptionsGeneral(HWND hDlg, UINT wMsg, WPARAM wParam, LPARAM 
 				case IDC_STD_USERLIST: {
                     switch(((LPNMHDR)lParam)->code) {
                     case NM_DBLCLK: {
-						if(LPNMLISTVIEW(lParam)->iSubItem == 2) {
-							idx = LPNMLISTVIEW(lParam)->iItem;
-		  					ptr = (pUinKey) getListViewParam(hLV,idx);
-							if (ptr) {
-								ptr->tmode++;
-								if( !bPGP && ptr->tmode==1 ) ptr->tmode++;
-								if( !bGPG && ptr->tmode==2 ) ptr->tmode++;
-								if( ptr->tmode>2 ) ptr->tmode=0;
-								setListViewMode(hLV,idx,ptr->tmode);
-								setListViewIcon(hLV,idx,ptr);
-								SendMessage(GetParent(hDlg), PSM_CHANGED, 0, 0);
-							}
-						}
-						if(LPNMLISTVIEW(lParam)->iSubItem == 3) {
-							idx = LPNMLISTVIEW(lParam)->iItem;
-		  					ptr = (pUinKey) getListViewParam(hLV,idx);
-							if (ptr) {
-								ptr->tstatus++; if(ptr->tstatus>2) ptr->tstatus=0;
-								setListViewStatus(hLV,idx,ptr->tstatus);
-								setListViewIcon(hLV,idx,ptr);
-								SendMessage(GetParent(hDlg), PSM_CHANGED, 0, 0);
-							}
-						}
-                    } break;
-                    case NM_RCLICK: {
-		  				idx = ListView_GetSelectionMark(hLV);
-		  				ptr = (pUinKey) getListViewParam(hLV,idx);
-						if (ptr) {
-							POINT p; GetCursorPos(&p);
-							HMENU hMenu = LoadMenu(g_hInst, MAKEINTRESOURCE((ptr->tmode)?IDM_CLIST1:IDM_CLIST0));
-							CallService(MS_LANGPACK_TRANSLATEMENU, (WPARAM)hMenu, 0);
-							CheckMenuItem(hMenu, ID_SIM_NATIVE+ptr->tmode, MF_CHECKED );
-							if( !bPGP ) EnableMenuItem(hMenu, ID_SIM_NATIVE+1, MF_GRAYED );
-							if( !bGPG ) EnableMenuItem(hMenu, ID_SIM_NATIVE+2, MF_GRAYED );
-							if( !ptr->tmode ) {
-								CheckMenuItem(hMenu, ID_DISABLED+ptr->tstatus, MF_CHECKED );
-							}
-							CheckMenuItem(hMenu, ID_ENCRYPTION, MF_BYCOMMAND );
-							TrackPopupMenu(GetSubMenu(hMenu, 0), TPM_LEFTALIGN | TPM_TOPALIGN, p.x, p.y, 0, hDlg, 0);
-							DestroyMenu(hMenu);
-						}
-					} break;
-                    case LVN_COLUMNCLICK: {
-                    	bChangeSortOrder = true;
-						ListView_Sort(hLV,(LPARAM)(LPNMLISTVIEW(lParam)->iSubItem+0x01));
-						bChangeSortOrder = false;
-					}
+				if(LPNMLISTVIEW(lParam)->iSubItem == 2) {
+					idx = LPNMLISTVIEW(lParam)->iItem;
+					ptr = (pUinKey) getListViewParam(hLV,idx);
+					if (ptr) {
+						ptr->tmode++;
+						if( !bPGP && ptr->tmode==1 ) ptr->tmode++;
+						if( !bGPG && ptr->tmode==2 ) ptr->tmode++;
+						if( ptr->tmode>2 ) ptr->tmode=0;
+						setListViewMode(hLV,idx,ptr->tmode);
+						setListViewIcon(hLV,idx,ptr);
+						SendMessage(GetParent(hDlg), PSM_CHANGED, 0, 0);
 					}
 				}
-				break;
+				if(LPNMLISTVIEW(lParam)->iSubItem == 3) {
+					idx = LPNMLISTVIEW(lParam)->iItem;
+					ptr = (pUinKey) getListViewParam(hLV,idx);
+					if (ptr) {
+						ptr->tstatus++; if(ptr->tstatus>2) ptr->tstatus=0;
+						setListViewStatus(hLV,idx,ptr->tstatus);
+						setListViewIcon(hLV,idx,ptr);
+						SendMessage(GetParent(hDlg), PSM_CHANGED, 0, 0);
+					}
+				}
+                    } break;
+                    case NM_RCLICK: {
+  				idx = ListView_GetSelectionMark(hLV);
+  				ptr = (pUinKey) getListViewParam(hLV,idx);
+				if (ptr) {
+					POINT p; GetCursorPos(&p);
+					HMENU hMenu = LoadMenu(g_hInst, MAKEINTRESOURCE((ptr->tmode)?IDM_CLIST1:IDM_CLIST0));
+					CallService(MS_LANGPACK_TRANSLATEMENU, (WPARAM)hMenu, 0);
+					CheckMenuItem(hMenu, ID_SIM_NATIVE+ptr->tmode, MF_CHECKED );
+					if( !bPGP ) EnableMenuItem(hMenu, ID_SIM_NATIVE+1, MF_GRAYED );
+					if( !bGPG ) EnableMenuItem(hMenu, ID_SIM_NATIVE+2, MF_GRAYED );
+					if( !ptr->tmode ) {
+						CheckMenuItem(hMenu, ID_DISABLED+ptr->tstatus, MF_CHECKED );
+					}
+					CheckMenuItem(hMenu, ID_ENCRYPTION, MF_BYCOMMAND );
+					TrackPopupMenu(GetSubMenu(hMenu, 0), TPM_LEFTALIGN | TPM_TOPALIGN, p.x, p.y, 0, hDlg, 0);
+					DestroyMenu(hMenu);
+				}
+			} break;
+                    case LVN_COLUMNCLICK: {
+		                        	bChangeSortOrder = true;
+						ListView_Sort(hLV,(LPARAM)(LPNMLISTVIEW(lParam)->iSubItem+0x01));
+						bChangeSortOrder = false;
+				}
+				}
+			}
+			break;
 		  }
 		} // WM_NOTIFY
 		break;
@@ -447,9 +447,11 @@ BOOL CALLBACK DlgProcOptionsGeneral(HWND hDlg, UINT wMsg, WPARAM wParam, LPARAM 
 
 BOOL CALLBACK DlgProcOptionsProto(HWND hDlg, UINT wMsg, WPARAM wParam, LPARAM lParam) {
 
-    static int iInit = TRUE;
+	static int iInit = TRUE;
+	char buf[32];
+	int idx;
 
-    HWND hLV = GetDlgItem(hDlg,IDC_PROTO);
+	HWND hLV = GetDlgItem(hDlg,IDC_PROTO);
 
 	switch (wMsg) {
 		case WM_INITDIALOG: {
@@ -481,6 +483,22 @@ BOOL CALLBACK DlgProcOptionsProto(HWND hDlg, UINT wMsg, WPARAM wParam, LPARAM lP
 		break;
 
 		case WM_COMMAND: {
+			if( HIWORD(wParam) == EN_CHANGE ) {
+				idx = ListView_GetSelectionMark(hLV);
+				if( idx == -1 ) break;
+				idx = (int) getListViewParam(hLV,idx);
+				switch(LOWORD(wParam)) {
+				case IDC_SPLITON:
+					GetDlgItemText(hDlg,IDC_SPLITON,buf,5);
+					proto[idx].tsplit_on = atoi(buf);
+				break;
+				case IDC_SPLITOFF:
+					GetDlgItemText(hDlg,IDC_SPLITOFF,buf,5);
+					proto[idx].tsplit_off = atoi(buf);
+				break;
+				}
+			}
+
 			if(!iInit)
 				SendMessage(GetParent(hDlg), PSM_CHANGED, 0, 0);
 		}
@@ -489,7 +507,7 @@ BOOL CALLBACK DlgProcOptionsProto(HWND hDlg, UINT wMsg, WPARAM wParam, LPARAM lP
 		case WM_NOTIFY: {
 			switch(((LPNMHDR)lParam)->idFrom) {
 				case 0: {
-                    if (((LPNMHDR)lParam)->code == (UINT)PSN_APPLY) {
+				     	if (((LPNMHDR)lParam)->code == (UINT)PSN_APPLY) {
 						iInit = TRUE;
 						ApplyProtoSettings(hDlg);
 						RefreshProtoDlg(hDlg);
@@ -503,7 +521,13 @@ BOOL CALLBACK DlgProcOptionsProto(HWND hDlg, UINT wMsg, WPARAM wParam, LPARAM lP
 				break;
 
 				case IDC_PROTO: {
-                    if (((LPNMHDR)lParam)->code == (UINT)NM_CLICK) {
+					if (((LPNMHDR)lParam)->code == (UINT)NM_CLICK) {
+						idx = (int) getListViewParam(hLV,LPNMLISTVIEW(lParam)->iItem);
+						if( idx == -1 ) break;
+						EnableWindow(GetDlgItem(hDlg,IDC_SPLITON), true);
+						EnableWindow(GetDlgItem(hDlg,IDC_SPLITOFF), true);
+						itoa(proto[idx].tsplit_on,buf,10);	SetDlgItemText(hDlg,IDC_SPLITON,buf);
+						itoa(proto[idx].tsplit_off,buf,10);	SetDlgItemText(hDlg,IDC_SPLITOFF,buf);
 						SendMessage(GetParent(hDlg), PSM_CHANGED, 0, 0);
 					}
 				}
@@ -852,7 +876,7 @@ BOOL CALLBACK DlgProcSetPSK(HWND hDlg,UINT uMsg,WPARAM wParam,LPARAM lParam) {
 		case IDOK: {
 			int len = GetDlgItemTextA(hDlg,IDC_EDIT1,buffer,PSKSIZE+1);
 			if(len<8) {
-				msgbox(hDlg,sim211,szModuleName,MB_OK|MB_ICONEXCLAMATION);
+				msgbox1(hDlg,sim211,szModuleName,MB_OK|MB_ICONEXCLAMATION);
 				return TRUE;
 			}
 			else {
@@ -933,7 +957,7 @@ void RefreshGeneralDlg(HWND hDlg, BOOL iInit) {
 	while (hContact) {
 
 		pUinKey ptr = getUinKey(hContact);
-		if ( ptr && isSecureProtocol(hContact) && !getMetaContact(hContact) && !isChatRoom(hContact)) {
+		if ( ptr && isSecureProtocol(hContact) /*&& !getMetaContact(hContact)*/ && !isChatRoom(hContact)) {
 
 			if( iInit ) {
 				ptr->tmode = ptr->mode;
@@ -969,19 +993,31 @@ void RefreshGeneralDlg(HWND hDlg, BOOL iInit) {
 
 void RefreshProtoDlg(HWND hDlg) {
 
+	int i;
+
 	HWND hLV = GetDlgItem(hDlg,IDC_PROTO);
 	ListView_DeleteAllItems(hLV);
 
 	LVITEM lvi = {0};
 	lvi.mask = LVIF_TEXT | LVIF_PARAM;
 
-	for(int i=0;i<proto_cnt;i++) {
+	for(i=0;i<proto_cnt;i++) {
 		lvi.iItem = i+1;
-		lvi.pszText = proto[i].uniqueName;
-		lvi.lParam = (LPARAM)proto[i].uniqueName;
+		lvi.pszText = proto[i].name;
+		lvi.lParam = (LPARAM)i;
 		int itemNum = LV_InsertItemA(hLV, &lvi);
 		ListView_SetCheckState(hLV,itemNum,proto[i].inspecting);
 	}
+
+	SetDlgItemText(hDlg,IDC_SPLITON,"0");
+	SetDlgItemText(hDlg,IDC_SPLITOFF,"0");
+	EnableWindow(GetDlgItem(hDlg,IDC_SPLITON), false);
+	EnableWindow(GetDlgItem(hDlg,IDC_SPLITOFF), false);
+
+	BYTE sha[32]; int len; exp->rsa_get_keyhash(MODE_RSA,NULL,NULL,(PBYTE)&sha,&len);
+	LPSTR txt = mir_strdup(to_hex(sha,len));
+	SetDlgItemText(hDlg, IDC_RSA_SHA, txt);
+	mir_free(txt);
 }
 
 
@@ -1002,7 +1038,7 @@ void RefreshPGPDlg(HWND hDlg, BOOL iInit) {
 	else {
 		SetDlgItemText(hDlg, IDC_PGP_SDK, Translate(sim219));
 	}
-    SetDlgItemText(hDlg, IDC_KEYRING_STATUS, !bUseKeyrings?Translate(sim225):((bPGP9)?Translate(sim220):(bPGPkeyrings?Translate(sim216):Translate(sim217))));
+	SetDlgItemText(hDlg, IDC_KEYRING_STATUS, !bUseKeyrings?Translate(sim225):((bPGP9)?Translate(sim220):(bPGPkeyrings?Translate(sim216):Translate(sim217))));
 
 	// Disable keyrings use
 	SendMessage(GetDlgItem(hDlg,IDC_NO_KEYRINGS),BM_SETCHECK,(bUseKeyrings)?BST_UNCHECKED:BST_CHECKED,0L);
@@ -1020,7 +1056,7 @@ void RefreshPGPDlg(HWND hDlg, BOOL iInit) {
 	while (hContact) {
 
 		pUinKey ptr = getUinKey(hContact);
-		if (ptr && ptr->mode==1 && isSecureProtocol(hContact) && !getMetaContact(hContact) && !isChatRoom(hContact)) {
+		if (ptr && ptr->mode==1 && isSecureProtocol(hContact) /*&& !getMetaContact(hContact)*/ && !isChatRoom(hContact)) {
 
 			LPSTR szKeyID = DBGetString(hContact,szModuleName,"pgp_abbr");
 
@@ -1080,7 +1116,7 @@ void RefreshGPGDlg(HWND hDlg, BOOL iInit) {
 	while (hContact) {
 
 		pUinKey ptr = getUinKey(hContact);
-		if (ptr && ptr->mode==2 && isSecureProtocol(hContact) && !getMetaContact(hContact) && !isChatRoom(hContact)) {
+		if (ptr && ptr->mode==2 && isSecureProtocol(hContact) /*&& !getMetaContact(hContact)*/ && !isChatRoom(hContact)) {
 
 			if( iInit ) {
 				ptr->tgpgMode = ptr->gpgMode;
@@ -1143,7 +1179,7 @@ void ResetGeneralDlg(HWND hDlg) {
 
 	while (hContact) {
 
-		if (isSecureProtocol(hContact) && !getMetaContact(hContact) && !isChatRoom(hContact)) {
+		if (isSecureProtocol(hContact) /*&& !getMetaContact(hContact)*/ && !isChatRoom(hContact)) {
 
 			pUinKey ptr = getUinKey(hContact);
 			if(!ptr) continue;
@@ -1238,7 +1274,7 @@ void ApplyGeneralSettings(HWND hDlg) {
 		bGPG = i; tmp++;
 		DBWriteContactSettingByte(0, szModuleName, "gpg", bGPG);
 	}
-	if(tmp) msgbox(hDlg, sim224, szModuleName, MB_OK|MB_ICONINFORMATION);
+	if(tmp) msgbox1(hDlg, sim224, szModuleName, MB_OK|MB_ICONINFORMATION);
 	}
 
 	HWND hLV = GetDlgItem(hDlg,IDC_STD_USERLIST);
@@ -1271,21 +1307,22 @@ void ApplyGeneralSettings(HWND hDlg) {
 
 void ApplyProtoSettings(HWND hDlg) {
 
-	char szNames[512] = {0};
+	LPSTR szNames = (LPSTR) alloca(2048); *szNames = '\0';
 
 	HWND hLV = GetDlgItem(hDlg,IDC_PROTO);
 	int i = ListView_GetNextItem(hLV,(UINT)-1,LVNI_ALL);
 	while(i!=-1) {
-		if(ListView_GetCheckState(hLV,i)) {
-			char *proto = getListViewProto(hLV,i);
-			strcat(szNames,proto);
-			strcat(szNames,";");
-		}
+		int j = getListViewProto(hLV,i);
+		proto[j].inspecting = ListView_GetCheckState(hLV,i);
+		char tmp[128];
+		sprintf(tmp,"%s:%d:%d:%d;",proto[j].name,proto[j].inspecting,proto[j].tsplit_on,proto[j].tsplit_off);
+		strcat(szNames,tmp);
+		proto[j].split_on = proto[j].tsplit_on;
+		proto[j].split_off = proto[j].tsplit_off;
 		i = ListView_GetNextItem(hLV,i,LVNI_ALL);
 	}
 
-    DBWriteContactSettingString(0,szModuleName,"protos",szNames);
-	loadSupportedProtocols();
+	DBWriteContactSettingString(0,szModuleName,"protos",szNames);
 }
 
 

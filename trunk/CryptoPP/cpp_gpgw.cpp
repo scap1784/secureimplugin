@@ -194,18 +194,18 @@ LPSTR __cdecl gpg_encrypt(pCNTX ptr, LPCSTR szPlainMsg)
 
 	DWORD dwEncMsgLen = strlen(szEncMsg);
 
-    ptr->tmp = (LPSTR) mir_alloc(dwEncMsgLen+1);
-    memcpy(ptr->tmp, szEncMsg, dwEncMsgLen+1);
-    LocalFree((LPVOID)szEncMsg);
+	ptr->tmp = (LPSTR) mir_alloc(dwEncMsgLen+1);
+	memcpy(ptr->tmp, szEncMsg, dwEncMsgLen+1);
+	LocalFree((LPVOID)szEncMsg);
 
-    return ptr->tmp;
+	return ptr->tmp;
 }
 
 
 LPSTR __cdecl gpg_decrypt(pCNTX ptr, LPCSTR szEncMsg)
 {
-  	ptr->error = ERROR_NONE;
-	SAFE_FREE(ptr->tmp);
+    ptr->error = ERROR_NONE;
+    SAFE_FREE(ptr->tmp);
 
     LPSTR szPlainMsg = p_gpg_decrypt(szEncMsg);
 /*	if(!szPlainMsg) {
@@ -225,82 +225,44 @@ LPSTR __cdecl gpg_decrypt(pCNTX ptr, LPCSTR szEncMsg)
 }
 
 
-LPSTR __cdecl gpg_encodeA(int context, LPCSTR szPlainMsg)
+LPSTR __cdecl gpg_encode(int context, LPCSTR szPlainMsg)
 {
-    pCNTX ptr = get_context_on_id(context);
-    if(!ptr) return NULL;
-	cpp_alloc_pdata(ptr); pGPGDATA p = (pGPGDATA) ptr->pdata;
-    if(!p->gpgKeyID) { ptr->error = ERROR_NO_GPG_KEY; return NULL; }
+	pCNTX ptr = get_context_on_id(context); if(!ptr) return NULL;
+	pGPGDATA p = (pGPGDATA) cpp_alloc_pdata(ptr);
+	if(!p->gpgKeyID) { ptr->error = ERROR_NO_GPG_KEY; return NULL; }
 
-	// ansi message: convert to unicode->utf-8 and encrypt.
-	int slen = strlen(szPlainMsg)+1;
+	// utf8 message: encrypt.
 	LPSTR szUtfMsg;
 	if( ptr->mode & MODE_GPG_ANSI ) {
-		szUtfMsg = mir_strdup(szPlainMsg);
+		LPWSTR wszMsg = utf8decode(szPlainMsg);
+		int wlen = wcslen(wszMsg)+1;
+		szUtfMsg = (LPSTR) alloca(wlen);
+		WideCharToMultiByte(CP_ACP, 0, wszMsg, -1, szUtfMsg, wlen, 0, 0);
 	}
 	else {
-		LPWSTR wstring = (LPWSTR) alloca(slen*sizeof(WCHAR));
-		MultiByteToWideChar(CP_ACP, 0, szPlainMsg, -1, wstring, slen*sizeof(WCHAR));
-		szUtfMsg = utf8encode(wstring);
+		szUtfMsg = (LPSTR)szPlainMsg;
 	}
-	// encrypt
-	LPSTR szNewMsg = gpg_encrypt(ptr, szUtfMsg);
-	mir_free(szUtfMsg);
-
-	return szNewMsg;
-}
-
-
-LPSTR __cdecl gpg_encodeW(int context, LPCWSTR szPlainMsg)
-{
-    pCNTX ptr = get_context_on_id(context);
-    if(!ptr) return NULL;
-	cpp_alloc_pdata(ptr); pGPGDATA p = (pGPGDATA) ptr->pdata;
-    if(!p->gpgKeyID) { ptr->error = ERROR_NO_GPG_KEY; return NULL; }
-
-	// unicode message: convert to utf-8 and encrypt.
-	LPSTR szUtfMsg;
-	if( ptr->mode & MODE_GPG_ANSI ) {
-		int wlen = wcslen(szPlainMsg)+1;
-		szUtfMsg = (LPSTR) mir_alloc(wlen);
-		WideCharToMultiByte(CP_ACP, 0, szPlainMsg, -1, szUtfMsg, wlen, 0, 0);
-	}
-	else {
-		szUtfMsg = utf8encode(szPlainMsg);
-	}
-	LPSTR szNewMsg = gpg_encrypt(ptr, szUtfMsg);
-	mir_free(szUtfMsg);
-
-	return szNewMsg;
+	return gpg_encrypt(ptr, szUtfMsg);
 }
 
 
 LPSTR __cdecl gpg_decode(int context, LPCSTR szEncMsg)
 {
-    pCNTX ptr = get_context_on_id(context);
-    if(!ptr) return NULL;
+	pCNTX ptr = get_context_on_id(context);
+	if(!ptr) return NULL;
 
 	LPSTR szNewMsg = NULL;
 	LPSTR szOldMsg = gpg_decrypt(ptr, szEncMsg);
 
 	if(szOldMsg) {
-		if(	is_7bit_string(szOldMsg) || !is_utf8_string(szOldMsg) ) {
-			// not UTF8 message
+		if( !is_7bit_string(szOldMsg) && !is_utf8_string(szOldMsg) ) {
 			int slen = strlen(szOldMsg)+1;
-			szNewMsg = (LPSTR) mir_alloc(slen*(sizeof(WCHAR)+1));
-			strcpy(szNewMsg,szOldMsg);
-			WCHAR* wstring = (LPWSTR) alloca(slen*sizeof(WCHAR));
-			MultiByteToWideChar(CP_ACP, 0, szOldMsg, -1, wstring, slen*sizeof(WCHAR));
-			memcpy(szNewMsg+slen,wstring,slen*sizeof(WCHAR));
+			LPWSTR wszMsg = (LPWSTR) alloca(slen*sizeof(WCHAR));
+			MultiByteToWideChar(CP_ACP, 0, szOldMsg, -1, wszMsg, slen*sizeof(WCHAR));
+			szNewMsg = m_strdup(utf8encode(wszMsg));
 		}
 		else {
-			// utf8 message: convert to unicode -> ansii
-			WCHAR *wstring = utf8decode(szOldMsg);
-			int wlen = wcslen(wstring)+1;
-			szNewMsg = (LPSTR) mir_alloc(wlen*(sizeof(WCHAR)+1));
-			WideCharToMultiByte(CP_ACP, 0, wstring, -1, szNewMsg, wlen, 0, 0);
-			memcpy(szNewMsg+wlen, wstring, wlen*sizeof(WCHAR));
-			mir_free(wstring);
+			szNewMsg = m_strdup(szOldMsg);
 		}
 	}
 	SAFE_FREE(ptr->tmp);
@@ -329,9 +291,8 @@ int __cdecl gpg_set_key(int context, LPCSTR RemoteKey)
 
 int __cdecl gpg_set_keyid(int context, LPCSTR RemoteKeyID)
 {
-    pCNTX ptr = get_context_on_id(context);
-    if(!ptr) return 0;
-	cpp_alloc_pdata(ptr); pGPGDATA p = (pGPGDATA) ptr->pdata;
+	pCNTX ptr = get_context_on_id(context); if(!ptr) return 0;
+	pGPGDATA p = (pGPGDATA) cpp_alloc_pdata(ptr);
    	ptr->error = ERROR_NONE;
 
    	SAFE_FREE(p->gpgKeyID);

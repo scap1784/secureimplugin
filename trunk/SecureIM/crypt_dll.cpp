@@ -169,7 +169,7 @@ LPSTR decodeMsg(pUinKey ptr, LPARAM lParam, LPSTR szEncMsg) {
 			break;
 		default: {
 			ptr->decoded=true;
-    		szNewMsg = mir_strdup(Translate(sim101));
+    			szNewMsg = mir_strdup(Translate(sim101));
     		}
 			break;
 		}

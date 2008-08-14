@@ -214,18 +214,18 @@ LPSTR __cdecl pgp_encrypt(pCNTX ptr, LPCSTR szPlainMsg)
 
 LPSTR __cdecl pgp_decrypt(pCNTX ptr, LPCSTR szEncMsg)
 {
-  	ptr->error = ERROR_NONE;
-	SAFE_FREE(ptr->tmp);
+    ptr->error = ERROR_NONE;
+    SAFE_FREE(ptr->tmp);
 
     LPSTR szPlainMsg = p_pgp_decrypt_keydb(szEncMsg);
-	if(!szPlainMsg) {
-	    ptr = get_context_on_id(-1); // find private pgp keys
+    if(!szPlainMsg) {
+	ptr = get_context_on_id(-1); // find private pgp keys
     	if(ptr) {
-			pPGPDATA p = (pPGPDATA) ptr->pdata;
-    		if(p->pgpKey)
-			szPlainMsg = p_pgp_decrypt_key(szEncMsg,(LPCSTR)p->pgpKey);
-		}
-		if(!szPlainMsg) return NULL;
+	    pPGPDATA p = (pPGPDATA) ptr->pdata;
+    	    if(p->pgpKey)
+		szPlainMsg = p_pgp_decrypt_key(szEncMsg,(LPCSTR)p->pgpKey);
+	}
+	if(!szPlainMsg) return NULL;
     }
 
     DWORD dwPlainMsgLen = strlen(szPlainMsg);
@@ -238,70 +238,31 @@ LPSTR __cdecl pgp_decrypt(pCNTX ptr, LPCSTR szEncMsg)
 }
 
 
-LPSTR __cdecl pgp_encodeA(int context, LPCSTR szPlainMsg)
+LPSTR __cdecl pgp_encode(int context, LPCSTR szPlainMsg)
 {
-	pCNTX ptr = get_context_on_id(context);
-	if(!ptr) return NULL;
-	cpp_alloc_pdata(ptr); pPGPDATA p = (pPGPDATA) ptr->pdata;
+	pCNTX ptr = get_context_on_id(context); if(!ptr) return NULL;
+	pPGPDATA p = (pPGPDATA) cpp_alloc_pdata(ptr);
 	if(!p->pgpKeyID && !p->pgpKey) { ptr->error = ERROR_NO_PGP_KEY; return NULL; }
 
-	// ansi message: convert to unicode->utf-8 and encrypt.
-	int slen = strlen(szPlainMsg)+1;
-	LPWSTR wstring = (LPWSTR) alloca(slen*sizeof(WCHAR));
-	MultiByteToWideChar(CP_ACP, 0, szPlainMsg, -1, wstring, slen*sizeof(WCHAR));
-	LPSTR szUtfMsg = utf8encode(wstring);
-	// encrypt
-	LPSTR szNewMsg = pgp_encrypt(ptr, szUtfMsg);
-	mir_free(szUtfMsg);
-
-	return szNewMsg;
-}
-
-
-LPSTR __cdecl pgp_encodeW(int context, LPCWSTR szPlainMsg)
-{
-    pCNTX ptr = get_context_on_id(context);
-    if(!ptr) return NULL;
-	cpp_alloc_pdata(ptr); pPGPDATA p = (pPGPDATA) ptr->pdata;
-    if(!p->pgpKeyID && !p->pgpKey) { ptr->error = ERROR_NO_PGP_KEY; return NULL; }
-
-	// unicode message: convert to utf-8 and encrypt.
-	LPSTR szUtfMsg = utf8encode(szPlainMsg);
-	LPSTR szNewMsg = pgp_encrypt(ptr, szUtfMsg);
-	mir_free(szUtfMsg);
-
-	return szNewMsg;
+	// utf8 message: encrypt.
+	return pgp_encrypt(ptr, szPlainMsg);
 }
 
 
 LPSTR __cdecl pgp_decode(int context, LPCSTR szEncMsg)
 {
-    pCNTX ptr = get_context_on_id(context);
-    if(!ptr) return NULL;
+	pCNTX ptr = get_context_on_id(context);
+	if(!ptr) return NULL;
 
-	LPSTR szNewMsg = NULL;
-	LPSTR szOldMsg = pgp_decrypt(ptr, szEncMsg);
-
-	if(szOldMsg) {
-		// utf8 message: convert to unicode -> ansii
-		WCHAR *wstring = utf8decode(szOldMsg);
-		int wlen = wcslen(wstring)+1;
-		szNewMsg = (LPSTR) mir_alloc(wlen*(sizeof(WCHAR)+1));
-		WideCharToMultiByte(CP_ACP, 0, wstring, -1, szNewMsg, wlen, 0, 0);
-		memcpy(szNewMsg+wlen, wstring, wlen*sizeof(WCHAR));
-		mir_free(wstring);
-	}
-	SAFE_FREE(ptr->tmp);
-	ptr->tmp = szNewMsg;
-	return szNewMsg;
+	// utf8 message: decrypt.
+	return pgp_decrypt(ptr, szEncMsg);
 }
 
 
 int __cdecl pgp_set_key(int context, LPCSTR RemoteKey)
 {
-    pCNTX ptr = get_context_on_id(context);
-    if(!ptr) return 0;
-	cpp_alloc_pdata(ptr); pPGPDATA p = (pPGPDATA) ptr->pdata;
+	pCNTX ptr = get_context_on_id(context); if(!ptr) return 0;
+	pPGPDATA p = (pPGPDATA) cpp_alloc_pdata(ptr);
    	ptr->error = ERROR_NONE;
 
 //   	if(!p_pgp_check_key(RemoteKey)) return 0;
@@ -316,9 +277,8 @@ int __cdecl pgp_set_key(int context, LPCSTR RemoteKey)
 
 int __cdecl pgp_set_keyid(int context, PVOID RemoteKeyID)
 {
-    pCNTX ptr = get_context_on_id(context);
-    if(!ptr) return 0;
-	cpp_alloc_pdata(ptr); pPGPDATA p = (pPGPDATA) ptr->pdata;
+    	pCNTX ptr = get_context_on_id(context); if(!ptr) return 0;
+	pPGPDATA p = (pPGPDATA) cpp_alloc_pdata(ptr);
    	ptr->error = ERROR_NONE;
 
    	SAFE_FREE(p->pgpKeyID);

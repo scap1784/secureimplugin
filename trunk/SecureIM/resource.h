@@ -2,7 +2,7 @@
 // Microsoft Visual C++ generated include file.
 // Used by resource.rc
 //
-#define ID_FIRSTICON					1
+#define ID_FIRSTICON			1
 #define IDI_GREENKEY                    1
 #define IDI_YELLOWKEY                   2
 #define IDI_REDKEY                      3
@@ -10,12 +10,12 @@
 #define IDI_GREYKEY                     5
 #define IDI_COLORKEY                    6
 #define IDI_LOCK                        7
-#define IDI_DISKEY						8
-#define IDI_ENAKEY						9
-#define IDI_TRYKEY						10
-#define IDI_PGPKEY						11
-#define IDI_GPGKEY						12
-#define ID_LASTICON						12
+#define IDI_DISKEY			8
+#define IDI_ENAKEY			9
+#define IDI_TRYKEY			10
+#define IDI_PGPKEY			11
+#define IDI_GPGKEY			12
+#define ID_LASTICON			12
 
 #define ID_DISABLED                     111
 #define ID_ENABLED                      112
@@ -29,7 +29,7 @@
 #define IDM_CLIST0                    	120
 #define IDM_CLIST1                    	121
 
-#define ID_SIM_NATIVE					130
+#define ID_SIM_NATIVE			130
 #define ID_SIM_PGP                      131
 #define ID_SIM_GPG                      132
 #define ID_SIM_RSAAES                   133
@@ -42,7 +42,7 @@
 #define IDD_TAB_GPG                     505
 #define IDD_TAB_MESSAGES                506
 #define IDD_POPUP                       507
-#define IDD_PSK							508
+#define IDD_PSK				508
 
 #define IDC_STD_USERLIST                1001
 #define IDC_TIMEOUT                     1002
@@ -91,6 +91,9 @@
 #define IDC_OKT                         1045
 #define IDC_AIP                         1046
 #define IDC_ADVICON                     1047
+#define IDC_SPLITON                     1048
+#define IDC_SPLITOFF                    1049
+#define IDC_RSA_SHA                     1050
 
 #define IDC_NO_PGP                      1100
 #define IDC_PGP                         1101
