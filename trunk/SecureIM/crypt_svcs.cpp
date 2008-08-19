@@ -337,50 +337,7 @@ int onRecvMsg(WPARAM wParam, LPARAM lParam) {
 		SAFE_FREE(ptr->msgSplitted);
 	}
 	//
-	if(ssig==SiG_PART) {
-		int msg_id,part_num,part_all;
-		sscanf(szEncMsg,"%4X%2X%2X",&msg_id,&part_num,&part_all);
-		//
-		pPM ppm = NULL, pm = ptr->msgPart;
-		if( !ptr->msgPart ) {
-			pm = ptr->msgPart = new partitionMessage;
-			pm->id = msg_id;
-			pm->message = new LPSTR[part_all];
-		}
-		else
-			while(pm) {
-				if( pm->id == msg_id ) break;
-				ppm = pm; pm = pm->nextMessage;
-			}
-		if(!pm) { // nothing to found
-			pm = ppm->nextMessage = new partitionMessage;
-			pm->id = msg_id;
-			pm->message = new LPSTR[part_all];
-		}
-		pm->message[part_num] = new char[strlen(szEncMsg)];
-		strcpy(pm->message[part_num],szEncMsg+8);
-		int len=0,i;
-		for( i=0; i<part_all; i++ ){
-			if(pm->message[i]==NULL) break;
-			len+=strlen(pm->message[i]);
-		}
-		if( i==part_all ) { // combine message
-			LPSTR tmp = (LPSTR)mir_alloc(len+1);
-			for( i=0; i<part_all; i++ ){
-				strcat(tmp,pm->message[i]);
-				delete pm->message[i];
-			}
-			szEncMsg = ppre->szMessage = tmp;
-			ssig = getSecureSig(tmp,&szEncMsg);
-			if(ppm) ppm->nextMessage = pm->nextMessage;
-			else 	ptr->msgPart = pm->nextMessage;
-			delete pm;
-		}
-		else
-			return 1;
-	}
-	//
-	if(ssig==SiG_SECP) {
+	if(ssig==SiG_SECP || ssig==SiG_PART) {
 		LPSTR msg = combineMessage(ptr,szEncMsg);
 		if( !msg ) return 1;
 		szEncMsg = ppre->szMessage = msg;
