@@ -324,7 +324,7 @@ int onRecvMsg(WPARAM wParam, LPARAM lParam) {
 		return 1;
 	}
 
-	// combine splitted message
+	// combine message splitted by protocol (no tags)
 	if(ssig==SiG_NONE && ptr->msgSplitted) {
 		LPSTR tmp = (LPSTR) mir_alloc(strlen(ptr->msgSplitted)+strlen(szEncMsg)+1);
 		strcpy(tmp,ptr->msgSplitted);
@@ -336,7 +336,8 @@ int onRecvMsg(WPARAM wParam, LPARAM lParam) {
 	else {
 		SAFE_FREE(ptr->msgSplitted);
 	}
-	//
+
+	// combine message splitted by secureim (with tags)
 	if(ssig==SiG_SECP || ssig==SiG_PART) {
 		LPSTR msg = combineMessage(ptr,szEncMsg);
 		if( !msg ) return 1;
