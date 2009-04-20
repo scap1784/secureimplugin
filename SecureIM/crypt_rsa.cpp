@@ -43,6 +43,7 @@ int __cdecl rsa_check_pub(int context, PBYTE pub, int pubLen, PBYTE sig, int sig
             cws.value.pbVal = pub;
             cws.value.cpbVal = pubLen;
             CallService(MS_DB_CONTACT_WRITESETTING, (WPARAM)ptr->hContact, (LPARAM)&cws);
+            ptr->keyLoaded = true;
 	}
 	mir_free(sha);
 	return v;
@@ -51,18 +52,23 @@ int __cdecl rsa_check_pub(int context, PBYTE pub, int pubLen, PBYTE sig, int sig
 
 void __cdecl rsa_notify(int context, int state) {
 	pUinKey ptr = getUinCtx(context); if(!ptr) return;
+	LPCSTR msg=NULL;
 	switch( state ) {
 	case 1: {
 		showPopUpEC(ptr->hContact);
 		ShowStatusIconNotify(ptr->hContact);
 		return;
-	} break;
+	}
 	case -1: // сессия разорвана по ошибке, неверный тип сообщения
+		msg=sim501; break;
 	case -2: // сессия разорвана по ошибке другой стороной
+		msg=sim502; break;
 	case -5: // ошибка декодирования AES сообщения
+		msg=sim505; break;
 	case -6: // ошибка декодирования RSA сообщения
+		msg=sim506; break;
 	case -7: // таймаут установки соединения (10 секунд)
-	break;
+		msg=sim507; break;
 	case -0x10: // сессия разорвана по ошибке
 	case -0x21:
 	case -0x22:
@@ -73,18 +79,24 @@ void __cdecl rsa_notify(int context, int state) {
 	case -0x34:
 	case -0x40:
 	case -0x50:
-	case -0x60:
-	return;
+	case -0x60: {
+		char buf[1024];
+		sprintf(buf,sim510,-state);
+		showPopUpDCmsg(ptr->hContact,buf);
+		ShowStatusIconNotify(ptr->hContact);
+        	return;
+        }
 	case -3: // соединение разорвано вручную
 	case -4: { // соединение разорвано вручную другой стороной
 		showPopUpDC(ptr->hContact);
 		ShowStatusIconNotify(ptr->hContact);
 		return;
-	} break;
 	}
-	char buf[128];
-	sprintf(buf,"CryptoPP state: %d",state);
-	msgbox0(0,buf,szModuleName,MB_OK);
+	default:
+		return;
+	}
+	showPopUpDCmsg(ptr->hContact,msg);
+	ShowStatusIconNotify(ptr->hContact);
 }
 
 

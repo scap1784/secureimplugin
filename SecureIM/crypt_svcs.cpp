@@ -236,7 +236,7 @@ LPSTR szUnrtfMsg = NULL;
 
 
 // RecvMsg handler
-int onRecvMsg(WPARAM wParam, LPARAM lParam) {
+extern "C" long onRecvMsg(WPARAM wParam, LPARAM lParam) {
 
 	CCSDATA *pccsd = (CCSDATA *)lParam;
 	PROTORECVEVENT *ppre = (PROTORECVEVENT *)pccsd->lParam;
@@ -670,7 +670,7 @@ int onRecvMsg(WPARAM wParam, LPARAM lParam) {
 
 
 // SendMsgW handler
-int onSendMsgW(WPARAM wParam, LPARAM lParam) {
+extern "C" long onSendMsgW(WPARAM wParam, LPARAM lParam) {
 	if(!lParam) return 0;
 
 	CCSDATA *ccs = (CCSDATA *) lParam;
@@ -682,7 +682,7 @@ int onSendMsgW(WPARAM wParam, LPARAM lParam) {
 
 
 // SendMsg handler
-int onSendMsg(WPARAM wParam, LPARAM lParam) {
+extern "C" long onSendMsg(WPARAM wParam, LPARAM lParam) {
 
 	CCSDATA *pccsd = (CCSDATA *)lParam;
 	pUinKey ptr = getUinKey(pccsd->hContact);
@@ -976,7 +976,7 @@ int onSendMsg(WPARAM wParam, LPARAM lParam) {
 
 int file_idx = 0;
 
-int onSendFile(WPARAM wParam, LPARAM lParam) {
+extern "C" long onSendFile(WPARAM wParam, LPARAM lParam) {
 
 	CCSDATA *pccsd=(CCSDATA*)lParam;
 
@@ -1179,6 +1179,8 @@ static LPCSTR states[] = {sim303,sim304,sim305};
 int onRebuildContactMenu(WPARAM wParam,LPARAM lParam) {
 
 	HANDLE hContact = (HANDLE)wParam;
+	BOOL bMC = isProtoMetaContacts(hContact);
+	if( bMC ) hContact = getMostOnline(hContact); // возьмем тот, через который пойдет сообщение
 	pUinKey ptr = getUinKey(hContact);
 	UINT i;
 
@@ -1228,7 +1230,7 @@ int onRebuildContactMenu(WPARAM wParam,LPARAM lParam) {
 			CallService(MS_CLIST_MODIFYMENUITEM,(WPARAM)g_hMenu[1],(LPARAM)&mi);
 		}
 		// set status menu
-		if(bSCM) {
+		if(bSCM && !bMC) {
 			mi.flags = CMIM_FLAGS;
 			for(i=2;i<=5;i++) {
 				if(g_hMenu[i])

@@ -18,7 +18,7 @@ int iBmpDepth;
 BOOL bCoreUnicode = false, bMetaContacts = false, bPopupExists = false, bPopupUnicode = false;
 BOOL bPGPloaded = false, bPGPkeyrings = false, bUseKeyrings = false, bPGPprivkey = false;
 BOOL bGPGloaded = false, bGPGkeyrings = false, bSavePass = false;
-BOOL bSFT, bSOM, bASI, bMCD, bSCM, bDGP, bAIP;
+BOOL bSFT, bSOM, bASI, bMCD, bSCM, bDGP, bAIP, bNOL;
 BYTE bADV, bPGP, bGPG;
 DWORD iCoreVersion = 0;
 CRITICAL_SECTION localQueueMutex;
@@ -50,7 +50,7 @@ PLUGININFOEX pluginInfoEx = {
 };
 
 
-char *DBGetString(HANDLE hContact,const char *szModule,const char *szSetting) {
+char *simDBGetString(HANDLE hContact,const char *szModule,const char *szSetting) {
 	char *val=NULL;
 	DBVARIANT dbv;
 	dbv.type = DBVT_ASCIIZ;
@@ -62,7 +62,7 @@ char *DBGetString(HANDLE hContact,const char *szModule,const char *szSetting) {
 }
 
 
-char *DBGetStringDecode(HANDLE hContact,const char *szModule,const char *szSetting) {
+char *simDBGetStringDecode(HANDLE hContact,const char *szModule,const char *szSetting) {
 	char *val = DBGetString(hContact,szModule,szSetting);
 	if(!val) return NULL;
 	int len = strlen(val)+64;
@@ -73,7 +73,7 @@ char *DBGetStringDecode(HANDLE hContact,const char *szModule,const char *szSetti
 }
 
 
-int DBWriteStringEncode(HANDLE hContact,const char *szModule,const char *szSetting,const char *val) {
+int simDBWriteStringEncode(HANDLE hContact,const char *szModule,const char *szSetting,const char *val) {
 	int len = strlen(val)+64;
 	char *buf = (LPSTR)alloca(len);
 	strcpy(buf,val);
@@ -117,6 +117,7 @@ void GetFlags() {
     bDGP = DBGetContactSettingByte(0,szModuleName,"dgp",0);
     bAIP = DBGetContactSettingByte(0,szModuleName,"aip",0);
     bADV = DBGetContactSettingByte(0,szModuleName,"adv",0);
+    bNOL = DBGetContactSettingByte(0,szModuleName,"nol",0);
 }
 
 
@@ -129,6 +130,7 @@ void SetFlags() {
     DBWriteContactSettingByte(0,szModuleName,"dgp",bDGP);
     DBWriteContactSettingByte(0,szModuleName,"aip",bAIP);
     DBWriteContactSettingByte(0,szModuleName,"adv",bADV);
+    DBWriteContactSettingByte(0,szModuleName,"nol",bNOL);
 }
 
 

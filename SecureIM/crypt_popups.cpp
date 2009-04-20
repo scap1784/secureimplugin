@@ -114,6 +114,9 @@ void showPopUp(LPCSTR lpzText,HANDLE hContact,HICON hIcon, UINT type) {
 }
 
 
+void showPopUpDCmsg(HANDLE hContact,LPCSTR msg) {
+	showPopUp(msg,hContact,g_hPOP[POP_SECDIS],1);
+}
 void showPopUpDC(HANDLE hContact) {
 	int indic=DBGetContactSettingByte(0, szModuleName, "dc",1);
 	if (indic==1) showPopUp(sim006,hContact,g_hPOP[POP_SECDIS],1);

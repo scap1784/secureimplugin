@@ -2,7 +2,6 @@
 
 ///////////////////////////////////////////////////////////////////////////
 
-//#define _DEBUG
 #define RAND_SIZE 32
 
 string tlv(int,const string&);
@@ -168,7 +167,7 @@ int __cdecl rsa_set_pubkey(int context, PBYTE pubKey, int pubKeyLen) {
 	pCNTX ptr = get_context_on_id(context);	if(!ptr) return 0;
 	pRSADATA p = (pRSADATA) cpp_alloc_pdata(ptr);
 
-#ifdef _DEBUG
+#if defined(_DEBUG) || defined(NETLIB_LOG)
 	Sent_NetLog("rsa_set_pubkey: '%s'", pubKey);
 #endif
 	if( pubKey && pubKeyLen ) {
@@ -186,7 +185,7 @@ int __cdecl rsa_connect(int context) {
 	pRSADATA p = (pRSADATA) cpp_alloc_pdata(ptr); if(p->state) return p->state;
 	pRSAPRIV r = (pRSAPRIV) (get_context_on_id((ptr->mode&MODE_RSA_4096)?-3:-2))->pdata;
 
-#ifdef _DEBUG
+#if defined(_DEBUG) || defined(NETLIB_LOG)
 	Sent_NetLog("rsa_connect: '%s' '%s'", r->pub_s.c_str(), p->pub_s.c_str());
 #endif
         if(ptr->mode&MODE_RSA_ONLY) {
@@ -208,7 +207,7 @@ int __cdecl rsa_disconnect(int context) {
 	pCNTX ptr = get_context_on_id(context); if(!ptr) return 0;
 	pRSADATA p = (pRSADATA) cpp_alloc_pdata(ptr); if(!p->state) return 1;
 
-#ifdef _DEBUG
+#if defined(_DEBUG) || defined(NETLIB_LOG)
 	Sent_NetLog("rsa_disconnect: '%s'", p->pub_s.c_str());
 #endif
 	PBYTE buffer=(PBYTE) alloca(RAND_SIZE);
@@ -240,8 +239,8 @@ LPSTR __cdecl rsa_recv(int context, LPCSTR msg) {
 	int len = strlen(msg); PBYTE buf = (PBYTE)base64decode(msg,&len);
 	string data; int type; un_tlv(buf,len,type,data);
 
-#ifdef _DEBUG
-	Sent_NetLog("rsa_recv(%02x): '%s'", type, data.c_str());
+#if defined(_DEBUG) || defined(NETLIB_LOG)
+	Sent_NetLog("rsa_recv(%02x): [%d] '%s'", type, p->state, data.c_str());
 #endif
         if( type>0x10 && type<0xE0 ) 
 	    if( p->state==0 || p->state!=(type>>4) ) {
@@ -268,26 +267,26 @@ LPSTR __cdecl rsa_recv(int context, LPCSTR msg) {
 		un_tlv(un_tlv(un_tlv(data,t[0],features),t[1],sha1),t[2],sha2);
 		BOOL lr = (p->pub_s==sha1); BOOL ll = (r->pub_s==sha2);
 		switch( (lr<<4)|ll ){
-		case 0x11: {
+		case 0x11: { // оба паблика совпали
 			inject_msg(context,0x21,gen_aes_key_iv(ptr->mode,p,r));
 			p->state=5;
 		} break;
-		case 0x10: {
+		case 0x10: { // совпал удаленный паблик
 			inject_msg(context,0x22,tlv(0,features)+tlv(1,r->pub_k)+tlv(2,r->pub_s));
 			p->state=3;
 		} break;
-		case 0x01: {
+		case 0x01: { // совпал локальный паблик
 			inject_msg(context,0x23,tlv(0,features));
 			p->state=3;
 		} break;
-		case 0x00: {
+		case 0x00: { // не совпали оба паблика
 			inject_msg(context,0x24,tlv(0,features)+tlv(1,r->pub_k)+tlv(2,r->pub_s));
 			p->state=3;
 		} break;
 		}
 	} break;
 
-	case 0x22:
+	case 0x22: // получили удаленный паблик, отправляем уже криптоключ
 	{
 		int features; string pub;
 		un_tlv(un_tlv(data,t[0],features),t[1],pub);
@@ -298,11 +297,15 @@ LPSTR __cdecl rsa_recv(int context, LPCSTR msg) {
 			return 0;
 		}
 		init_pub(p,pub);
+		if( p->state==0 ) { // timeout
+			rsa_connect(context);
+			return 0;
+		}
 		inject_msg(context,0x32,gen_aes_key_iv(ptr->mode,p,r));
 		p->state=5;
 	} break;
 
-	case 0x23:
+	case 0x23: // отправляем локальный паблик
 	{
 		int features;
 		un_tlv(data,t[0],features);
@@ -310,7 +313,7 @@ LPSTR __cdecl rsa_recv(int context, LPCSTR msg) {
 		p->state=4;
 	} break;
 
-	case 0x24:
+	case 0x24: // получили удаленный паблик, отправим локальный паблик
 	{
 		int features; string pub;
 		un_tlv(un_tlv(data,t[0],features),t[1],pub);
@@ -321,11 +324,15 @@ LPSTR __cdecl rsa_recv(int context, LPCSTR msg) {
 			return 0;
 		}
 		init_pub(p,pub);
+		if( p->state==0 ) { // timeout
+			rsa_connect(context);
+			return 0;
+		}
 		inject_msg(context,0x34,tlv(1,r->pub_k)+tlv(2,r->pub_s));
 		p->state=4;
 	} break;
 
-	case 0x33:
+	case 0x33: // получили удаленный паблик, отправляем криптоключ
 	case 0x34:
 	{
 		string pub;
@@ -337,11 +344,15 @@ LPSTR __cdecl rsa_recv(int context, LPCSTR msg) {
 			return 0;
 		}
 		init_pub(p,pub);
+		if( p->state==0 ) { // timeout
+			rsa_connect(context);
+			return 0;
+		}
 		inject_msg(context,0x40,gen_aes_key_iv(ptr->mode,p,r));
 		p->state=5;
 	} break;
 
-	case 0x21:
+	case 0x21: // получили криптоключ, отправляем криптотест
 	case 0x32:
 	case 0x40:
 	{
@@ -358,7 +369,7 @@ LPSTR __cdecl rsa_recv(int context, LPCSTR msg) {
 		p->state=6;
 	} break;
 
-	case 0x50:
+	case 0x50: // получили криптотест, отправляем свой криптотест
 	{
 		string msg = decode_msg(p,data);
 		if( msg.length() == 0 ) {
@@ -373,7 +384,7 @@ LPSTR __cdecl rsa_recv(int context, LPCSTR msg) {
 		imp->rsa_notify(context,1);	// заебися, криптосессия установлена
 	} break;
 
-	case 0x60:
+	case 0x60: // получили криптотест, сессия установлена
 	{
 		string msg = decode_msg(p,data);
 		if( msg.length() == 0 ) {
@@ -385,7 +396,7 @@ LPSTR __cdecl rsa_recv(int context, LPCSTR msg) {
 		imp->rsa_notify(context,1);	// заебися, криптосессия установлена
 	} break;
 
-	case 0x70:
+	case 0x70: // получили AES сообщение, декодируем
 	{
 		SAFE_FREE(ptr->tmp);
 		string msg = decode_msg(p,data);
@@ -412,13 +423,18 @@ LPSTR __cdecl rsa_recv(int context, LPCSTR msg) {
 				return 0;
 			}
 			init_pub(p,pub);
+			if( p->state==0 ) { // timeout
+				rsa_connect(context);
+				return 0;
+			}
 		}
 		if( type == 0x0D ) { // нужно отправить мой паблик
 			inject_msg(context,0xD0,tlv(0,features)+tlv(1,r->pub_k)+tlv(2,p->pub_s));
 		}
 		p->state=0; p->time=0;
 	} break;
-	case 0xE0:
+
+	case 0xE0: // получили RSA сообщение, декодируем
 	{
 		SAFE_FREE(ptr->tmp);
 		string msg = decode_rsa(p,r,data);
@@ -432,7 +448,7 @@ LPSTR __cdecl rsa_recv(int context, LPCSTR msg) {
 		return ptr->tmp;
 	} break;
 
-	case 0xF0:
+	case 0xF0: // разрыв соединения
 	{
 		if( p->state != 7 ) return 0;
 		string msg = decode_msg(p,data);
@@ -451,10 +467,10 @@ int __cdecl rsa_send(int context, LPCSTR msg) {
 	pCNTX ptr = get_context_on_id(context);	if(!ptr) return 0;
 	pRSADATA p = (pRSADATA) cpp_alloc_pdata(ptr); if(p->state!=0 && p->state!=7) return 0;
 
-	if( p->state == 7 )
+	if( p->state == 7 ) // сессия установлена, шифруем AES и отправляем
 		inject_msg(context,0x70,encode_msg(1,p,string(msg)));
 	else
-	if( p->state == 0 ) {
+	if( p->state == 0 ) { // сессия  установлена, отправляем RSA сообщение
 		if( !p->pub_k.length() ) return 0;
 		// есть паблик ключ - отправим сообщение
 		pRSAPRIV r = (pRSAPRIV) (get_context_on_id((ptr->mode&MODE_RSA_4096)?-3:-2))->pdata;
@@ -466,6 +482,9 @@ int __cdecl rsa_send(int context, LPCSTR msg) {
 
 
 void inject_msg(int context, int type, const string& msg) {
+#if defined(_DEBUG) || defined(NETLIB_LOG)
+	Sent_NetLog("inject_msg(%02x): '%s'", type, msg.c_str());
+#endif
 	string txt=tlv(type,msg);
 	char* base64=base64encode(txt.data(),txt.length());
 	imp->rsa_inject(context,(LPCSTR)base64);
@@ -571,14 +590,21 @@ void init_pub(pRSADATA p, string& pub) {
 
 
 void null_msg(int context, int type, int status) {
+#if defined(_DEBUG) || defined(NETLIB_LOG)
+	Sent_NetLog("null_msg: '%02x'", status);
+#endif
 	inject_msg(context,type,null);
 	imp->rsa_notify(context,status);
 }
 
 
 void rsa_timeout(int context, pRSADATA p) {
+#if defined(_DEBUG) || defined(NETLIB_LOG)
+	Sent_NetLog("rsa_timeout");
+#endif
 	p->state=0; p->time=0;
-	null_msg(context,0x00,-7); // сессия разорвана по таймауту
+//	null_msg(context,0x00,-7); // сессия разорвана по таймауту
+	imp->rsa_notify(context,-7);
 }
 
 

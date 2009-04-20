@@ -94,6 +94,7 @@
 #define IDC_SPLITON                     1048
 #define IDC_SPLITOFF                    1049
 #define IDC_RSA_SHA                     1050
+#define IDC_NOL                         1051
 
 #define IDC_NO_PGP                      1100
 #define IDC_PGP                         1101

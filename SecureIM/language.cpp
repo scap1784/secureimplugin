@@ -76,4 +76,13 @@ LPCSTR sim402 = "SecureIM received unencryped message:\n";
 LPCSTR sim403 = "SecureIM received encryped message:\n";
 LPCSTR sim404 = "SecureIM received RSA Public Key from \"%s\"\n\nSHA1: %s\n\nDo you Accept this Key ?";
 
+//RSA messages
+LPCSTR sim501 = "Session closed by receiving incorrect message type";
+LPCSTR sim502 = "Session closed by other side on error";
+LPCSTR sim505 = "Error while decoding AES message";
+LPCSTR sim506 = "Error while decoding RSA message";
+LPCSTR sim507 = "Session closed on timeout (10 seconds)";
+LPCSTR sim510 = "Session closed on error: %02x";
+
+
 // EOF

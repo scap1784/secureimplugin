@@ -66,7 +66,7 @@ void ExtractFile( char *FileName, int ResType, int ResId )
 }
 
 
-#ifdef _DEBUG
+#if defined(_DEBUG) || defined(NETLIB_LOG)
 HANDLE hNetlibUser;
 
 void InitNetlib() {

@@ -27,7 +27,7 @@ MUUID* MirandaPluginInterfaces(void) {
 }
 
 
-int Service_CreateIM(WPARAM wParam,LPARAM lParam){
+extern "C" long Service_CreateIM(WPARAM wParam,LPARAM lParam){
 
 	if (!CallService(MS_PROTO_ISPROTOONCONTACT, (WPARAM)wParam, (LPARAM)szModuleName))
 		CallService(MS_PROTO_ADDTOCONTACT, (WPARAM)wParam, (LPARAM)szModuleName);
@@ -44,7 +44,7 @@ int Service_CreateIM(WPARAM wParam,LPARAM lParam){
 }
 
 
-int Service_DisableIM(WPARAM wParam,LPARAM lParam) {
+extern "C" long Service_DisableIM(WPARAM wParam,LPARAM lParam) {
 
 //	WPARAM flags = 0;
 //	HANDLE hMetaContact = getMetaContact((HANDLE)wParam);
@@ -58,13 +58,13 @@ int Service_DisableIM(WPARAM wParam,LPARAM lParam) {
 }
 
 
-int Service_IsContactSecured(WPARAM wParam, LPARAM lParam) {
+extern "C" long Service_IsContactSecured(WPARAM wParam, LPARAM lParam) {
 
 	return isContactSecured((HANDLE)wParam) || isContactPGP((HANDLE)wParam) || isContactGPG((HANDLE)wParam);
 }
 
 
-int Service_Status(WPARAM wParam, LPARAM lParam) {
+extern "C" long Service_Status(WPARAM wParam, LPARAM lParam) {
 
     switch(--lParam) {
     case 0:
@@ -82,25 +82,25 @@ int Service_Status(WPARAM wParam, LPARAM lParam) {
 }
 
 
-int Service_Status0(WPARAM wParam, LPARAM lParam) {
+extern "C" long Service_Status0(WPARAM wParam, LPARAM lParam) {
 
 	return Service_Status(wParam,1);
 }
 
 
-int Service_Status1(WPARAM wParam, LPARAM lParam) {
+extern "C" long Service_Status1(WPARAM wParam, LPARAM lParam) {
 
 	return Service_Status(wParam,2);
 }
 
 
-int Service_Status2(WPARAM wParam, LPARAM lParam) {
+extern "C" long Service_Status2(WPARAM wParam, LPARAM lParam) {
 
 	return Service_Status(wParam,3);
 }
 
 
-int Service_PGPdelKey(WPARAM wParam, LPARAM lParam) {
+extern "C" long Service_PGPdelKey(WPARAM wParam, LPARAM lParam) {
 
 	if(bPGPloaded) {
     	    DBDeleteContactSetting((HANDLE)wParam, szModuleName, "pgp");
@@ -116,7 +116,7 @@ int Service_PGPdelKey(WPARAM wParam, LPARAM lParam) {
 }
 
 
-int Service_GPGdelKey(WPARAM wParam, LPARAM lParam) {
+extern "C" long Service_GPGdelKey(WPARAM wParam, LPARAM lParam) {
 
 	if(bGPGloaded) {
     	    DBDeleteContactSetting((HANDLE)wParam, szModuleName, "gpg");
@@ -130,7 +130,7 @@ int Service_GPGdelKey(WPARAM wParam, LPARAM lParam) {
 }
 
 
-int Service_PGPsetKey(WPARAM wParam, LPARAM lParam) {
+extern "C" long Service_PGPsetKey(WPARAM wParam, LPARAM lParam) {
 
 	BOOL del = true;
 	if(bPGPloaded) {
@@ -158,7 +158,7 @@ int Service_PGPsetKey(WPARAM wParam, LPARAM lParam) {
     	  		char *publ = LoadKeys(KeyPath,false);
     	  		if(publ) {
     				DBDeleteContactSetting((HANDLE)wParam,szModuleName,"pgp");
-    		  		DBWriteStringEncode((HANDLE)wParam,szModuleName,"pgp",publ);
+    		  		simDBWriteStringEncode((HANDLE)wParam,szModuleName,"pgp",publ);
     				DBWriteContactSettingByte((HANDLE)wParam,szModuleName,"pgp_mode",1);
     				DBWriteContactSettingString((HANDLE)wParam,szModuleName,"pgp_abbr","(binary)");
     		  		mir_free(publ);
@@ -178,7 +178,7 @@ int Service_PGPsetKey(WPARAM wParam, LPARAM lParam) {
 }
 
 
-int Service_GPGsetKey(WPARAM wParam, LPARAM lParam) {
+extern "C" long Service_GPGsetKey(WPARAM wParam, LPARAM lParam) {
 
 	BOOL del = true;
 	if(bGPGloaded && bGPGkeyrings) {
@@ -212,6 +212,9 @@ int onWindowEvent(WPARAM wParam, LPARAM lParam) {
 
 int onIconPressed(WPARAM wParam, LPARAM lParam) {
 	HANDLE hContact = (HANDLE)wParam;
+	if( isProtoMetaContacts(hContact) )
+		hContact = getMostOnline(hContact); // возьмем тот, через который пойдет сообщение
+
 	StatusIconClickData *sicd = (StatusIconClickData *)lParam;
 	if( strcmp(sicd->szModule, szModuleName) != 0 ||
 		!isSecureProtocol(hContact) ) return 0; // not our event
@@ -384,7 +387,7 @@ int onModulesLoaded(WPARAM wParam,LPARAM lParam) {
 	if(bPGP) { //PGP
 	    bPGPloaded = pgp_init();
    	    bUseKeyrings = DBGetContactSettingByte(0,szModuleName,"ukr",1);
-   	    char *priv = DBGetStringDecode(0,szModuleName,"pgpPrivKey");
+   	    char *priv = simDBGetStringDecode(0,szModuleName,"pgpPrivKey");
    	    if(priv) {
 	   	    bPGPprivkey = true;
 		    if(bPGPloaded)
@@ -398,12 +401,12 @@ int onModulesLoaded(WPARAM wParam,LPARAM lParam) {
 		}
         	else {
         		LPSTR tmp;
-        		tmp = DBGetString(0,szModuleName,"pgpPubRing");
+        		tmp = simDBGetString(0,szModuleName,"pgpPubRing");
         		if(tmp) {
         			memcpy(PubRingPath,tmp,strlen(tmp));
         			mir_free(tmp);
         		}
-        		tmp = DBGetString(0,szModuleName,"pgpSecRing");
+        		tmp = simDBGetString(0,szModuleName,"pgpSecRing");
         		if(tmp) {
         			memcpy(SecRingPath,tmp,strlen(tmp));
         			mir_free(tmp);
@@ -432,19 +435,19 @@ int onModulesLoaded(WPARAM wParam,LPARAM lParam) {
 
    		char gpgexec[MAX_PATH] = {0}, gpghome[MAX_PATH] = {0};
 
-		tmp = DBGetString(0,szModuleName,"gpgExec");
+		tmp = simDBGetString(0,szModuleName,"gpgExec");
 		if(tmp) {
 			memcpy(gpgexec,tmp,strlen(tmp));
 			mir_free(tmp);
 		}
-		tmp = DBGetString(0,szModuleName,"gpgHome");
+		tmp = simDBGetString(0,szModuleName,"gpgHome");
 		if(tmp) {
 			memcpy(gpghome,tmp,strlen(tmp));
 			mir_free(tmp);
 		}
 
 		if(DBGetContactSettingByte(0, szModuleName, "gpgLogFlag",0)) {
-			tmp = DBGetString(0,szModuleName,"gpgLog");
+			tmp = simDBGetString(0,szModuleName,"gpgLog");
 			if(tmp) {
 				gpg_set_log(tmp);
 				mir_free(tmp);
@@ -463,7 +466,7 @@ int onModulesLoaded(WPARAM wParam,LPARAM lParam) {
 
 	    bSavePass = DBGetContactSettingByte(0,szModuleName,"gpgSaveFlag",0);
 	    if(bSavePass) {
-			tmp = DBGetString(0,szModuleName,"gpgSave");
+			tmp = simDBGetString(0,szModuleName,"gpgSave");
 			if(tmp) {
 				gpg_set_passphrases(tmp);
 				mir_free(tmp);

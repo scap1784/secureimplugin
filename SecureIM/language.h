@@ -79,4 +79,12 @@ extern LPCSTR sim402;
 extern LPCSTR sim403;
 extern LPCSTR sim404;
 
+//RSA messages
+extern LPCSTR sim501;
+extern LPCSTR sim502;
+extern LPCSTR sim505;
+extern LPCSTR sim506;
+extern LPCSTR sim507;
+extern LPCSTR sim510;
+
 #endif
