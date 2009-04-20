@@ -18,7 +18,7 @@ PLUGININFO pluginInfo = {
 		MODULENAME" library for SecureIM plugin ("__DATE__")",
 		"Baloo",
 		"baloo@bk.ru",
-		"© 2006-08 Baloo",
+		"© 2006-09 Baloo",
 		"http://miranda-im.org/download/details.php?action=viewfile&id=2669",
 		0, 0
 };
@@ -30,7 +30,7 @@ PLUGININFOEX pluginInfoEx = {
 		MODULENAME" library for SecureIM plugin ("__DATE__")",
 		"Baloo",
 		"baloo@bk.ru",
-		"© 2006-08 Baloo",
+		"© 2006-09 Baloo",
 		"http://miranda-im.org/download/details.php?action=viewfile&id=2669",
 		0, 0,	
 		MIID_CRYPTOPP
