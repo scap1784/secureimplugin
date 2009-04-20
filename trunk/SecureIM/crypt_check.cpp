@@ -301,10 +301,14 @@ BOOL isSecureIM(HANDLE hContact) {
 
 			BOOL isSecureIM = false;
 
+			if( bNOL && DBGetContactSettingByte(hContact,"CList","NotOnList",0) ) {
+				return false;
+			}
+
 			DBVARIANT dbv;
 			DBGetContactSetting(hContact,clist[j].proto->name,"MirVer",&dbv);
 			if(dbv.type==DBVT_ASCIIZ) {
-				isSecureIM = strstr(dbv.pszVal,"secureim")!=NULL || strstr(dbv.pszVal,"SecureIM")!=NULL;
+				isSecureIM = (strstr(dbv.pszVal,"SecureIM")!=NULL) || (strstr(dbv.pszVal,"secureim")!=NULL);
 			}
 			DBFreeVariant(&dbv);
 

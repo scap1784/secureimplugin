@@ -350,6 +350,7 @@ BOOL CALLBACK DlgProcOptionsGeneral(HWND hDlg, UINT wMsg, WPARAM wParam, LPARAM 
 		  	case IDC_GPG:
 		  	case IDC_PGP:
 		  	case IDC_NO_PGP:
+		  	case IDC_NOL:
 		  	case IDC_AIP:
 		  	case IDC_SOM:
 		  	case IDC_SFT:
@@ -927,6 +928,7 @@ void RefreshGeneralDlg(HWND hDlg, BOOL iInit) {
 	SendMessage(GetDlgItem(hDlg,IDC_SCM),BM_SETCHECK,(bSCM)?BST_CHECKED:BST_UNCHECKED,0L);
 	SendMessage(GetDlgItem(hDlg,IDC_DGP),BM_SETCHECK,(bDGP)?BST_CHECKED:BST_UNCHECKED,0L);
 	SendMessage(GetDlgItem(hDlg,IDC_AIP),BM_SETCHECK,(bAIP)?BST_CHECKED:BST_UNCHECKED,0L);
+	SendMessage(GetDlgItem(hDlg,IDC_NOL),BM_SETCHECK,(bNOL)?BST_CHECKED:BST_UNCHECKED,0L);
 
 /*	// CList_classic
 	if(!ServiceExists(MS_CLIST_ADDSUBGROUPMENUITEM)) {
@@ -1243,6 +1245,7 @@ void ApplyGeneralSettings(HWND hDlg) {
 	bSCM = (SendMessage(GetDlgItem(hDlg, IDC_SCM),BM_GETCHECK,0L,0L)==BST_CHECKED);
 	bDGP = (SendMessage(GetDlgItem(hDlg, IDC_DGP),BM_GETCHECK,0L,0L)==BST_CHECKED);
 	bAIP = (SendMessage(GetDlgItem(hDlg, IDC_AIP),BM_GETCHECK,0L,0L)==BST_CHECKED);
+	bNOL = (SendMessage(GetDlgItem(hDlg, IDC_NOL),BM_GETCHECK,0L,0L)==BST_CHECKED);
 	bADV = (BYTE)SendMessage(GetDlgItem(hDlg, IDC_ADVICON), CB_GETCURSEL, 0, 0);
 
 	// Advanced

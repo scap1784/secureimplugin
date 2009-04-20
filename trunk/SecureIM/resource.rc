@@ -38,20 +38,32 @@ BEGIN
 END
 
 IDD_TAB_GENERAL DIALOGEX 0, 0, 303, 226
-STYLE DS_SETFONT | DS_FIXEDSYS | DS_CONTROL | WS_CHILD | WS_VISIBLE
-FONT 8, "MS Shell Dlg", 400, 0, 0x1
+STYLE DS_FIXEDSYS | DS_CONTROL | WS_CHILD | WS_VISIBLE
+FONT 8, "MS Shell Dlg"
 BEGIN
-    GROUPBOX        "User List",IDC_STATIC,3,0,296,151
-    CONTROL         "",IDC_STD_USERLIST,"SysListView32",LVS_REPORT | LVS_SINGLESEL | LVS_ALIGNLEFT | WS_BORDER | WS_TABSTOP,7,9,288,137, WS_EX_STATICEDGE
-    CONTROL         "Enable Secure Offline messages",IDC_SOM,"Button", BS_AUTOCHECKBOX | WS_TABSTOP,7,153,145,10
-    CONTROL         "Enable Secure File Transfer",IDC_SFT,"Button", BS_AUTOCHECKBOX | WS_TABSTOP,7,163,145,10
-    CONTROL         "Always show status icons in contact list",IDC_ASI, "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,173,145,10
-    CONTROL         "Miranda Client Detection",IDC_MCD,"Button", BS_AUTOCHECKBOX | WS_TABSTOP,7,183,145,10
-    CONTROL         "Status in Context Menu",IDC_SCM,"Button", BS_AUTOCHECKBOX | WS_TABSTOP,7,193,145,10
-    CONTROL         "Disable encryption for game plugins",IDC_DGP,"Button", BS_AUTOCHECKBOX | WS_TABSTOP,7,203,145,10
-    CONTROL         "Always secured if possible",IDC_AIP,"Button", BS_AUTOCHECKBOX | WS_TABSTOP,7,213,145,10
+    GROUPBOX        "User List",IDC_STATIC,3,0,296,140
+    CONTROL         "",IDC_STD_USERLIST,"SysListView32",LVS_REPORT | 
+                    LVS_SINGLESEL | LVS_ALIGNLEFT | WS_BORDER | WS_TABSTOP,7,
+                    9,288,126,WS_EX_STATICEDGE
+    CONTROL         "Enable Secure Offline messages",IDC_SOM,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,7,142,145,10
+    CONTROL         "Enable Secure File Transfer",IDC_SFT,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,7,152,145,10
+    CONTROL         "Always show status icons in contact list",IDC_ASI,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,162,145,10
+    CONTROL         "Miranda Client Detection",IDC_MCD,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,7,172,145,10
+    CONTROL         "Status in Context Menu",IDC_SCM,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,7,182,145,10
+    CONTROL         "Disable encryption for game plugins",IDC_DGP,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,7,192,145,10
+    CONTROL         "Always secured if possible",IDC_AIP,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,7,202,145,10
+    CONTROL         "Not secured for NotOnList",IDC_NOL,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,7,212,145,10
     GROUPBOX        "Contact List Icon slot",IDC_STATIC,156,152,144,25
-    COMBOBOX        IDC_ADVICON,160,162,78,81,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP, WS_EX_CLIENTEDGE
+    COMBOBOX        IDC_ADVICON,160,162,78,81,CBS_DROPDOWNLIST | WS_VSCROLL | 
+                    WS_TABSTOP,WS_EX_CLIENTEDGE
     GROUPBOX        "",IDC_STATIC,156,175,144,32
     RTEXT           "Key Exchange Timeout :",IDC_STATIC,160,182,80,8
     EDITTEXT        IDC_KET,241,180,30,12,ES_AUTOHSCROLL | ES_NUMBER
@@ -60,8 +72,10 @@ BEGIN
     EDITTEXT        IDC_OKT,241,192,30,12,ES_AUTOHSCROLL | ES_NUMBER
     LTEXT           "days",IDC_STATIC,275,194,18,8
     GROUPBOX        "",IDC_STATIC,156,204,93,19
-    CONTROL         "PGP",IDC_PGP,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,172,211,25,10
-    CONTROL         "GPG",IDC_GPG,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,210,211,25,10
+    CONTROL         "PGP",IDC_PGP,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,172,
+                    211,34,10
+    CONTROL         "GPG",IDC_GPG,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,210,
+                    211,34,10
     PUSHBUTTON      "Reset All",IDC_RESET,253,210,46,12
 END
 
