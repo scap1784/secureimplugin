@@ -174,7 +174,8 @@ pA2U pa2u;
 int ca2u=0;
 
 LPSTR TranslateU( LPCSTR lpText ) {
-	for(int i=0;i<ca2u;i++) {
+	int i;
+	for(i=0;i<ca2u;i++) {
 		if( pa2u[i].a == lpText ) {
 			return pa2u[i].u;
 		}
