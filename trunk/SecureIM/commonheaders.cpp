@@ -30,7 +30,7 @@ PLUGININFO pluginInfo = {
 		MODULENAME" plugin for Miranda IM ("__DATE__")",
 		"Johell, Ghost, Nightwish, __alex, Baloo",
 		"Johell@ifrance.com, baloo@bk.ru",
-		"© 2003 Johell, © 2005-08 Baloo",
+		"© 2003 Johell, © 2005-09 Baloo",
 		"http://addons.miranda-im.org/details.php?action=viewfile&id=2445",
 		0, 0
 };
@@ -43,7 +43,7 @@ PLUGININFOEX pluginInfoEx = {
 		MODULENAME" plugin for Miranda IM ("__DATE__")",
 		"Johell, Ghost, Nightwish, __alex, Baloo",
 		"Johell@ifrance.com, baloo@bk.ru",
-		"© 2003 Johell, © 2005-08 Baloo",
+		"© 2003 Johell, © 2005-09 Baloo",
 		"http://addons.miranda-im.org/details.php?action=viewfile&id=2445",
 		0, 0,
 		MIID_SECUREIM
