@@ -1,4 +1,9 @@
 
+Verison 1.0.11.2 [20-04-2009]
+
+[+] option "Not secured for NotOnList"
+
+
 Verison 1.0.11.1 [20-04-2009]
 
 [*] compile with new Miranda headers
