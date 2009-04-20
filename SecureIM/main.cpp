@@ -301,16 +301,16 @@ int Load(PLUGINLINK *link) {
 	g_hEvent[0] = CreateHookableEvent(MODULENAME"/Disabled");
 	g_hEvent[1] = CreateHookableEvent(MODULENAME"/Established");
 
-	g_hService[iService++] = CreateServiceFunction(MODULENAME"/IsContactSecured", Service_IsContactSecured);
-	g_hService[iService++] = CreateServiceFunction(MODULENAME"/SIM_EST",Service_CreateIM);
-	g_hService[iService++] = CreateServiceFunction(MODULENAME"/SIM_DIS",Service_DisableIM);
-	g_hService[iService++] = CreateServiceFunction(MODULENAME"/SIM_ST_DIS",Service_Status0);
-	g_hService[iService++] = CreateServiceFunction(MODULENAME"/SIM_ST_ENA",Service_Status1);
-	g_hService[iService++] = CreateServiceFunction(MODULENAME"/SIM_ST_TRY",Service_Status2);
-	g_hService[iService++] = CreateServiceFunction(MODULENAME"/SIM_PGP_SET",Service_PGPsetKey);
-	g_hService[iService++] = CreateServiceFunction(MODULENAME"/SIM_PGP_DEL",Service_PGPdelKey);
-	g_hService[iService++] = CreateServiceFunction(MODULENAME"/SIM_GPG_SET",Service_GPGsetKey);
-	g_hService[iService++] = CreateServiceFunction(MODULENAME"/SIM_GPG_DEL",Service_GPGdelKey);
+	g_hService[iService++] = CreateServiceFunction((LPCSTR)MODULENAME"/IsContactSecured",(MIRANDASERVICE)Service_IsContactSecured);
+	g_hService[iService++] = CreateServiceFunction((LPCSTR)MODULENAME"/SIM_EST",(MIRANDASERVICE)Service_CreateIM);
+	g_hService[iService++] = CreateServiceFunction((LPCSTR)MODULENAME"/SIM_DIS",(MIRANDASERVICE)Service_DisableIM);
+	g_hService[iService++] = CreateServiceFunction((LPCSTR)MODULENAME"/SIM_ST_DIS",(MIRANDASERVICE)Service_Status0);
+	g_hService[iService++] = CreateServiceFunction((LPCSTR)MODULENAME"/SIM_ST_ENA",(MIRANDASERVICE)Service_Status1);
+	g_hService[iService++] = CreateServiceFunction((LPCSTR)MODULENAME"/SIM_ST_TRY",(MIRANDASERVICE)Service_Status2);
+	g_hService[iService++] = CreateServiceFunction((LPCSTR)MODULENAME"/SIM_PGP_SET",(MIRANDASERVICE)Service_PGPsetKey);
+	g_hService[iService++] = CreateServiceFunction((LPCSTR)MODULENAME"/SIM_PGP_DEL",(MIRANDASERVICE)Service_PGPdelKey);
+	g_hService[iService++] = CreateServiceFunction((LPCSTR)MODULENAME"/SIM_GPG_SET",(MIRANDASERVICE)Service_GPGsetKey);
+	g_hService[iService++] = CreateServiceFunction((LPCSTR)MODULENAME"/SIM_GPG_DEL",(MIRANDASERVICE)Service_GPGdelKey);
 
 	return 0;
 }
@@ -500,10 +500,10 @@ int onModulesLoaded(WPARAM wParam,LPARAM lParam) {
 	g_hHook[iHook++] = HookEvent(ME_DB_CONTACT_DELETED, onContactDeleted);
 
 	// hook message transport
-	g_hService[iService++] = CreateProtoServiceFunction(szModuleName, PSR_MESSAGE, onRecvMsg);
-	g_hService[iService++] = CreateProtoServiceFunction(szModuleName, PSS_MESSAGE, onSendMsg);
-	g_hService[iService++] = CreateProtoServiceFunction(szModuleName, PSS_MESSAGE"W", onSendMsgW);
-	g_hService[iService++] = CreateProtoServiceFunction(szModuleName, PSS_FILE, onSendFile);
+	g_hService[iService++] = CreateProtoServiceFunction(szModuleName, PSR_MESSAGE, (MIRANDASERVICE)onRecvMsg);
+	g_hService[iService++] = CreateProtoServiceFunction(szModuleName, PSS_MESSAGE, (MIRANDASERVICE)onSendMsg);
+	g_hService[iService++] = CreateProtoServiceFunction(szModuleName, PSS_MESSAGE"W", (MIRANDASERVICE)onSendMsgW);
+	g_hService[iService++] = CreateProtoServiceFunction(szModuleName, PSS_FILE, (MIRANDASERVICE)onSendFile);
 
 	// create a menu item for creating a secure im connection to the user.
 	g_hMenu[0] = AddMenuItem(sim301,110000,g_hIEC[IEC_SHIELD],MODULENAME"/SIM_EST",CMIF_NOTOFFLINE);
