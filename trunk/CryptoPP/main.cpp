@@ -42,7 +42,7 @@ MUUID* MirandaPluginInterfaces(void)
 
 int onModulesLoaded(WPARAM wParam,LPARAM lParam) {
     // updater plugin support
-#ifdef _DEBUG
+#if defined(_DEBUG) || defined(NETLIB_LOG)
 	InitNetlib();
 #endif
 	if(ServiceExists(MS_UPDATE_REGISTERFL)) {

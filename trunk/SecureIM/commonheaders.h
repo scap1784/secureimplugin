@@ -140,7 +140,7 @@ extern int iBmpDepth;
 extern BOOL bCoreUnicode, bMetaContacts, bPopupExists, bPopupUnicode;
 extern BOOL bPGPloaded, bPGPkeyrings, bUseKeyrings, bPGPprivkey;
 extern BOOL bGPGloaded, bGPGkeyrings, bSavePass;
-extern BOOL bSFT, bSOM, bASI, bMCD, bSCM, bDGP, bAIP;
+extern BOOL bSFT, bSOM, bASI, bMCD, bSCM, bDGP, bAIP, bNOL;
 extern BYTE bADV, bPGP, bGPG;
 extern DWORD iCoreVersion;
 extern CRITICAL_SECTION localQueueMutex;
@@ -148,9 +148,9 @@ extern CRITICAL_SECTION localQueueMutex;
 int onModulesLoaded(WPARAM,LPARAM);
 int onSystemOKToExit(WPARAM,LPARAM);
 
-char *DBGetString(HANDLE,const char *,const char *);
-char *DBGetStringDecode(HANDLE,const char *,const char *);
-int DBWriteStringEncode(HANDLE,const char *,const char *,const char *);
+char *simDBGetString(HANDLE,const char *,const char *);
+char *simDBGetStringDecode(HANDLE,const char *,const char *);
+int simDBWriteStringEncode(HANDLE,const char *,const char *,const char *);
 #ifdef _DEBUG
 extern HANDLE hNetlibUser;
 void InitNetlib();

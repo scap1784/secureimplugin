@@ -1,4 +1,10 @@
 
+Verison 1.0.11.1 [20-04-2009]
+
+[*] compile with new Miranda headers
+[*] fix metacontacts handling
+
+
 Verison 1.0.11.0 [08-08-2008]
 
 [*] some code rewrite

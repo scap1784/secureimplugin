@@ -14,6 +14,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+//#define NETLIB_LOG
+
 //#pragma comment(linker,"/filealign:16")
 //#pragma comment(linker,"/align:16")
 #ifdef _DEBUG
@@ -70,7 +72,7 @@ extern MUUID interfaces[];
 
 extern void ExtractFile(char*,int,int);
 
-#ifdef _DEBUG
+#if defined(_DEBUG) || defined(NETLIB_LOG)
 extern HANDLE hNetlibUser;
 void InitNetlib();
 void DeinitNetlib();

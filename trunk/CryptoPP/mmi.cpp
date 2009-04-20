@@ -39,9 +39,11 @@ void *m_realloc(void *ptr,size_t size) {
 }
 
 
+#ifndef _DEBUG
 void *operator new(size_t size) {
 	return m_alloc(size);
 }
+#endif
 
 
 void operator delete(void *p) {

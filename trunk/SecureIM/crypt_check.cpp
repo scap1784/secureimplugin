@@ -72,6 +72,9 @@ BOOL isSecureProtocol(HANDLE hContact) {
 BYTE isContactSecured(HANDLE hContact) {
 	if (!clist_cnt) return 0;
 
+	if( isProtoMetaContacts(hContact) )
+		hContact = getMostOnline(hContact); // возьмем тот, через который пойдет сообщение
+
 //	HANDLE hMetaContact = getMetaContact(hContact);
 //	if( hMetaContact ) hContact = hMetaContact;
 
@@ -181,6 +184,11 @@ BOOL isContactInvisible(HANDLE hContact) {
 		}// for
 	}
 	return true;
+}
+
+
+BOOL isNotOnList(HANDLE hContact) {
+	return DBGetContactSettingByte(hContact, "CList", "NotOnList", 0);
 }
 
 

@@ -2,10 +2,15 @@
 
 
 BOOL isProtoMetaContacts(HANDLE hContact) {
-    if(bMetaContacts)
-    for(int j=0;j<clist_cnt;j++)
-	if(clist[j].hContact==hContact && proto->inspecting)
-	    return strstr(clist[j].proto->name,"MetaContacts")!=NULL;
+    if(bMetaContacts) {
+    	LPSTR proto = (LPSTR)CallService(MS_PROTO_GETCONTACTBASEPROTO, (WPARAM)hContact, 0);
+    	if( proto && strcmp(proto,"MetaContacts")==0 ) {
+    		return true;
+    	}
+    }
+//    for(int j=0;j<clist_cnt;j++)
+//	if(clist[j].hContact==hContact && clist[j].proto->inspecting)
+//	    return strstr(clist[j].proto->name,"MetaContacts")!=NULL;
     return false;
 }
 

@@ -1058,7 +1058,7 @@ void RefreshPGPDlg(HWND hDlg, BOOL iInit) {
 		pUinKey ptr = getUinKey(hContact);
 		if (ptr && ptr->mode==1 && isSecureProtocol(hContact) /*&& !getMetaContact(hContact)*/ && !isChatRoom(hContact)) {
 
-			LPSTR szKeyID = DBGetString(hContact,szModuleName,"pgp_abbr");
+			LPSTR szKeyID = simDBGetString(hContact,szModuleName,"pgp_abbr");
 
 			lvi.iItem++;
 			lvi.iImage = (szKeyID!=0);
@@ -1084,17 +1084,17 @@ void RefreshGPGDlg(HWND hDlg, BOOL iInit) {
 
 	LPSTR path;
 
-	path = DBGetString(0,szModuleName,"gpgExec");
+	path = simDBGetString(0,szModuleName,"gpgExec");
 	if(path) {
 		SetDlgItemText(hDlg, IDC_GPGEXECUTABLE_EDIT, path);
 		mir_free(path);
 	}
-	path = DBGetString(0,szModuleName,"gpgHome");
+	path = simDBGetString(0,szModuleName,"gpgHome");
 	if(path) {
 		SetDlgItemText(hDlg, IDC_GPGHOME_EDIT, path);
 		mir_free(path);
 	}
-	path = DBGetString(0,szModuleName,"gpgLog");
+	path = simDBGetString(0,szModuleName,"gpgLog");
 	if(path) {
 		SetDlgItemText(hDlg, IDC_GPGLOGFILE_EDIT, path);
 		mir_free(path);
@@ -1122,7 +1122,7 @@ void RefreshGPGDlg(HWND hDlg, BOOL iInit) {
 				ptr->tgpgMode = ptr->gpgMode;
 			}
 
-			LPSTR szKeyID = DBGetString(hContact,szModuleName,"gpg");
+			LPSTR szKeyID = simDBGetString(hContact,szModuleName,"gpg");
 
 			lvi.iItem++;
 			lvi.iImage = (szKeyID!=0);
@@ -1292,7 +1292,7 @@ void ApplyGeneralSettings(HWND hDlg) {
 			else 				DBWriteContactSettingByte(ptr->hContact, szModuleName, "StatusID", ptr->status);
 		}
 		if(getListViewPSK(hLV,i)) {
-			LPSTR tmp = DBGetString(ptr->hContact,szModuleName,"tPSK");
+			LPSTR tmp = simDBGetString(ptr->hContact,szModuleName,"tPSK");
 		    DBWriteContactSettingString(ptr->hContact, szModuleName, "PSK", tmp);
 		    mir_free(tmp);
 		}
@@ -1331,11 +1331,11 @@ void ApplyPGPSettings(HWND hDlg) {
 	bUseKeyrings = !(SendMessage(GetDlgItem(hDlg, IDC_NO_KEYRINGS),BM_GETCHECK,0L,0L)==BST_CHECKED);
 	DBWriteContactSettingByte(0,szModuleName,"ukr",bUseKeyrings);
 
-	char *priv = DBGetString(0,szModuleName,"tpgpPrivKey");
+	char *priv = simDBGetString(0,szModuleName,"tpgpPrivKey");
 	if(priv) {
    	    bPGPprivkey = true;
 	    pgp_set_key(-1,priv);
-		DBWriteStringEncode(0,szModuleName,"pgpPrivKey",priv);
+		simDBWriteStringEncode(0,szModuleName,"pgpPrivKey",priv);
 		mir_free(priv);
   		DBDeleteContactSetting(0,szModuleName,"tpgpPrivKey");
 	}
