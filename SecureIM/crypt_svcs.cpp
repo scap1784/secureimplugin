@@ -498,8 +498,11 @@ extern "C" long onRecvMsg(WPARAM wParam, LPARAM lParam) {
 		return 1; // don't display it ...
 	} break;
 
-	case SiG_DEIN:   // deinit message
-	case SiG_DISA: { // disabled message
+	case SiG_DISA: { // disabled message - change status to "disabled"
+		ptr->status=ptr->tstatus=0;
+		DBWriteContactSettingByte(ptr->hContact, szModuleName, "StatusID", ptr->status);
+	}
+	case SiG_DEIN: { // deinit message
 		// other user has disabled SecureIM with you
 		ptr->waitForExchange=false;
 		cpp_delete_context(ptr->cntx); ptr->cntx=0;
@@ -702,7 +705,8 @@ extern "C" long onSendMsg(WPARAM wParam, LPARAM lParam) {
 		isChatRoom(pccsd->hContact) ||
 /*		(ssig!=-1 && hMetaContact && (pccsd->wParam & PREF_METANODB)) || */
 		stat==-1 ||
-		(ssig==-1 && ptr->sendQueue)
+		(ssig==-1 && ptr->sendQueue) ||
+		(ssig==-1 && ptr->status==0) // Native/Disabled 
 		)
 		return CallService(MS_PROTO_CHAINSEND, wParam, lParam);
 
