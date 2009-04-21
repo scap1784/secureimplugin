@@ -5,6 +5,9 @@ int __cdecl rsa_inject(int,LPCSTR);
 int __cdecl rsa_check_pub(int,PBYTE,int,PBYTE,int);
 void __cdecl rsa_notify(int,int);
 
+extern void deleteRSAcntx(pUinKey);
+
+
 pRSA_EXPORT exp = NULL;
 RSA_IMPORT imp = {
     rsa_inject,
@@ -53,8 +56,8 @@ int __cdecl rsa_check_pub(int context, PBYTE pub, int pubLen, PBYTE sig, int sig
 		cws.value.cpbVal = pubLen;
 		CallService(MS_DB_CONTACT_WRITESETTING, (WPARAM)ptr->hContact, (LPARAM)&cws);
 		ptr->keyLoaded = true;
-		ptr->mode = 3;
-		DBWriteContactSettingByte(ptr->hContact, szModuleName, "mode", ptr->mode);
+//		ptr->mode = 3;
+//		DBWriteContactSettingByte(ptr->hContact, szModuleName, "mode", ptr->mode);
 	}
 	return v;
 }
@@ -94,12 +97,14 @@ void __cdecl rsa_notify(int context, int state) {
 		sprintf(buf,sim510,-state);
 		showPopUpDCmsg(ptr->hContact,buf);
 		ShowStatusIconNotify(ptr->hContact);
+       		if(ptr->cntx) deleteRSAcntx(ptr);
         	return;
         }
 	case -3: // соединение разорвано вручную
 	case -4: { // соединение разорвано вручную другой стороной
 		showPopUpDC(ptr->hContact);
 		ShowStatusIconNotify(ptr->hContact);
+       		if(ptr->cntx) deleteRSAcntx(ptr);
 		return;
 	}
 	default:
@@ -107,6 +112,7 @@ void __cdecl rsa_notify(int context, int state) {
 	}
 	showPopUpDCmsg(ptr->hContact,msg);
 	ShowStatusIconNotify(ptr->hContact);
+	if(ptr->cntx) deleteRSAcntx(ptr);
 }
 
 

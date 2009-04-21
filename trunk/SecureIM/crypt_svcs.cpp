@@ -212,7 +212,7 @@ int sendSplitMessage(pUinKey ptr, LPSTR szMsg) {
 }
 
 
-// загружает паблик-ключ в контекст
+// загружает паблик-ключ в RSA контекст
 BYTE loadRSAkey(pUinKey ptr) {
        	if( !ptr->keyLoaded ) {
        	    DBVARIANT dbv;
@@ -225,6 +225,7 @@ BYTE loadRSAkey(pUinKey ptr) {
        	return ptr->keyLoaded;
 }
 
+// удаляет RSA контекст
 void deleteRSAcntx(pUinKey ptr) {
 	cpp_delete_context(ptr->cntx);
 	ptr->cntx = 0;
@@ -396,13 +397,18 @@ extern "C" long onRecvMsg(WPARAM wParam, LPARAM lParam) {
 	switch(ssig) {
 
 	case SiG_SECU: { // new secured msg, pass to rsa_recv
+		if(ptr->mode==0) {
+		    ptr->mode = 3;
+		    ptr->keyLoaded = 0;
+		    DBWriteContactSettingByte(ptr->hContact, szModuleName, "mode", ptr->mode);
+		}
 		if(!ptr->cntx) {
-			ptr->cntx = cpp_create_context(MODE_RSA);
-			ptr->keyLoaded = 0;
+		    ptr->cntx = cpp_create_context(MODE_RSA);
+		    ptr->keyLoaded = 0;
 		}
 		loadRSAkey(ptr);
 		if( exp->rsa_get_state(ptr->cntx)==0 )
-			showPopUpKR(ptr->hContact);
+		    showPopUpKR(ptr->hContact);
 
 		LPSTR szOldMsg = exp->rsa_recv(ptr->cntx,szEncMsg);
 		if( !szOldMsg )	return 1; // don't display it ...
@@ -498,9 +504,9 @@ extern "C" long onRecvMsg(WPARAM wParam, LPARAM lParam) {
 		return 1; // don't display it ...
 	} break;
 
-	case SiG_DISA: { // disabled message - change status to "disabled"
-		ptr->status=ptr->tstatus=0;
-		DBWriteContactSettingByte(ptr->hContact, szModuleName, "StatusID", ptr->status);
+	case SiG_DISA: { // disabled message
+//		ptr->status=ptr->tstatus=0;
+//		DBWriteContactSettingByte(ptr->hContact, szModuleName, "StatusID", ptr->status);
 	}
 	case SiG_DEIN: { // deinit message
 		// other user has disabled SecureIM with you
@@ -515,8 +521,14 @@ extern "C" long onRecvMsg(WPARAM wParam, LPARAM lParam) {
 	case SiG_KEYR:   // key3 message
 	case SiG_KEYA:   // keyA message
 	case SiG_KEYB: { // keyB message
+		if( ptr->mode == 3 ) {
+		    ptr->mode = 0;
+		    ptr->keyLoaded = 0;
+		    DBWriteContactSettingByte(ptr->hContact, szModuleName, "mode", ptr->mode);
+		}
 		switch(ssig) {
 		case SiG_KEYR: { // key3 message
+
 			// receive KeyB from user;
 			showPopUpKR(ptr->hContact);
 
