@@ -4,6 +4,7 @@ Verison 1.0.11.2 [21-04-2009]
 [+] option "Not secured for NotOnList"
 [+] auto switch mode to RSA/AES and to Native on message type
 [+] auto accept RSA key
+[+] auto established RSA/AES connection ("Always if Possible" flag)
 
 
 Verison 1.0.11.1 [20-04-2009]

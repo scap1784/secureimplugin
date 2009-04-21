@@ -68,6 +68,7 @@ void __cdecl rsa_notify(int context, int state) {
 	LPCSTR msg=NULL;
 	switch( state ) {
 	case 1: {
+		ptr->waitForExchange=false; // досылаем сообщения из очереди
 		showPopUpEC(ptr->hContact);
 		ShowStatusIconNotify(ptr->hContact);
 		return;
