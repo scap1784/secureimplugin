@@ -22,7 +22,7 @@ int __cdecl rsa_inject(int context, LPCSTR msg) {
 	pUinKey ptr = getUinCtx(context); if(!ptr) return 0;
 	LPSTR buf = (LPSTR) mir_alloc(strlen(msg)+LEN_SECU+1);
 	memcpy(buf,SIG_SECU,LEN_SECU); memcpy(buf+LEN_SECU,msg,strlen(msg)+1);
-#ifdef _DEBUG
+#if defined(_DEBUG) || defined(NETLIB_LOG)
 	Sent_NetLog("rsa_inject: '%s'", msg);
 #endif
 	// отправляем сообщение

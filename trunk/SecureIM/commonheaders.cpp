@@ -63,7 +63,7 @@ char *simDBGetString(HANDLE hContact,const char *szModule,const char *szSetting)
 
 
 char *simDBGetStringDecode(HANDLE hContact,const char *szModule,const char *szSetting) {
-	char *val = DBGetString(hContact,szModule,szSetting);
+	char *val = simDBGetString(hContact,szModule,szSetting);
 	if(!val) return NULL;
 	int len = strlen(val)+64;
 	char *buf = (LPSTR)mir_alloc(len);
@@ -213,7 +213,7 @@ int msgbox( HWND hWnd, LPCSTR lpText, LPCSTR lpCaption, UINT uType) {
 	return MessageBoxA(hWnd,Translate(lpText),Translate(lpCaption),uType);
 }
 
-#ifdef _DEBUG
+#if defined(_DEBUG) || defined(NETLIB_LOG)
 HANDLE hNetlibUser;
 
 void InitNetlib() {

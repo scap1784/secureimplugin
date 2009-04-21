@@ -1,7 +1,7 @@
 #include "commonheaders.h"
 
 
-#ifndef _DEBUG
+#if defined(_DEBUG) || defined(NETLIB_LOG)
 void *operator new(size_t sz) {
 	return mir_alloc(sz);
 }
