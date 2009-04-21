@@ -2,7 +2,7 @@
 
 #define STRICT
 #define WIN32_LEAN_AND_MEAN
-#define NETLIB_LOG
+//#define NETLIB_LOG
 
 #ifdef _MSC_VER
 #if _MSC_VER >= 1300 && !defined _DEBUG
