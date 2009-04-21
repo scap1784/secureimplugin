@@ -97,7 +97,7 @@ LPSTR miranda_to_utf8(LPCSTR szMirMsg, DWORD flags) {
 // разбивает сообщение szMsg на части длиной iLen, возвращает строку вида PARTzPARTzz
 LPSTR splitMessage(LPSTR szMsg, int iLen) {
 
-#ifdef _DEBUG
+#if defined(_DEBUG) || defined(NETLIB_LOG)
 	Sent_NetLog("split: msg: -----\n%s\n-----\n",szMsg);
 #endif
 	int len = strlen(szMsg);
@@ -113,7 +113,7 @@ LPSTR splitMessage(LPSTR szMsg, int iLen) {
 		sprintf(buf,"%s%04X%02X%02X",SIG_SECP,msg_id,part_num,part_all);
 		memcpy(buf+LEN_SECP+8,szMsg,sz);
 		*(buf+LEN_SECP+8+sz) = '\0';
-#ifdef _DEBUG
+#if defined(_DEBUG) || defined(NETLIB_LOG)
 		Sent_NetLog("split: part: %s",buf);
 #endif
 		buf += LEN_SECP+8+sz+1;
@@ -128,7 +128,7 @@ LPSTR splitMessage(LPSTR szMsg, int iLen) {
 // собираем сообщение из частей, части храним в структуре у контакта
 LPSTR combineMessage(pUinKey ptr, LPSTR szMsg) {
 
-#ifdef _DEBUG
+#if defined(_DEBUG) || defined(NETLIB_LOG)
 	Sent_NetLog("combine: part: %s",szMsg);
 #endif
 	int msg_id,part_num,part_all;
@@ -156,7 +156,7 @@ LPSTR combineMessage(pUinKey ptr, LPSTR szMsg) {
 	}
 	pm->message[part_num] = new char[strlen(szMsg)];
 	strcpy(pm->message[part_num],szMsg+8);
-#ifdef _DEBUG
+#if defined(_DEBUG) || defined(NETLIB_LOG)
 	Sent_NetLog("combine: save part: %s",pm->message[part_num]);
 #endif
 	int len=0,i;
@@ -175,13 +175,13 @@ LPSTR combineMessage(pUinKey ptr, LPSTR szMsg) {
 		if(ppm) ppm->nextMessage = pm->nextMessage;
 		else 	ptr->msgPart = pm->nextMessage;
 		delete pm;
-#ifdef _DEBUG
+#if defined(_DEBUG) || defined(NETLIB_LOG)
 		Sent_NetLog("combine: all parts: -----\n%s\n-----\n", ptr->tmp);
 #endif
 		// собрали одно сообщение
 		return ptr->tmp;
 	}
-#ifdef _DEBUG
+#if defined(_DEBUG) || defined(NETLIB_LOG)
 	Sent_NetLog("combine: not all parts");
 #endif
 	// еще не собрали
@@ -244,7 +244,7 @@ extern "C" long onRecvMsg(WPARAM wParam, LPARAM lParam) {
 	pUinKey ptr = getUinKey(pccsd->hContact);
 	LPSTR szEncMsg = ppre->szMessage, szPlainMsg = NULL;
 
-#ifdef _DEBUG
+#if defined(_DEBUG) || defined(NETLIB_LOG)
 	Sent_NetLog("onRecv: %s", szEncMsg);
 #endif
 
@@ -558,7 +558,7 @@ extern "C" long onRecvMsg(WPARAM wParam, LPARAM lParam) {
 				cpp_reset_context(ptr->cntx);
 
 				LPSTR keyToSend = InitKeyA(ptr,FEATURES_NEWPG|KEY_A_SIG); // calculate NEW public and private key
-#ifdef _DEBUG
+#if defined(_DEBUG) || defined(NETLIB_LOG)
 				Sent_NetLog("Sending KEYA: %s", keyToSend);
 #endif
 				pccsd->lParam = (LPARAM)keyToSend;
@@ -574,7 +574,7 @@ extern "C" long onRecvMsg(WPARAM wParam, LPARAM lParam) {
 			// auto send my public key to keyB user if not done before
 			if (!cpp_keya(ptr->cntx)) {
 				LPSTR keyToSend = InitKeyA(ptr,0); // calculate public and private key
-#ifdef _DEBUG
+#if defined(_DEBUG) || defined(NETLIB_LOG)
 				Sent_NetLog("Sending KEYA: %s", keyToSend);
 #endif
 				pccsd->lParam = (LPARAM)keyToSend;
@@ -605,7 +605,7 @@ extern "C" long onRecvMsg(WPARAM wParam, LPARAM lParam) {
 			}
 
 			LPSTR keyToSend = InitKeyA(ptr,FEATURES_NEWPG|KEY_B_SIG); // calculate NEW public and private key
-#ifdef _DEBUG
+#if defined(_DEBUG) || defined(NETLIB_LOG)
 			Sent_NetLog("Sending KEYB: %s", keyToSend);
 #endif
 			pccsd->lParam = (LPARAM)keyToSend;
@@ -641,7 +641,7 @@ extern "C" long onRecvMsg(WPARAM wParam, LPARAM lParam) {
 		//  calculate KeyX
 		if (cpp_keya(ptr->cntx) && cpp_keyb(ptr->cntx) && !cpp_keyx(ptr->cntx)) CalculateKeyX(ptr,ptr->hContact);
 		ShowStatusIconNotify(ptr->hContact);
-#ifdef _DEBUG
+#if defined(_DEBUG) || defined(NETLIB_LOG)
 		Sent_NetLog("Session established");
 #endif
 
@@ -652,7 +652,7 @@ extern "C" long onRecvMsg(WPARAM wParam, LPARAM lParam) {
 		while (ptrMessage) {
 			pccsd->wParam = ptrMessage->wParam;
 			pccsd->lParam = (LPARAM)ptrMessage->Message;
-#ifdef _DEBUG
+#if defined(_DEBUG) || defined(NETLIB_LOG)
 			Sent_NetLog("Sent message from queue: %s",ptrMessage->Message);
 #endif
 			LPSTR RsMsg = encodeMsg(ptr,(LPARAM)pccsd);
@@ -712,17 +712,17 @@ extern "C" long onSendMsg(WPARAM wParam, LPARAM lParam) {
 //	if( hMetaContact ) {
 //		ptr = getUinKey(hMetaContact);
 //	}
-#ifdef _DEBUG
+#if defined(_DEBUG) || defined(NETLIB_LOG)
 	Sent_NetLog("onSend: %s",(LPSTR)pccsd->lParam);
 #endif
 	// pass unhandled messages
 	if (!ptr ||
 		ssig==SiG_GAME || ssig==SiG_PGPM || ssig==SiG_SECU || ssig==SiG_SECP ||
 		isChatRoom(pccsd->hContact) ||
-/*		(ssig!=-1 && hMetaContact && (pccsd->wParam & PREF_METANODB)) || */
+/*		(ssig!=SiG_NONE && hMetaContact && (pccsd->wParam & PREF_METANODB)) || */
 		stat==-1 ||
-		(ssig==-1 && ptr->sendQueue) ||
-		(ssig==-1 && ptr->status==0) // Native/Disabled 
+		(ssig==SiG_NONE && ptr->sendQueue) ||
+		(ssig==SiG_NONE && ptr->status==0) // Native/Disabled 
 		)
 		return CallService(MS_PROTO_CHAINSEND, wParam, lParam);
 
@@ -809,7 +809,7 @@ extern "C" long onSendMsg(WPARAM wParam, LPARAM lParam) {
 			return returnNoError(pccsd->hContact);
 		}
 		// просто сообщение (без тэгов, нет контекста и работают AIP & NOL)
-		if( ssig==-1 && isSecureIM(ptr->hContact) ) {
+		if( ssig==SiG_NONE && isSecureIM(ptr->hContact) ) {
 			// добавим его в очередь
 		    addMsg2Queue(ptr, pccsd->wParam, (LPSTR)pccsd->lParam);
 			// запускаем процесс установки соединения
@@ -867,7 +867,7 @@ extern "C" long onSendMsg(WPARAM wParam, LPARAM lParam) {
 		}
 
 		if (!bSOM) {
-		    if(ssig!=-1) {
+		    if(ssig!=SiG_NONE) {
 				return returnNoError(pccsd->hContact);
 		    }
 			// exit and send unencrypted message
@@ -901,7 +901,7 @@ extern "C" long onSendMsg(WPARAM wParam, LPARAM lParam) {
 				int res=msgbox1(0,"User is offline now, Do you want to send your message ?\nIt will be unencrypted !","Can't Send Encrypted Message !",MB_YESNO);
 				if (res==IDNO) return 1;
 			}*/
-		    if(ssig!=-1) {
+		    if(ssig!=SiG_NONE) {
 				return returnNoError(pccsd->hContact);
 		    }
 			// exit and send unencrypted message
@@ -979,14 +979,14 @@ extern "C" long onSendMsg(WPARAM wParam, LPARAM lParam) {
 	else {
 	  	// send KeyA if init || always_try || waitkey || always_if_possible
   		if (ssig==SiG_INIT || (stid==STATUS_ALWAYSTRY && isClientMiranda(ptr->hContact)) || isSecureIM(ptr->hContact) || ptr->waitForExchange) {
-			if (ssig==-1) {
+			if (ssig==SiG_NONE) {
 				addMsg2Queue(ptr, pccsd->wParam, (LPSTR)pccsd->lParam);
 			}
 			if (!ptr->waitForExchange) {
 				// init || always_try || always_if_possible
 				LPSTR keyToSend = InitKeyA(ptr,0);	// calculate public and private key & fill KeyA
 
-#ifdef _DEBUG
+#if defined(_DEBUG) || defined(NETLIB_LOG)
 				Sent_NetLog("Sending KEY3: %s", keyToSend);
 #endif
 

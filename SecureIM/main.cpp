@@ -346,7 +346,7 @@ HANDLE AddSubItem(HANDLE rootid,LPCSTR name,int pos,int poppos,LPCSTR service,WP
 
 
 int onModulesLoaded(WPARAM wParam,LPARAM lParam) {
-#ifdef _DEBUG
+#if defined(_DEBUG) || defined(NETLIB_LOG)
     InitNetlib();
 #endif
     bMetaContacts = ServiceExists(MS_MC_GETMETACONTACT)!=0;
@@ -586,7 +586,7 @@ int onSystemOKToExit(WPARAM wParam,LPARAM lParam) {
 	DestroyHookableEvent(g_hEvent[1]);
 	freeContactList();
 	free_rtfconv();
-#ifdef _DEBUG
+#if defined(_DEBUG) || defined(NETLIB_LOG)
 	DeinitNetlib();
 #endif
 	return 0;

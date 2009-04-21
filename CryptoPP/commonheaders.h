@@ -2,6 +2,7 @@
 
 #define STRICT
 #define WIN32_LEAN_AND_MEAN
+//#define NETLIB_LOG
 
 #if _MSC_VER > 1000
 #include <windows.h>
@@ -13,8 +14,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-//#define NETLIB_LOG
 
 //#pragma comment(linker,"/filealign:16")
 //#pragma comment(linker,"/align:16")

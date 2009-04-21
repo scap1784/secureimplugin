@@ -2,6 +2,7 @@
 
 #define STRICT
 #define WIN32_LEAN_AND_MEAN
+#define NETLIB_LOG
 
 #ifdef _MSC_VER
 #if _MSC_VER >= 1300 && !defined _DEBUG
@@ -151,7 +152,8 @@ int onSystemOKToExit(WPARAM,LPARAM);
 char *simDBGetString(HANDLE,const char *,const char *);
 char *simDBGetStringDecode(HANDLE,const char *,const char *);
 int simDBWriteStringEncode(HANDLE,const char *,const char *,const char *);
-#ifdef _DEBUG
+
+#if defined(_DEBUG) || defined(NETLIB_LOG)
 extern HANDLE hNetlibUser;
 void InitNetlib();
 void DeinitNetlib();
