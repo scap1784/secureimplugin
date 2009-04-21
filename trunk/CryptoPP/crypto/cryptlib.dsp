@@ -43,7 +43,7 @@ RSC=rc.exe
 # PROP Intermediate_Dir "DLL_Import_Release"
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /G5 /Gz /MT /W3 /GX /Zi /O2 /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "USE_PRECOMPILED_HEADERS" /Yu"pch.h" /FD /c
-# ADD CPP /nologo /G5 /Gz /MT /W3 /GX /Zi /O2 /Ob2 /D "NDEBUG" /D "_WINDOWS" /D "USE_PRECOMPILED_HEADERS" /D "WIN32" /D "CRYPTOPP_IMPORTS" /Yu"pch.h" /FD /Zm400 /c
+# ADD CPP /nologo /G5 /Gz /MT /W3 /GR /GX /Zi /O2 /Ob2 /D "NDEBUG" /D "_WINDOWS" /D "USE_PRECOMPILED_HEADERS" /D "WIN32" /D "CRYPTOPP_IMPORTS" /Yu"pch.h" /FD /Zm400 /c
 # ADD BASE RSC /l 0x409
 # ADD RSC /l 0x409
 BSC32=bscmake.exe
@@ -66,7 +66,7 @@ LIB32=link.exe -lib
 # PROP Intermediate_Dir "DLL_Import_Debug"
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MTd /W3 /GX /ZI /Od /D "_DEBUG" /D "WIN32" /D "_WINDOWS" /D "USE_PRECOMPILED_HEADERS" /Yu"pch.h" /FD /c
-# ADD CPP /nologo /G5 /Gz /MTd /W3 /GX /Zi /Oi /D "_DEBUG" /D "_WINDOWS" /D "USE_PRECOMPILED_HEADERS" /D "WIN32" /D "CRYPTOPP_IMPORTS" /Yu"pch.h" /FD /Zm400 /c
+# ADD CPP /nologo /G5 /Gz /MTd /W3 /GR /GX /Zi /Oi /D "_DEBUG" /D "_WINDOWS" /D "USE_PRECOMPILED_HEADERS" /D "WIN32" /D "CRYPTOPP_IMPORTS" /Yu"pch.h" /FD /Zm400 /c
 # ADD BASE RSC /l 0x409
 # ADD RSC /l 0x409
 BSC32=bscmake.exe
@@ -89,7 +89,7 @@ LIB32=link.exe -lib
 # PROP Intermediate_Dir "Release"
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /YX /FD /c
-# ADD CPP /nologo /G6 /MD /W3 /GX /Zi /O1 /Ob2 /D "NDEBUG" /D "_WINDOWS" /D "USE_PRECOMPILED_HEADERS" /D "WIN32" /Yu"pch.h" /FD /Zm400 /c
+# ADD CPP /nologo /G6 /MD /W3 /GR- /GX /Zi /O1 /Ob2 /D "NDEBUG" /D "_WINDOWS" /D "USE_PRECOMPILED_HEADERS" /D "WIN32" /Yu"pch.h" /FD /Zm400 /c
 # ADD BASE RSC /l 0x409
 # ADD RSC /l 0x409
 BSC32=bscmake.exe
@@ -112,7 +112,7 @@ LIB32=link.exe -lib
 # PROP Intermediate_Dir "Debug"
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /GX /Z7 /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /YX /FD /c
-# ADD CPP /nologo /G5 /MDd /W3 /GX /Zi /Oi /D "_DEBUG" /D "_WINDOWS" /D "USE_PRECOMPILED_HEADERS" /D "WIN32" /Yu"pch.h" /FD /Zm400 /c
+# ADD CPP /nologo /MDd /W3 /GR /GX /Zi /Oi /D "_DEBUG" /D "_WINDOWS" /D "USE_PRECOMPILED_HEADERS" /D "WIN32" /Yu"pch.h" /FD /Zm400 /c
 # ADD BASE RSC /l 0x409
 # ADD RSC /l 0x409
 BSC32=bscmake.exe
@@ -210,6 +210,10 @@ SOURCE=.\asn.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\authenc.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\base32.cpp
 # End Source File
 # Begin Source File
@@ -250,7 +254,15 @@ SOURCE=.\cbcmac.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\ccm.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\channels.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\cmac.cpp
 # End Source File
 # Begin Source File
 
@@ -295,6 +307,10 @@ SOURCE=.\dsa.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\eax.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\ec2n.cpp
 # End Source File
 # Begin Source File
@@ -336,6 +352,10 @@ SOURCE=.\fips140.cpp
 # Begin Source File
 
 SOURCE=.\fipstest.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\gcm.cpp
 # End Source File
 # Begin Source File
 
@@ -388,6 +408,7 @@ SOURCE=.\integer.cpp
 # Begin Source File
 
 SOURCE=.\iterhash.cpp
+# SUBTRACT CPP /YX /Yc /Yu
 # End Source File
 # Begin Source File
 
@@ -529,6 +550,10 @@ SOURCE=.\salsa.cpp
 # Begin Source File
 
 SOURCE=.\seal.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\seed.cpp
 # End Source File
 # Begin Source File
 
@@ -684,6 +709,10 @@ SOURCE=.\asn.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\authenc.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\base32.h
 # End Source File
 # Begin Source File
@@ -716,7 +745,15 @@ SOURCE=.\cbcmac.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\ccm.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\channels.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\cmac.h
 # End Source File
 # Begin Source File
 
@@ -757,6 +794,10 @@ SOURCE=.\dsa.h
 # Begin Source File
 
 SOURCE=.\dword.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\eax.h
 # End Source File
 # Begin Source File
 
@@ -805,6 +846,10 @@ SOURCE=.\fips140.h
 # Begin Source File
 
 SOURCE=.\fltrimpl.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\gcm.h
 # End Source File
 # Begin Source File
 
@@ -1025,6 +1070,10 @@ SOURCE=.\secblock.h
 # Begin Source File
 
 SOURCE=.\seckey.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\seed.h
 # End Source File
 # Begin Source File
 
