@@ -399,6 +399,8 @@ extern "C" long onRecvMsg(WPARAM wParam, LPARAM lParam) {
 	case SiG_SECU: { // new secured msg, pass to rsa_recv
 		if(ptr->mode==0) {
 		    ptr->mode = 3;
+		    cpp_delete_context(ptr->cntx);
+		    ptr->cntx = 0;
 		    ptr->keyLoaded = 0;
 		    DBWriteContactSettingByte(ptr->hContact, szModuleName, "mode", ptr->mode);
 		}
@@ -523,6 +525,8 @@ extern "C" long onRecvMsg(WPARAM wParam, LPARAM lParam) {
 	case SiG_KEYB: { // keyB message
 		if( ptr->mode == 3 ) {
 		    ptr->mode = 0;
+		    cpp_delete_context(ptr->cntx);
+		    ptr->cntx = 0;
 		    ptr->keyLoaded = 0;
 		    DBWriteContactSettingByte(ptr->hContact, szModuleName, "mode", ptr->mode);
 		}
@@ -787,31 +791,45 @@ extern "C" long onSendMsg(WPARAM wParam, LPARAM lParam) {
 			showPopUpSM(ptr->hContact);
 			return returnNoError(pccsd->hContact);
 		}
-		if (ssig==SiG_INIT) {
-        		if(!ptr->cntx) {
-        			ptr->cntx = cpp_create_context(MODE_RSA);
-        			ptr->keyLoaded = 0;
-        		}
-			loadRSAkey(ptr);
-        		exp->rsa_connect(ptr->cntx);
-        		showPopUpKS(pccsd->hContact);
-			return returnNoError(pccsd->hContact);
-        	}
+		// разорвать соединение
 		if (ssig==SiG_DEIN) {
-        		if(ptr->cntx) {
+			ptr->waitForExchange=false;
+			if(ptr->cntx) {
 				exp->rsa_disconnect(ptr->cntx);
 				deleteRSAcntx(ptr);
 			}
 			return returnNoError(pccsd->hContact);
 		}
-    		if( ptr->cntx && exp->rsa_get_state(ptr->cntx)==7 ) { // established
+		// соединение установлено
+		if( ptr->cntx && exp->rsa_get_state(ptr->cntx)==7 ) {
 			LPSTR szUtfMsg = miranda_to_utf8((LPCSTR)pccsd->lParam,pccsd->wParam);
 			exp->rsa_send(ptr->cntx,szUtfMsg);
 			mir_free(szUtfMsg);
 			showPopUpSM(ptr->hContact);
 			return returnNoError(pccsd->hContact);
-    		}
-    		// просто шлем незашифрованное
+		}
+		// просто сообщение (без тэгов, нет контекста и работают AIP & NOL)
+		if( ssig==-1 && isSecureIM(ptr->hContact) ) {
+			// добавим его в очередь
+		    addMsg2Queue(ptr, pccsd->wParam, (LPSTR)pccsd->lParam);
+			// запускаем процесс установки соединения
+		    ssig=SiG_INIT;
+			// запускаем трэд ожидания и досылки
+		    if (!ptr->waitForExchange) waitForExchange(ptr);
+		}
+		// установить соединение
+		if (ssig==SiG_INIT) {
+			if(!ptr->cntx) {
+				ptr->cntx = cpp_create_context(MODE_RSA);
+				ptr->keyLoaded = 0;
+			}
+			loadRSAkey(ptr);
+			exp->rsa_connect(ptr->cntx);
+			showPopUpKS(pccsd->hContact);
+			ShowStatusIconNotify(pccsd->hContact);
+			return returnNoError(pccsd->hContact);
+		}
+		// просто шлем незашифрованное (не знаю даже когда такое случится)
 		return CallService(MS_PROTO_CHAINSEND, wParam, lParam);
 	}
 
