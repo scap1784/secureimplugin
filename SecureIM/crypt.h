@@ -129,6 +129,7 @@ void showPopUpEC(HANDLE);
 void showPopUpDCmsg(HANDLE,LPCSTR);
 void showPopUpDC(HANDLE);
 void showPopUpKS(HANDLE);
+void showPopUpKRmsg(HANDLE,LPCSTR);
 void showPopUpKR(HANDLE);
 void showPopUpSM(HANDLE);
 void showPopUpRM(HANDLE);

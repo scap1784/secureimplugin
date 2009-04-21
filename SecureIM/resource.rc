@@ -61,6 +61,8 @@ BEGIN
                     BS_AUTOCHECKBOX | WS_TABSTOP,7,202,145,10
     CONTROL         "Not secured for NotOnList",IDC_NOL,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,7,212,145,10
+    CONTROL         "Auto accept RSA key (NOT SECURED)",IDC_AAK,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,156,142,145,10
     GROUPBOX        "Contact List Icon slot",IDC_STATIC,156,152,144,25
     COMBOBOX        IDC_ADVICON,160,162,78,81,CBS_DROPDOWNLIST | WS_VSCROLL | 
                     WS_TABSTOP,WS_EX_CLIENTEDGE

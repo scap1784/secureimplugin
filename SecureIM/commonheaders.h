@@ -140,7 +140,7 @@ extern int iBmpDepth;
 extern BOOL bCoreUnicode, bMetaContacts, bPopupExists, bPopupUnicode;
 extern BOOL bPGPloaded, bPGPkeyrings, bUseKeyrings, bPGPprivkey;
 extern BOOL bGPGloaded, bGPGkeyrings, bSavePass;
-extern BOOL bSFT, bSOM, bASI, bMCD, bSCM, bDGP, bAIP, bNOL;
+extern BOOL bSFT, bSOM, bASI, bMCD, bSCM, bDGP, bAIP, bNOL, bAAK;
 extern BYTE bADV, bPGP, bGPG;
 extern DWORD iCoreVersion;
 extern CRITICAL_SECTION localQueueMutex;

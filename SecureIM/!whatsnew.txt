@@ -1,8 +1,10 @@
 
-Verison 1.0.11.2 [20-04-2009]
+Verison 1.0.11.2 [21-04-2009]
 
 [+] option "Not secured for NotOnList"
-[*] Native: if other side send "disabled", then this side set to "disabled"
+[*] Native: if other side set "disabled", then this side set to "disabled"
+[+] auto switch mode to RSA/AES on Accept Key
+[+] auto accept RSA key
 
 
 Verison 1.0.11.1 [20-04-2009]
