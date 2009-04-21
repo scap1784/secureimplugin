@@ -1,0 +1,469 @@
+<html>
+<body>
+<pre>
+<h1>Build Log</h1>
+<h3>
+--------------------Configuration: cryptlib - Win32 Release--------------------
+</h3>
+<h3>Command Lines</h3>
+Creating temporary file "C:\WINDOWS\Temp\RSP409.bat" with contents
+[
+@echo off
+if not exist adhoc.cpp copy ".\adhoc.cpp.proto" adhoc.cpp
+echo: >> adhoc.cpp.copied
+]
+Creating command line "C:\WINDOWS\Temp\RSP409.bat"
+Creating temporary file "C:\WINDOWS\Temp\RSP40A.tmp" with contents
+[
+/nologo /G5 /MD /W3 /GR /GX /Zi /O2 /Ob2 /D "NDEBUG" /D "_WINDOWS" /D "USE_PRECOMPILED_HEADERS" /D "WIN32" /Fp"Release/cryptlib.pch" /Yu"pch.h" /Fo"Release/" /Fd"Release/" /FD /Zm400 /c 
+"F:\backup!!!\Source\CryptoPP\src\crypto\3way.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\adler32.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\algebra.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\algparam.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\arc4.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\asn.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\authenc.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\base32.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\base64.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\basecode.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\bfinit.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\blowfish.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\blumshub.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\camellia.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\cast.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\casts.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\cbcmac.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\ccm.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\channels.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\cmac.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\cpu.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\crc.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\cryptlib.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\default.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\des.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\dessp.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\dh.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\dh2.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\dsa.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\eax.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\ec2n.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\eccrypto.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\ecp.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\elgamal.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\emsa2.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\eprecomp.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\esign.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\files.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\filters.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\fips140.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\fipstest.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\gcm.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\gf256.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\gf2_32.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\gf2n.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\gfpcrypt.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\gost.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\gzip.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\hex.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\hmac.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\hrtimer.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\ida.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\idea.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\integer.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\luc.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\mars.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\marss.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\md2.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\md4.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\md5.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\misc.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\modes.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\mqueue.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\mqv.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\nbtheory.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\network.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\oaep.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\osrng.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\panama.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\pkcspad.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\polynomi.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\pssr.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\pubkey.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\queue.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\rabin.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\randpool.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\rc2.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\rc5.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\rc6.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\rdtables.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\rijndael.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\ripemd.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\rng.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\rsa.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\rw.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\safer.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\salsa.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\seal.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\seed.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\serpent.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\sha.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\shacal2.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\shark.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\sharkbox.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\simple.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\skipjack.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\socketft.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\sosemanuk.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\square.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\squaretb.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\strciphr.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\tea.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\tftables.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\tiger.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\tigertab.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\trdlocal.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\ttmac.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\twofish.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\vmac.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\wait.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\wake.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\whrlpool.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\winpipes.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\xtr.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\xtrcrypt.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\zdeflate.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\zinflate.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\zlib.cpp"
+]
+Creating command line "cl.exe @C:\WINDOWS\Temp\RSP40A.tmp" 
+Creating temporary file "C:\WINDOWS\Temp\RSP40B.tmp" with contents
+[
+/nologo /G5 /MD /W3 /GR /GX /Zi /O2 /Ob2 /D "NDEBUG" /D "_WINDOWS" /D "USE_PRECOMPILED_HEADERS" /D "WIN32" /Fo"Release/" /Fd"Release/" /FD /Zm400 /c 
+"F:\backup!!!\Source\CryptoPP\src\crypto\dll.cpp"
+"F:\backup!!!\Source\CryptoPP\src\crypto\iterhash.cpp"
+]
+Creating command line "cl.exe @C:\WINDOWS\Temp\RSP40B.tmp" 
+Creating temporary file "C:\WINDOWS\Temp\RSP40C.tmp" with contents
+[
+/nologo /G5 /MD /W3 /GR /GX /Zi /O2 /Ob2 /D "NDEBUG" /D "_WINDOWS" /D "USE_PRECOMPILED_HEADERS" /D "WIN32" /Fp"Release/cryptlib.pch" /Yc"pch.h" /Fo"Release/" /Fd"Release/" /FD /Zm400 /c 
+"F:\backup!!!\Source\CryptoPP\src\crypto\pch.cpp"
+]
+Creating command line "cl.exe @C:\WINDOWS\Temp\RSP40C.tmp" 
+Performing Custom Build Step on .\adhoc.cpp.proto
+Creating temporary file "C:\WINDOWS\Temp\RSP40D.tmp" with contents
+[
+/nologo /out:"Release\cryptlib.lib" 
+".\Release\3way.obj"
+".\Release\adler32.obj"
+".\Release\algebra.obj"
+".\Release\algparam.obj"
+".\Release\arc4.obj"
+".\Release\asn.obj"
+".\Release\authenc.obj"
+".\Release\base32.obj"
+".\Release\base64.obj"
+".\Release\basecode.obj"
+".\Release\bfinit.obj"
+".\Release\blowfish.obj"
+".\Release\blumshub.obj"
+".\Release\camellia.obj"
+".\Release\cast.obj"
+".\Release\casts.obj"
+".\Release\cbcmac.obj"
+".\Release\ccm.obj"
+".\Release\channels.obj"
+".\Release\cmac.obj"
+".\Release\cpu.obj"
+".\Release\crc.obj"
+".\Release\cryptlib.obj"
+".\Release\default.obj"
+".\Release\des.obj"
+".\Release\dessp.obj"
+".\Release\dh.obj"
+".\Release\dh2.obj"
+".\Release\dll.obj"
+".\Release\dsa.obj"
+".\Release\eax.obj"
+".\Release\ec2n.obj"
+".\Release\eccrypto.obj"
+".\Release\ecp.obj"
+".\Release\elgamal.obj"
+".\Release\emsa2.obj"
+".\Release\eprecomp.obj"
+".\Release\esign.obj"
+".\Release\files.obj"
+".\Release\filters.obj"
+".\Release\fips140.obj"
+".\Release\fipstest.obj"
+".\Release\gcm.obj"
+".\Release\gf256.obj"
+".\Release\gf2_32.obj"
+".\Release\gf2n.obj"
+".\Release\gfpcrypt.obj"
+".\Release\gost.obj"
+".\Release\gzip.obj"
+".\Release\hex.obj"
+".\Release\hmac.obj"
+".\Release\hrtimer.obj"
+".\Release\ida.obj"
+".\Release\idea.obj"
+".\Release\integer.obj"
+".\Release\iterhash.obj"
+".\Release\luc.obj"
+".\Release\mars.obj"
+".\Release\marss.obj"
+".\Release\md2.obj"
+".\Release\md4.obj"
+".\Release\md5.obj"
+".\Release\misc.obj"
+".\Release\modes.obj"
+".\Release\mqueue.obj"
+".\Release\mqv.obj"
+".\Release\nbtheory.obj"
+".\Release\network.obj"
+".\Release\oaep.obj"
+".\Release\osrng.obj"
+".\Release\panama.obj"
+".\Release\pch.obj"
+".\Release\pkcspad.obj"
+".\Release\polynomi.obj"
+".\Release\pssr.obj"
+".\Release\pubkey.obj"
+".\Release\queue.obj"
+".\Release\rabin.obj"
+".\Release\randpool.obj"
+".\Release\rc2.obj"
+".\Release\rc5.obj"
+".\Release\rc6.obj"
+".\Release\rdtables.obj"
+".\Release\rijndael.obj"
+".\Release\ripemd.obj"
+".\Release\rng.obj"
+".\Release\rsa.obj"
+".\Release\rw.obj"
+".\Release\safer.obj"
+".\Release\salsa.obj"
+".\Release\seal.obj"
+".\Release\seed.obj"
+".\Release\serpent.obj"
+".\Release\sha.obj"
+".\Release\shacal2.obj"
+".\Release\shark.obj"
+".\Release\sharkbox.obj"
+".\Release\simple.obj"
+".\Release\skipjack.obj"
+".\Release\socketft.obj"
+".\Release\sosemanuk.obj"
+".\Release\square.obj"
+".\Release\squaretb.obj"
+".\Release\strciphr.obj"
+".\Release\tea.obj"
+".\Release\tftables.obj"
+".\Release\tiger.obj"
+".\Release\tigertab.obj"
+".\Release\trdlocal.obj"
+".\Release\ttmac.obj"
+".\Release\twofish.obj"
+".\Release\vmac.obj"
+".\Release\wait.obj"
+".\Release\wake.obj"
+".\Release\whrlpool.obj"
+".\Release\winpipes.obj"
+".\Release\xtr.obj"
+".\Release\xtrcrypt.obj"
+".\Release\zdeflate.obj"
+".\Release\zinflate.obj"
+".\Release\zlib.obj"
+]
+Creating command line "link.exe -lib @C:\WINDOWS\Temp\RSP40D.tmp"
+<h3>Output Window</h3>
+Compiling...
+pch.cpp
+Compiling...
+3way.cpp
+adler32.cpp
+algebra.cpp
+algparam.cpp
+arc4.cpp
+asn.cpp
+authenc.cpp
+base32.cpp
+base64.cpp
+basecode.cpp
+bfinit.cpp
+blowfish.cpp
+blumshub.cpp
+camellia.cpp
+cast.cpp
+casts.cpp
+cbcmac.cpp
+ccm.cpp
+channels.cpp
+cmac.cpp
+Generating Code...
+warning C4786: 'CryptoPP::AlgorithmImpl<CryptoPP::SimpleKeyingInterfaceImpl<CryptoPP::TwoBases<CryptoPP::BlockCipher,CryptoPP::CAST128_Info>,CryptoPP::TwoBases<CryptoPP::BlockCipher,CryptoPP::CAST128_Info> >,CryptoPP::SimpleKeyingInterfaceImpl<CryptoPP::TwoBases<CryptoPP::BlockCipher,CryptoPP::CAST128_Info>,CryptoPP::TwoBases<CryptoPP::BlockCipher,CryptoPP::CAST128_Info> > >' : identifier was truncated to '255' characters in the debug information
+warning C4786: 'CryptoPP::AlgorithmImpl<CryptoPP::SimpleKeyingInterfaceImpl<CryptoPP::TwoBases<CryptoPP::BlockCipher,CryptoPP::CAST256_Info>,CryptoPP::TwoBases<CryptoPP::BlockCipher,CryptoPP::CAST256_Info> >,CryptoPP::SimpleKeyingInterfaceImpl<CryptoPP::TwoBases<CryptoPP::BlockCipher,CryptoPP::CAST256_Info>,CryptoPP::TwoBases<CryptoPP::BlockCipher,CryptoPP::CAST256_Info> > >' : identifier was truncated to '255' characters in the debug information
+warning C4786: 'CryptoPP::AlgorithmImpl<CryptoPP::SimpleKeyingInterfaceImpl<CryptoPP::TwoBases<CryptoPP::BlockCipher,CryptoPP::Blowfish_Info>,CryptoPP::TwoBases<CryptoPP::BlockCipher,CryptoPP::Blowfish_Info> >,CryptoPP::SimpleKeyingInterfaceImpl<CryptoPP::TwoBases<CryptoPP::BlockCipher,CryptoPP::Blowfish_Info>,CryptoPP::TwoBases<CryptoPP::BlockCipher,CryptoPP::Blowfish_Info> > >' : identifier was truncated to '255' characters in the debug information
+Compiling...
+cpu.cpp
+crc.cpp
+cryptlib.cpp
+default.cpp
+des.cpp
+dessp.cpp
+dh.cpp
+dh2.cpp
+dsa.cpp
+eax.cpp
+ec2n.cpp
+eccrypto.cpp
+ecp.cpp
+elgamal.cpp
+emsa2.cpp
+eprecomp.cpp
+esign.cpp
+files.cpp
+filters.cpp
+fips140.cpp
+Generating Code...
+warning C4786: 'CryptoPP::PK_FinalTemplate<CryptoPP::DL_VerifierImpl<CryptoPP::DL_SignatureSchemeOptions<CryptoPP::DL_SS<CryptoPP::DL_Keys_ECDSA<CryptoPP::ECP>,CryptoPP::DL_Algorithm_ECDSA<CryptoPP::ECP>,CryptoPP::DL_SignatureMessageEncodingMethod_DSA,CryptoPP::SHA1,int>,CryptoPP::DL_Keys_ECDSA<CryptoPP::ECP>,CryptoPP::DL_Algorithm_ECDSA<CryptoPP::ECP>,CryptoPP::DL_SignatureMessageEncodingMethod_DSA,CryptoPP::SHA1> > >' : identifier was truncated to '255' characters in the debug information
+warning C4786: 'CryptoPP::DL_VerifierImpl<CryptoPP::DL_SignatureSchemeOptions<CryptoPP::DL_SS<CryptoPP::DL_Keys_ECDSA<CryptoPP::ECP>,CryptoPP::DL_Algorithm_ECDSA<CryptoPP::ECP>,CryptoPP::DL_SignatureMessageEncodingMethod_DSA,CryptoPP::SHA1,int>,CryptoPP::DL_Keys_ECDSA<CryptoPP::ECP>,CryptoPP::DL_Algorithm_ECDSA<CryptoPP::ECP>,CryptoPP::DL_SignatureMessageEncodingMethod_DSA,CryptoPP::SHA1> >' : identifier was truncated to '255' characters in the debug information
+warning C4786: 'CryptoPP::PK_FinalTemplate<CryptoPP::DL_SignerImpl<CryptoPP::DL_SignatureSchemeOptions<CryptoPP::DL_SS<CryptoPP::DL_Keys_ECDSA<CryptoPP::ECP>,CryptoPP::DL_Algorithm_ECDSA<CryptoPP::ECP>,CryptoPP::DL_SignatureMessageEncodingMethod_DSA,CryptoPP::SHA1,int>,CryptoPP::DL_Keys_ECDSA<CryptoPP::ECP>,CryptoPP::DL_Algorithm_ECDSA<CryptoPP::ECP>,CryptoPP::DL_SignatureMessageEncodingMethod_DSA,CryptoPP::SHA1> > >' : identifier was truncated to '255' characters in the debug information
+warning C4786: 'CryptoPP::DL_SignerImpl<CryptoPP::DL_SignatureSchemeOptions<CryptoPP::DL_SS<CryptoPP::DL_Keys_ECDSA<CryptoPP::ECP>,CryptoPP::DL_Algorithm_ECDSA<CryptoPP::ECP>,CryptoPP::DL_SignatureMessageEncodingMethod_DSA,CryptoPP::SHA1,int>,CryptoPP::DL_Keys_ECDSA<CryptoPP::ECP>,CryptoPP::DL_Algorithm_ECDSA<CryptoPP::ECP>,CryptoPP::DL_SignatureMessageEncodingMethod_DSA,CryptoPP::SHA1> >' : identifier was truncated to '255' characters in the debug information
+warning C4786: 'CryptoPP::PK_FinalTemplate<CryptoPP::DL_VerifierImpl<CryptoPP::DL_SignatureSchemeOptions<CryptoPP::DL_SS<CryptoPP::DL_Keys_ECDSA<CryptoPP::EC2N>,CryptoPP::DL_Algorithm_ECDSA<CryptoPP::EC2N>,CryptoPP::DL_SignatureMessageEncodingMethod_DSA,CryptoPP::SHA1,int>,CryptoPP::DL_Keys_ECDSA<CryptoPP::EC2N>,CryptoPP::DL_Algorithm_ECDSA<CryptoPP::EC2N>,CryptoPP::DL_SignatureMessageEncodingMethod_DSA,CryptoPP::SHA1> > >' : identifier was truncated to '255' characters in the debug information
+warning C4786: 'CryptoPP::DL_VerifierImpl<CryptoPP::DL_SignatureSchemeOptions<CryptoPP::DL_SS<CryptoPP::DL_Keys_ECDSA<CryptoPP::EC2N>,CryptoPP::DL_Algorithm_ECDSA<CryptoPP::EC2N>,CryptoPP::DL_SignatureMessageEncodingMethod_DSA,CryptoPP::SHA1,int>,CryptoPP::DL_Keys_ECDSA<CryptoPP::EC2N>,CryptoPP::DL_Algorithm_ECDSA<CryptoPP::EC2N>,CryptoPP::DL_SignatureMessageEncodingMethod_DSA,CryptoPP::SHA1> >' : identifier was truncated to '255' characters in the debug information
+warning C4786: 'CryptoPP::PK_FinalTemplate<CryptoPP::DL_SignerImpl<CryptoPP::DL_SignatureSchemeOptions<CryptoPP::DL_SS<CryptoPP::DL_Keys_ECDSA<CryptoPP::EC2N>,CryptoPP::DL_Algorithm_ECDSA<CryptoPP::EC2N>,CryptoPP::DL_SignatureMessageEncodingMethod_DSA,CryptoPP::SHA1,int>,CryptoPP::DL_Keys_ECDSA<CryptoPP::EC2N>,CryptoPP::DL_Algorithm_ECDSA<CryptoPP::EC2N>,CryptoPP::DL_SignatureMessageEncodingMethod_DSA,CryptoPP::SHA1> > >' : identifier was truncated to '255' characters in the debug information
+warning C4786: 'CryptoPP::DL_SignerImpl<CryptoPP::DL_SignatureSchemeOptions<CryptoPP::DL_SS<CryptoPP::DL_Keys_ECDSA<CryptoPP::EC2N>,CryptoPP::DL_Algorithm_ECDSA<CryptoPP::EC2N>,CryptoPP::DL_SignatureMessageEncodingMethod_DSA,CryptoPP::SHA1,int>,CryptoPP::DL_Keys_ECDSA<CryptoPP::EC2N>,CryptoPP::DL_Algorithm_ECDSA<CryptoPP::EC2N>,CryptoPP::DL_SignatureMessageEncodingMethod_DSA,CryptoPP::SHA1> >' : identifier was truncated to '255' characters in the debug information
+warning C4786: 'CryptoPP::DL_ObjectImpl<CryptoPP::DL_SignerBase<CryptoPP::Integer>,CryptoPP::DL_SignatureSchemeOptions<CryptoPP::DSA,CryptoPP::DL_Keys_DSA,CryptoPP::DL_Algorithm_GDSA<CryptoPP::Integer>,CryptoPP::DL_SignatureMessageEncodingMethod_DSA,CryptoPP::SHA1>,CryptoPP::DL_PrivateKey_WithSignaturePairwiseConsistencyTest<CryptoPP::DL_PrivateKey_GFP<CryptoPP::DL_GroupParameters_DSA>,CryptoPP::DSA> >' : identifier was truncated to '255' characters in the debug information
+warning C4786: 'CryptoPP::DL_ObjectImpl<CryptoPP::DL_VerifierBase<CryptoPP::Integer>,CryptoPP::DL_SignatureSchemeOptions<CryptoPP::DSA,CryptoPP::DL_Keys_DSA,CryptoPP::DL_Algorithm_GDSA<CryptoPP::Integer>,CryptoPP::DL_SignatureMessageEncodingMethod_DSA,CryptoPP::SHA1>,CryptoPP::DL_PublicKey_GFP<CryptoPP::DL_GroupParameters_DSA> >' : identifier was truncated to '255' characters in the debug information
+warning C4786: 'CryptoPP::DL_ObjectImpl<CryptoPP::DL_SignerBase<CryptoPP::ECPPoint>,CryptoPP::DL_SignatureSchemeOptions<CryptoPP::DL_SS<CryptoPP::DL_Keys_ECDSA<CryptoPP::ECP>,CryptoPP::DL_Algorithm_ECDSA<CryptoPP::ECP>,CryptoPP::DL_SignatureMessageEncodingMethod_DSA,CryptoPP::SHA1,int>,CryptoPP::DL_Keys_ECDSA<CryptoPP::ECP>,CryptoPP::DL_Algorithm_ECDSA<CryptoPP::ECP>,CryptoPP::DL_SignatureMessageEncodingMethod_DSA,CryptoPP::SHA1>,CryptoPP::DL_PrivateKey_WithSignaturePairwiseConsistencyTest<CryptoPP::DL_PrivateKey_EC<CryptoPP::ECP>,CryptoPP::ECDSA<CryptoPP::ECP,CryptoPP::SHA1> > >' : identifier was truncated to '255' characters in the debug information
+warning C4786: 'CryptoPP::DL_ObjectImpl<CryptoPP::DL_VerifierBase<CryptoPP::ECPPoint>,CryptoPP::DL_SignatureSchemeOptions<CryptoPP::DL_SS<CryptoPP::DL_Keys_ECDSA<CryptoPP::ECP>,CryptoPP::DL_Algorithm_ECDSA<CryptoPP::ECP>,CryptoPP::DL_SignatureMessageEncodingMethod_DSA,CryptoPP::SHA1,int>,CryptoPP::DL_Keys_ECDSA<CryptoPP::ECP>,CryptoPP::DL_Algorithm_ECDSA<CryptoPP::ECP>,CryptoPP::DL_SignatureMessageEncodingMethod_DSA,CryptoPP::SHA1>,CryptoPP::DL_PublicKey_EC<CryptoPP::ECP> >' : identifier was truncated to '255' characters in the debug information
+warning C4786: 'CryptoPP::DL_ObjectImpl<CryptoPP::DL_SignerBase<CryptoPP::EC2NPoint>,CryptoPP::DL_SignatureSchemeOptions<CryptoPP::DL_SS<CryptoPP::DL_Keys_ECDSA<CryptoPP::EC2N>,CryptoPP::DL_Algorithm_ECDSA<CryptoPP::EC2N>,CryptoPP::DL_SignatureMessageEncodingMethod_DSA,CryptoPP::SHA1,int>,CryptoPP::DL_Keys_ECDSA<CryptoPP::EC2N>,CryptoPP::DL_Algorithm_ECDSA<CryptoPP::EC2N>,CryptoPP::DL_SignatureMessageEncodingMethod_DSA,CryptoPP::SHA1>,CryptoPP::DL_PrivateKey_WithSignaturePairwiseConsistencyTest<CryptoPP::DL_PrivateKey_EC<CryptoPP::EC2N>,CryptoPP::ECDSA<CryptoPP::EC2N,CryptoPP::SHA1> > >' : identifier was truncated to '255' characters in the debug information
+warning C4786: 'CryptoPP::DL_ObjectImpl<CryptoPP::DL_VerifierBase<CryptoPP::EC2NPoint>,CryptoPP::DL_SignatureSchemeOptions<CryptoPP::DL_SS<CryptoPP::DL_Keys_ECDSA<CryptoPP::EC2N>,CryptoPP::DL_Algorithm_ECDSA<CryptoPP::EC2N>,CryptoPP::DL_SignatureMessageEncodingMethod_DSA,CryptoPP::SHA1,int>,CryptoPP::DL_Keys_ECDSA<CryptoPP::EC2N>,CryptoPP::DL_Algorithm_ECDSA<CryptoPP::EC2N>,CryptoPP::DL_SignatureMessageEncodingMethod_DSA,CryptoPP::SHA1>,CryptoPP::DL_PublicKey_EC<CryptoPP::EC2N> >' : identifier was truncated to '255' characters in the debug information
+warning C4786: 'CryptoPP::DL_ObjectImplBase<CryptoPP::DL_SignerBase<CryptoPP::Integer>,CryptoPP::DL_SignatureSchemeOptions<CryptoPP::DSA,CryptoPP::DL_Keys_DSA,CryptoPP::DL_Algorithm_GDSA<CryptoPP::Integer>,CryptoPP::DL_SignatureMessageEncodingMethod_DSA,CryptoPP::SHA1>,CryptoPP::DL_PrivateKey_WithSignaturePairwiseConsistencyTest<CryptoPP::DL_PrivateKey_GFP<CryptoPP::DL_GroupParameters_DSA>,CryptoPP::DSA> >' : identifier was truncated to '255' characters in the debug information
+warning C4786: 'CryptoPP::DL_ObjectImplBase<CryptoPP::DL_VerifierBase<CryptoPP::Integer>,CryptoPP::DL_SignatureSchemeOptions<CryptoPP::DSA,CryptoPP::DL_Keys_DSA,CryptoPP::DL_Algorithm_GDSA<CryptoPP::Integer>,CryptoPP::DL_SignatureMessageEncodingMethod_DSA,CryptoPP::SHA1>,CryptoPP::DL_PublicKey_GFP<CryptoPP::DL_GroupParameters_DSA> >' : identifier was truncated to '255' characters in the debug information
+warning C4786: 'CryptoPP::DL_ObjectImplBase<CryptoPP::DL_SignerBase<CryptoPP::ECPPoint>,CryptoPP::DL_SignatureSchemeOptions<CryptoPP::DL_SS<CryptoPP::DL_Keys_ECDSA<CryptoPP::ECP>,CryptoPP::DL_Algorithm_ECDSA<CryptoPP::ECP>,CryptoPP::DL_SignatureMessageEncodingMethod_DSA,CryptoPP::SHA1,int>,CryptoPP::DL_Keys_ECDSA<CryptoPP::ECP>,CryptoPP::DL_Algorithm_ECDSA<CryptoPP::ECP>,CryptoPP::DL_SignatureMessageEncodingMethod_DSA,CryptoPP::SHA1>,CryptoPP::DL_PrivateKey_WithSignaturePairwiseConsistencyTest<CryptoPP::DL_PrivateKey_EC<CryptoPP::ECP>,CryptoPP::ECDSA<CryptoPP::ECP,CryptoPP::SHA1> > >' : identifier was truncated to '255' characters in the debug information
+warning C4786: 'CryptoPP::DL_ObjectImplBase<CryptoPP::DL_VerifierBase<CryptoPP::ECPPoint>,CryptoPP::DL_SignatureSchemeOptions<CryptoPP::DL_SS<CryptoPP::DL_Keys_ECDSA<CryptoPP::ECP>,CryptoPP::DL_Algorithm_ECDSA<CryptoPP::ECP>,CryptoPP::DL_SignatureMessageEncodingMethod_DSA,CryptoPP::SHA1,int>,CryptoPP::DL_Keys_ECDSA<CryptoPP::ECP>,CryptoPP::DL_Algorithm_ECDSA<CryptoPP::ECP>,CryptoPP::DL_SignatureMessageEncodingMethod_DSA,CryptoPP::SHA1>,CryptoPP::DL_PublicKey_EC<CryptoPP::ECP> >' : identifier was truncated to '255' characters in the debug information
+warning C4786: 'CryptoPP::DL_ObjectImplBase<CryptoPP::DL_SignerBase<CryptoPP::EC2NPoint>,CryptoPP::DL_SignatureSchemeOptions<CryptoPP::DL_SS<CryptoPP::DL_Keys_ECDSA<CryptoPP::EC2N>,CryptoPP::DL_Algorithm_ECDSA<CryptoPP::EC2N>,CryptoPP::DL_SignatureMessageEncodingMethod_DSA,CryptoPP::SHA1,int>,CryptoPP::DL_Keys_ECDSA<CryptoPP::EC2N>,CryptoPP::DL_Algorithm_ECDSA<CryptoPP::EC2N>,CryptoPP::DL_SignatureMessageEncodingMethod_DSA,CryptoPP::SHA1>,CryptoPP::DL_PrivateKey_WithSignaturePairwiseConsistencyTest<CryptoPP::DL_PrivateKey_EC<CryptoPP::EC2N>,CryptoPP::ECDSA<CryptoPP::EC2N,CryptoPP::SHA1> > >' : identifier was truncated to '255' characters in the debug information
+warning C4786: 'CryptoPP::DL_ObjectImplBase<CryptoPP::DL_VerifierBase<CryptoPP::EC2NPoint>,CryptoPP::DL_SignatureSchemeOptions<CryptoPP::DL_SS<CryptoPP::DL_Keys_ECDSA<CryptoPP::EC2N>,CryptoPP::DL_Algorithm_ECDSA<CryptoPP::EC2N>,CryptoPP::DL_SignatureMessageEncodingMethod_DSA,CryptoPP::SHA1,int>,CryptoPP::DL_Keys_ECDSA<CryptoPP::EC2N>,CryptoPP::DL_Algorithm_ECDSA<CryptoPP::EC2N>,CryptoPP::DL_SignatureMessageEncodingMethod_DSA,CryptoPP::SHA1>,CryptoPP::DL_PublicKey_EC<CryptoPP::EC2N> >' : identifier was truncated to '255' characters in the debug information
+warning C4786: 'CryptoPP::DL_SignatureSchemeOptions<CryptoPP::DL_SS<CryptoPP::DL_Keys_ECDSA<CryptoPP::ECP>,CryptoPP::DL_Algorithm_ECDSA<CryptoPP::ECP>,CryptoPP::DL_SignatureMessageEncodingMethod_DSA,CryptoPP::SHA1,int>,CryptoPP::DL_Keys_ECDSA<CryptoPP::ECP>,CryptoPP::DL_Algorithm_ECDSA<CryptoPP::ECP>,CryptoPP::DL_SignatureMessageEncodingMethod_DSA,CryptoPP::SHA1>' : identifier was truncated to '255' characters in the debug information
+warning C4786: 'CryptoPP::DL_SignatureSchemeOptions<CryptoPP::DL_SS<CryptoPP::DL_Keys_ECDSA<CryptoPP::EC2N>,CryptoPP::DL_Algorithm_ECDSA<CryptoPP::EC2N>,CryptoPP::DL_SignatureMessageEncodingMethod_DSA,CryptoPP::SHA1,int>,CryptoPP::DL_Keys_ECDSA<CryptoPP::EC2N>,CryptoPP::DL_Algorithm_ECDSA<CryptoPP::EC2N>,CryptoPP::DL_SignatureMessageEncodingMethod_DSA,CryptoPP::SHA1>' : identifier was truncated to '255' characters in the debug information
+warning C4786: 'CryptoPP::Singleton<CryptoPP::DL_KeyAgreementAlgorithm_DH<CryptoPP::Integer,CryptoPP::EnumToType<enum CryptoPP::CofactorMultiplicationOption,0> >,CryptoPP::NewObject<CryptoPP::DL_KeyAgreementAlgorithm_DH<CryptoPP::Integer,CryptoPP::EnumToType<enum CryptoPP::CofactorMultiplicationOption,0> > >,0>' : identifier was truncated to '255' characters in the debug information
+Compiling...
+fipstest.cpp
+F:\backup!!!\Source\CryptoPP\src\crypto\osrng.h(141) : warning C4231: nonstandard extension used : 'extern' before template explicit instantiation
+F:\backup!!!\Source\CryptoPP\src\crypto\oaep.h(38) : warning C4231: nonstandard extension used : 'extern' before template explicit instantiation
+gcm.cpp
+gf256.cpp
+gf2_32.cpp
+gf2n.cpp
+gfpcrypt.cpp
+gost.cpp
+gzip.cpp
+hex.cpp
+hmac.cpp
+hrtimer.cpp
+ida.cpp
+idea.cpp
+integer.cpp
+luc.cpp
+You do not seem to have the Visual C++ Processor Pack installed, so use of SSE2 instructions will be disabled.
+mars.cpp
+marss.cpp
+md2.cpp
+md4.cpp
+md5.cpp
+Generating Code...
+warning C4786: 'CryptoPP::AlgorithmImpl<CryptoPP::SimpleKeyingInterfaceImpl<CryptoPP::TwoBases<CryptoPP::BlockCipher,CryptoPP::MARS_Info>,CryptoPP::TwoBases<CryptoPP::BlockCipher,CryptoPP::MARS_Info> >,CryptoPP::SimpleKeyingInterfaceImpl<CryptoPP::TwoBases<CryptoPP::BlockCipher,CryptoPP::MARS_Info>,CryptoPP::TwoBases<CryptoPP::BlockCipher,CryptoPP::MARS_Info> > >' : identifier was truncated to '255' characters in the debug information
+Compiling...
+misc.cpp
+modes.cpp
+mqueue.cpp
+mqv.cpp
+nbtheory.cpp
+F:\backup!!!\Source\CryptoPP\src\crypto\nbtheory.cpp(650) : warning C4068: unknown pragma
+F:\backup!!!\Source\CryptoPP\src\crypto\nbtheory.cpp(651) : warning C4068: unknown pragma
+F:\backup!!!\Source\CryptoPP\src\crypto\nbtheory.cpp(653) : warning C4068: unknown pragma
+F:\backup!!!\Source\CryptoPP\src\crypto\nbtheory.cpp(655) : warning C4068: unknown pragma
+F:\backup!!!\Source\CryptoPP\src\crypto\nbtheory.cpp(1002) : warning C4068: unknown pragma
+F:\backup!!!\Source\CryptoPP\src\crypto\nbtheory.cpp(1003) : warning C4068: unknown pragma
+F:\backup!!!\Source\CryptoPP\src\crypto\nbtheory.cpp(1005) : warning C4068: unknown pragma
+F:\backup!!!\Source\CryptoPP\src\crypto\nbtheory.cpp(1010) : warning C4068: unknown pragma
+network.cpp
+oaep.cpp
+osrng.cpp
+panama.cpp
+pkcspad.cpp
+polynomi.cpp
+pssr.cpp
+pubkey.cpp
+queue.cpp
+rabin.cpp
+randpool.cpp
+rc2.cpp
+rc5.cpp
+rc6.cpp
+rdtables.cpp
+Generating Code...
+Compiling...
+rijndael.cpp
+ripemd.cpp
+rng.cpp
+rsa.cpp
+rw.cpp
+F:\backup!!!\Source\CryptoPP\src\crypto\rw.cpp(143) : warning C4068: unknown pragma
+F:\backup!!!\Source\CryptoPP\src\crypto\rw.cpp(144) : warning C4068: unknown pragma
+F:\backup!!!\Source\CryptoPP\src\crypto\rw.cpp(146) : warning C4068: unknown pragma
+F:\backup!!!\Source\CryptoPP\src\crypto\rw.cpp(148) : warning C4068: unknown pragma
+safer.cpp
+salsa.cpp
+seal.cpp
+seed.cpp
+serpent.cpp
+sha.cpp
+shacal2.cpp
+shark.cpp
+sharkbox.cpp
+simple.cpp
+skipjack.cpp
+socketft.cpp
+sosemanuk.cpp
+square.cpp
+squaretb.cpp
+Generating Code...
+warning C4786: 'CryptoPP::AlgorithmImpl<CryptoPP::SimpleKeyingInterfaceImpl<CryptoPP::TwoBases<CryptoPP::BlockCipher,CryptoPP::Square_Info>,CryptoPP::TwoBases<CryptoPP::BlockCipher,CryptoPP::Square_Info> >,CryptoPP::SimpleKeyingInterfaceImpl<CryptoPP::TwoBases<CryptoPP::BlockCipher,CryptoPP::Square_Info>,CryptoPP::TwoBases<CryptoPP::BlockCipher,CryptoPP::Square_Info> > >' : identifier was truncated to '255' characters in the debug information
+warning C4786: 'CryptoPP::AlgorithmImpl<CryptoPP::SimpleKeyingInterfaceImpl<CryptoPP::TwoBases<CryptoPP::BlockCipher,CryptoPP::SHARK_Info>,CryptoPP::TwoBases<CryptoPP::BlockCipher,CryptoPP::SHARK_Info> >,CryptoPP::SimpleKeyingInterfaceImpl<CryptoPP::TwoBases<CryptoPP::BlockCipher,CryptoPP::SHARK_Info>,CryptoPP::TwoBases<CryptoPP::BlockCipher,CryptoPP::SHARK_Info> > >' : identifier was truncated to '255' characters in the debug information
+Compiling...
+strciphr.cpp
+tea.cpp
+tftables.cpp
+tiger.cpp
+tigertab.cpp
+trdlocal.cpp
+ttmac.cpp
+twofish.cpp
+vmac.cpp
+wait.cpp
+wake.cpp
+whrlpool.cpp
+winpipes.cpp
+xtr.cpp
+xtrcrypt.cpp
+zdeflate.cpp
+zinflate.cpp
+zlib.cpp
+Generating Code...
+warning C4786: 'CryptoPP::AlgorithmImpl<CryptoPP::SimpleKeyingInterfaceImpl<CryptoPP::TwoBases<CryptoPP::BlockCipher,CryptoPP::Twofish_Info>,CryptoPP::TwoBases<CryptoPP::BlockCipher,CryptoPP::Twofish_Info> >,CryptoPP::SimpleKeyingInterfaceImpl<CryptoPP::TwoBases<CryptoPP::BlockCipher,CryptoPP::Twofish_Info>,CryptoPP::TwoBases<CryptoPP::BlockCipher,CryptoPP::Twofish_Info> > >' : identifier was truncated to '255' characters in the debug information
+Compiling...
+dll.cpp
+iterhash.cpp
+Generating Code...
+Creating library...
+
+
+
+<h3>Results</h3>
+cryptlib.lib - 0 error(s), 44 warning(s)
+</pre>
+</body>
+</html>
