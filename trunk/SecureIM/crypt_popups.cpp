@@ -129,6 +129,9 @@ void showPopUpKS(HANDLE hContact) {
 	int indic=DBGetContactSettingByte(0, szModuleName, "ks",1);
 	if (indic==1) showPopUp(sim007,hContact,g_hPOP[POP_SENDKEY],0);
 }
+void showPopUpKRmsg(HANDLE hContact,LPCSTR msg) {
+	showPopUp(msg,hContact,g_hPOP[POP_RECVKEY],0);
+}
 void showPopUpKR(HANDLE hContact) {
 	int indic=DBGetContactSettingByte(0, szModuleName, "kr",1);
 	if (indic==1) showPopUp(sim008,hContact,g_hPOP[POP_RECVKEY],0);

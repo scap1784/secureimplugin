@@ -18,7 +18,7 @@ int iBmpDepth;
 BOOL bCoreUnicode = false, bMetaContacts = false, bPopupExists = false, bPopupUnicode = false;
 BOOL bPGPloaded = false, bPGPkeyrings = false, bUseKeyrings = false, bPGPprivkey = false;
 BOOL bGPGloaded = false, bGPGkeyrings = false, bSavePass = false;
-BOOL bSFT, bSOM, bASI, bMCD, bSCM, bDGP, bAIP, bNOL;
+BOOL bSFT, bSOM, bASI, bMCD, bSCM, bDGP, bAIP, bNOL, bAAK;
 BYTE bADV, bPGP, bGPG;
 DWORD iCoreVersion = 0;
 CRITICAL_SECTION localQueueMutex;
@@ -118,6 +118,7 @@ void GetFlags() {
     bAIP = DBGetContactSettingByte(0,szModuleName,"aip",0);
     bADV = DBGetContactSettingByte(0,szModuleName,"adv",0);
     bNOL = DBGetContactSettingByte(0,szModuleName,"nol",0);
+    bAAK = DBGetContactSettingByte(0,szModuleName,"aak",0);
 }
 
 
@@ -131,6 +132,7 @@ void SetFlags() {
     DBWriteContactSettingByte(0,szModuleName,"aip",bAIP);
     DBWriteContactSettingByte(0,szModuleName,"adv",bADV);
     DBWriteContactSettingByte(0,szModuleName,"nol",bNOL);
+    DBWriteContactSettingByte(0,szModuleName,"aak",bAAK);
 }
 
 

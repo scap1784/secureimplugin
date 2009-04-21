@@ -30,22 +30,32 @@ int __cdecl rsa_inject(int context, LPCSTR msg) {
 
 
 int __cdecl rsa_check_pub(int context, PBYTE pub, int pubLen, PBYTE sig, int sigLen) {
+	int v=0;
 	pUinKey ptr = getUinCtx(context); if(!ptr) return 0;
-	LPSTR sha = mir_strdup(to_hex(sig,sigLen));
-	LPSTR cnm = (LPSTR) alloca(128); getContactNameA(ptr->hContact,cnm);
-	LPSTR msg = (LPSTR) alloca(512); sprintf(msg,Translate(sim404),cnm,sha);
-	int v=(msgbox(0,msg,szModuleName,MB_YESNO|MB_ICONQUESTION)==IDYES);
-	if( v ) {
-            DBCONTACTWRITESETTING cws;
-            cws.szModule = szModuleName;
-            cws.szSetting = "rsa_pub";
-            cws.value.type = DBVT_BLOB;
-            cws.value.pbVal = pub;
-            cws.value.cpbVal = pubLen;
-            CallService(MS_DB_CONTACT_WRITESETTING, (WPARAM)ptr->hContact, (LPARAM)&cws);
-            ptr->keyLoaded = true;
+	if( bAAK ) {
+		showPopUpKRmsg(ptr->hContact,sim520);
+		// записать в системный лог
+		v=1;
 	}
-	mir_free(sha);
+	else {
+		LPSTR sha = mir_strdup(to_hex(sig,sigLen));
+		LPSTR cnm = (LPSTR) alloca(128); getContactNameA(ptr->hContact,cnm);
+		LPSTR msg = (LPSTR) alloca(512); sprintf(msg,Translate(sim404),cnm,sha);
+		v=(msgbox(0,msg,szModuleName,MB_YESNO|MB_ICONQUESTION)==IDYES);
+		mir_free(sha);
+	}
+	if(v) {
+		DBCONTACTWRITESETTING cws;
+		cws.szModule = szModuleName;
+		cws.szSetting = "rsa_pub";
+		cws.value.type = DBVT_BLOB;
+		cws.value.pbVal = pub;
+		cws.value.cpbVal = pubLen;
+		CallService(MS_DB_CONTACT_WRITESETTING, (WPARAM)ptr->hContact, (LPARAM)&cws);
+		ptr->keyLoaded = true;
+		ptr->mode = 3;
+		DBWriteContactSettingByte(ptr->hContact, szModuleName, "mode", ptr->mode);
+	}
 	return v;
 }
 
