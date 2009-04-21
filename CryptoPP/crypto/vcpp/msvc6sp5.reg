@@ -1,6 +1,0 @@
-REGEDIT4
-
-[-HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\VisualStudio\6.0\ServicePacks]
-[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\VisualStudio\6.0\ServicePacks]
-"latest"=dword:00000005
-"sp5"=""
