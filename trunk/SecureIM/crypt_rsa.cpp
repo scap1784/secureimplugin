@@ -56,8 +56,6 @@ int __cdecl rsa_check_pub(int context, PBYTE pub, int pubLen, PBYTE sig, int sig
 		cws.value.cpbVal = pubLen;
 		CallService(MS_DB_CONTACT_WRITESETTING, (WPARAM)ptr->hContact, (LPARAM)&cws);
 		ptr->keyLoaded = true;
-//		ptr->mode = 3;
-//		DBWriteContactSettingByte(ptr->hContact, szModuleName, "mode", ptr->mode);
 	}
 	return v;
 }
@@ -68,7 +66,7 @@ void __cdecl rsa_notify(int context, int state) {
 	LPCSTR msg=NULL;
 	switch( state ) {
 	case 1: {
-		ptr->waitForExchange=false; // досылаем сообщения из очереди
+		ptr->waitForExchange = false; // досылаем сообщения из очереди
 		showPopUpEC(ptr->hContact);
 		ShowStatusIconNotify(ptr->hContact);
 		return;
@@ -83,6 +81,11 @@ void __cdecl rsa_notify(int context, int state) {
 		msg=sim506; break;
 	case -7: // таймаут установки соединения (10 секунд)
 		msg=sim507; break;
+	case -8: { // сессия разорвана по причине "disabled"
+		msg=sim508; 
+		ptr->status=ptr->tstatus=STATUS_DISABLED;
+		DBWriteContactSettingByte(ptr->hContact, szModuleName, "StatusID", ptr->status);
+	} break;
 	case -0x10: // сессия разорвана по ошибке
 	case -0x21:
 	case -0x22:

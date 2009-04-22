@@ -36,20 +36,23 @@ void __cdecl sttWaitForExchange( LPVOID param ) {
 
 	pUinKey ptr = getUinKey(tParam->hContact);
 	delete tParam;
-	if(!ptr) return;
+	if( !ptr ) return;
 
 	for(int i=0;i<DBGetContactSettingWord(0,szModuleName,"ket",10)*10; i++) {
 		Sleep( 100 );
-	   	if(!ptr->waitForExchange) return;
+	   	if( !ptr->waitForExchange ) break;
 	} // for
 
    	// if keyexchange failed or timeout
-   	if(ptr->waitForExchange) {
-   		if (ptr->msgQueue && msgbox1(0,sim104,szModuleName,MB_YESNO|MB_ICONQUESTION)==IDYES) {
+   	if( ptr->waitForExchange ) {
+   		if( ptr->msgQueue && msgbox1(0,sim104,szModuleName,MB_YESNO|MB_ICONQUESTION)==IDYES ) {
 	   		EnterCriticalSection(&localQueueMutex);
 	   		ptr->sendQueue = true;
 	   		pWM ptrMessage = ptr->msgQueue;
-   			while (ptrMessage) {
+   			while( ptrMessage ) {
+#if defined(_DEBUG) || defined(NETLIB_LOG)
+				Sent_NetLog("Sent (unencrypted) message from queue: %s",ptrMessage->Message);
+#endif
    				// send unencrypted messages
    				CallContactService(ptr->hContact,PSS_MESSAGE,(WPARAM)ptrMessage->wParam|PREF_METANODB,(LPARAM)ptrMessage->Message);
    				mir_free(ptrMessage->Message);
@@ -63,7 +66,29 @@ void __cdecl sttWaitForExchange( LPVOID param ) {
    		}
 		ptr->waitForExchange = false;
    		ShowStatusIconNotify(ptr->hContact);
-   	} // if
+   	}
+   	else {
+   	    // дошлем через установленное соединение
+//   	    if( ptr->mode==ENC_RSAAES ) {
+		EnterCriticalSection(&localQueueMutex);
+		// we need to resend last send back message with new crypto Key
+		pWM ptrMessage = ptr->msgQueue;
+		while (ptrMessage) {
+#if defined(_DEBUG) || defined(NETLIB_LOG)
+			Sent_NetLog("Sent (encrypted) message from queue: %s",ptrMessage->Message);
+#endif
+			// send unencrypted messages
+			CallContactService(ptr->hContact,PSS_MESSAGE,(WPARAM)ptrMessage->wParam|PREF_METANODB,(LPARAM)ptrMessage->Message);
+			mir_free(ptrMessage->Message);
+			pWM tmp = ptrMessage;
+			ptrMessage = ptrMessage->nextMessage;
+			mir_free(tmp);
+		}
+		ptr->msgQueue = NULL;
+		LeaveCriticalSection(&localQueueMutex);
+//		showPopUpSM(ptr->hContact);
+//   	    }
+   	}
 }
 
 

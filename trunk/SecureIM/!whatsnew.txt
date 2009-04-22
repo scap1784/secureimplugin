@@ -1,4 +1,10 @@
 
+Verison 1.0.11.3 [22-04-2009]
+
+[+] option "Disabled" for RSA/AES
+[+] change status to "Disabled" for "Disabled" on other side
+
+
 Verison 1.0.11.2 [21-04-2009]
 
 [+] option "Not secured for NotOnList"
