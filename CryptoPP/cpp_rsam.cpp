@@ -75,6 +75,9 @@ string null;
 
 
 int __cdecl rsa_init(pRSA_EXPORT* e, pRSA_IMPORT i) {
+#if defined(_DEBUG) || defined(NETLIB_LOG)
+	Sent_NetLog("rsa_init");
+#endif
 	*e = &exp;
 	imp = i;
 	return 1;
@@ -82,6 +85,9 @@ int __cdecl rsa_init(pRSA_EXPORT* e, pRSA_IMPORT i) {
 
 
 int __cdecl rsa_done(void) {
+#if defined(_DEBUG) || defined(NETLIB_LOG)
+	Sent_NetLog("rsa_done");
+#endif
 	return 1;
 }
 
@@ -93,6 +99,9 @@ pRSAPRIV rsa_gen_keys(int context) {
 
 	if( context != -2 && context != -3) return 0;
 
+#if defined(_DEBUG) || defined(NETLIB_LOG)
+	Sent_NetLog("rsa_gen_keys: %d", context);
+#endif
 	pCNTX ptr = get_context_on_id(context);
 	pRSAPRIV r = (pRSAPRIV) ptr->pdata;
 
@@ -115,7 +124,9 @@ pRSAPRIV rsa_gen_keys(int context) {
 
 
 int __cdecl rsa_gen_keypair(short mode) {
-
+#if defined(_DEBUG) || defined(NETLIB_LOG)
+	Sent_NetLog("rsa_gen_keypair: %d", mode);
+#endif
 	if( mode&MODE_RSA_2048 )	rsa_gen_keys(-2); // 2048
 	if( mode&MODE_RSA_4096 )	rsa_gen_keys(-3); // 4096
 
@@ -124,7 +135,9 @@ int __cdecl rsa_gen_keypair(short mode) {
 
 
 int __cdecl rsa_get_keypair(short mode, PBYTE privKey, int* privKeyLen, PBYTE pubKey, int* pubKeyLen) {
-
+#if defined(_DEBUG) || defined(NETLIB_LOG)
+	Sent_NetLog("rsa_get_keypair: %d", mode);
+#endif
 	pCNTX ptr = get_context_on_id((mode&MODE_RSA_4096)?-3:-2);
 	pRSAPRIV r = (pRSAPRIV) ptr->pdata;
 
@@ -136,7 +149,9 @@ int __cdecl rsa_get_keypair(short mode, PBYTE privKey, int* privKeyLen, PBYTE pu
 
 
 int __cdecl rsa_get_keyhash(short mode, PBYTE privKey, int* privKeyLen, PBYTE pubKey, int* pubKeyLen) {
-
+#if defined(_DEBUG) || defined(NETLIB_LOG)
+	Sent_NetLog("rsa_get_keyhash: %d", mode);
+#endif
 	pCNTX ptr = get_context_on_id((mode&MODE_RSA_4096)?-3:-2);
 	pRSAPRIV r = (pRSAPRIV) ptr->pdata;
 
@@ -148,7 +163,9 @@ int __cdecl rsa_get_keyhash(short mode, PBYTE privKey, int* privKeyLen, PBYTE pu
 
 
 int __cdecl rsa_set_keypair(short mode, PBYTE privKey, int privKeyLen, PBYTE pubKey, int pubKeyLen) {
-
+#if defined(_DEBUG) || defined(NETLIB_LOG)
+	Sent_NetLog("rsa_set_keypair: '%s'", privKey);
+#endif
 	pCNTX ptr = get_context_on_id((mode&MODE_RSA_4096)?-3:-2);
 	pRSAPRIV r = (pRSAPRIV) ptr->pdata;
 
@@ -163,13 +180,12 @@ int __cdecl rsa_set_keypair(short mode, PBYTE privKey, int privKeyLen, PBYTE pub
 
 
 int __cdecl rsa_set_pubkey(int context, PBYTE pubKey, int pubKeyLen) {
-
-	pCNTX ptr = get_context_on_id(context);	if(!ptr) return 0;
-	pRSADATA p = (pRSADATA) cpp_alloc_pdata(ptr);
-
 #if defined(_DEBUG) || defined(NETLIB_LOG)
 	Sent_NetLog("rsa_set_pubkey: '%s'", pubKey);
 #endif
+	pCNTX ptr = get_context_on_id(context);	if(!ptr) return 0;
+	pRSADATA p = (pRSADATA) cpp_alloc_pdata(ptr);
+
 	if( pubKey && pubKeyLen ) {
 	    string pub;	pub.assign((char*)pubKey, pubKeyLen);
 	    init_pub(p,pub);
@@ -204,12 +220,20 @@ int __cdecl rsa_connect(int context) {
 
 int __cdecl rsa_disconnect(int context) {
 
-	pCNTX ptr = get_context_on_id(context); if(!ptr) return 0;
-	pRSADATA p = (pRSADATA) cpp_alloc_pdata(ptr); if(!p->state) return 1;
-
+	pCNTX ptr = get_context_on_id(abs(context)); if(!ptr) return 0;
+	pRSADATA p = (pRSADATA) cpp_alloc_pdata(ptr); 
 #if defined(_DEBUG) || defined(NETLIB_LOG)
 	Sent_NetLog("rsa_disconnect: '%s'", p->pub_s.c_str());
 #endif
+        if( context<0 ) { // просто послать разрыв по причине "disabled"
+		p->state = 0;
+		inject_msg(-context,0xFF,null);
+//		imp->rsa_notify(-context,-8); // соединение разорвано по причине "disabled"
+		return 1;
+        }
+
+	if(!p->state) return 1;
+
 	PBYTE buffer=(PBYTE) alloca(RAND_SIZE);
 	GlobalRNG().GenerateBlock(buffer,RAND_SIZE);
 	inject_msg(context,0xF0,encode_msg(0,p,sign(buffer,RAND_SIZE)));
@@ -456,6 +480,12 @@ LPSTR __cdecl rsa_recv(int context, LPCSTR msg) {
 		p->state=0;
 		imp->rsa_notify(context,-4); // соединение разорвано вручную другой стороной
 	} break;
+
+	case 0xFF: // разрыв соединения по причине "disabled"
+	{
+		p->state=0;
+		imp->rsa_notify(context,-8); // соединение разорвано по причине "disabled"
+	} break;
 	}
 	if( p->state != 0 && p->state != 7 ) p->time = gettime()+10;
 	return 0;
@@ -603,8 +633,8 @@ void rsa_timeout(int context, pRSADATA p) {
 	Sent_NetLog("rsa_timeout");
 #endif
 	p->state=0; p->time=0;
-//	null_msg(context,0x00,-7); // сессия разорвана по таймауту
-	imp->rsa_notify(context,-7);
+//	null_msg(context,0x00,-7);
+	imp->rsa_notify(context,-7); // сессия разорвана по таймауту
 }
 
 

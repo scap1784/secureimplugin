@@ -394,9 +394,9 @@ BOOL CALLBACK DlgProcOptionsGeneral(HWND hDlg, UINT wMsg, WPARAM wParam, LPARAM 
 					ptr = (pUinKey) getListViewParam(hLV,idx);
 					if (ptr) {
 						ptr->tmode++;
-						if( !bPGP && ptr->tmode==1 ) ptr->tmode++;
-						if( !bGPG && ptr->tmode==2 ) ptr->tmode++;
-						if( ptr->tmode>2 ) ptr->tmode=0;
+						if( !bPGP && ptr->tmode==ENC_PGP ) ptr->tmode++;
+						if( !bGPG && ptr->tmode==ENC_GPG ) ptr->tmode++;
+						if( ptr->tmode>ENC_MAX ) ptr->tmode=ENC_NATIVE;
 						setListViewMode(hLV,idx,ptr->tmode);
 						setListViewIcon(hLV,idx,ptr);
 						SendMessage(GetParent(hDlg), PSM_CHANGED, 0, 0);
@@ -418,12 +418,12 @@ BOOL CALLBACK DlgProcOptionsGeneral(HWND hDlg, UINT wMsg, WPARAM wParam, LPARAM 
   				ptr = (pUinKey) getListViewParam(hLV,idx);
 				if (ptr) {
 					POINT p; GetCursorPos(&p);
-					HMENU hMenu = LoadMenu(g_hInst, MAKEINTRESOURCE((ptr->tmode)?IDM_CLIST1:IDM_CLIST0));
+					HMENU hMenu = LoadMenu(g_hInst, MAKEINTRESOURCE((ptr->tmode==ENC_NATIVE)?IDM_CLIST0:((ptr->tmode==ENC_RSAAES)?IDM_CLIST1:IDM_CLIST2)));
 					CallService(MS_LANGPACK_TRANSLATEMENU, (WPARAM)hMenu, 0);
 					CheckMenuItem(hMenu, ID_SIM_NATIVE+ptr->tmode, MF_CHECKED );
 					if( !bPGP ) EnableMenuItem(hMenu, ID_SIM_NATIVE+1, MF_GRAYED );
 					if( !bGPG ) EnableMenuItem(hMenu, ID_SIM_NATIVE+2, MF_GRAYED );
-					if( !ptr->tmode ) {
+					if( ptr->tmode==ENC_NATIVE || ptr->tmode==ENC_RSAAES ) {
 						CheckMenuItem(hMenu, ID_DISABLED+ptr->tstatus, MF_CHECKED );
 					}
 					CheckMenuItem(hMenu, ID_ENCRYPTION, MF_BYCOMMAND );
@@ -1060,7 +1060,7 @@ void RefreshPGPDlg(HWND hDlg, BOOL iInit) {
 	while (hContact) {
 
 		pUinKey ptr = getUinKey(hContact);
-		if (ptr && ptr->mode==1 && isSecureProtocol(hContact) /*&& !getMetaContact(hContact)*/ && !isChatRoom(hContact)) {
+		if (ptr && ptr->mode==ENC_PGP && isSecureProtocol(hContact) /*&& !getMetaContact(hContact)*/ && !isChatRoom(hContact)) {
 
 			LPSTR szKeyID = simDBGetString(hContact,szModuleName,"pgp_abbr");
 
@@ -1120,7 +1120,7 @@ void RefreshGPGDlg(HWND hDlg, BOOL iInit) {
 	while (hContact) {
 
 		pUinKey ptr = getUinKey(hContact);
-		if (ptr && ptr->mode==2 && isSecureProtocol(hContact) /*&& !getMetaContact(hContact)*/ && !isChatRoom(hContact)) {
+		if (ptr && ptr->mode==ENC_GPG && isSecureProtocol(hContact) /*&& !getMetaContact(hContact)*/ && !isChatRoom(hContact)) {
 
 			if( iInit ) {
 				ptr->tgpgMode = ptr->gpgMode;
@@ -1188,8 +1188,8 @@ void ResetGeneralDlg(HWND hDlg) {
 			pUinKey ptr = getUinKey(hContact);
 			if(!ptr) continue;
 
-			ptr->tmode=0;
-			ptr->tstatus=1;
+			ptr->tmode=ENC_NATIVE;
+			ptr->tstatus=STATUS_ENABLED;
 
 			lvi.iItem++;
 			lvi.iImage = ptr->tstatus;

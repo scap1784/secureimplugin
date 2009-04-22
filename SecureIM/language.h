@@ -85,6 +85,7 @@ extern LPCSTR sim502;
 extern LPCSTR sim505;
 extern LPCSTR sim506;
 extern LPCSTR sim507;
+extern LPCSTR sim508;
 extern LPCSTR sim510;
 extern LPCSTR sim520;
 

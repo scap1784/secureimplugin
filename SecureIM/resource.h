@@ -28,6 +28,7 @@
 #define ID_UPDATE_GLIST                 119
 #define IDM_CLIST0                    	120
 #define IDM_CLIST1                    	121
+#define IDM_CLIST2                    	122
 
 #define ID_SIM_NATIVE			130
 #define ID_SIM_PGP                      131

@@ -3,9 +3,17 @@
 
 #include "resource.h"
 
-#define STATUS_DISABLED			0
-#define STATUS_ENABLED			1
-#define STATUS_ALWAYSTRY		2
+// режимы шифрования SecureIM
+#define ENC_NATIVE	0
+#define ENC_PGP		1
+#define ENC_GPG		2
+#define ENC_RSAAES	3
+#define ENC_MAX		3
+
+// статусы для Native и RSA/AES режимов
+#define STATUS_DISABLED		0
+#define STATUS_ENABLED		1
+#define STATUS_ALWAYSTRY	2
 
 #define ADV_CNT		8
 #define IEC_CNT		9

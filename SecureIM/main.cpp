@@ -280,7 +280,7 @@ int Load(PLUGINLINK *link) {
 	iCoreVersion = CallService(MS_SYSTEM_GETVERSION,0,0);
 
 	// load crypo++ dll
-	if (!loadlib()) {
+	if( !loadlib() ) {
 		msgbox1(0,sim107,szModuleName,MB_OK|MB_ICONSTOP);
 		return 1;
 	}
@@ -356,7 +356,10 @@ int onModulesLoaded(WPARAM wParam,LPARAM lParam) {
     InitIcons();
     GetFlags();
 
-    { // RSA/AES
+#if defined(_DEBUG) || defined(NETLIB_LOG)
+	Sent_NetLog("rsa_init");
+#endif
+	{ // RSA/AES
 		rsa_init(&exp,&imp);
 
 		DBVARIANT dbv1, dbv2;
@@ -383,6 +386,9 @@ int onModulesLoaded(WPARAM wParam,LPARAM lParam) {
 		}
 	}
 
+#if defined(_DEBUG) || defined(NETLIB_LOG)
+	Sent_NetLog("pgp_init");
+#endif
 	bPGP = DBGetContactSettingByte(0, szModuleName, "pgp", 0);
 	if(bPGP) { //PGP
 	    bPGPloaded = pgp_init();
@@ -426,6 +432,9 @@ int onModulesLoaded(WPARAM wParam,LPARAM lParam) {
     	    }// if(bPGPloaded && bUseKeyrings)
    	}// if(bPGP)
 
+#if defined(_DEBUG) || defined(NETLIB_LOG)
+	Sent_NetLog("gpg_init");
+#endif
 	bGPG = DBGetContactSettingByte(0, szModuleName, "gpg", 0);
 	if(bGPG) { //GPG
 
@@ -474,6 +483,9 @@ int onModulesLoaded(WPARAM wParam,LPARAM lParam) {
 	    }
 	}
 
+#if defined(_DEBUG) || defined(NETLIB_LOG)
+	Sent_NetLog("loadContactList");
+#endif
 	loadContactList();
 
 	// init adv? icons

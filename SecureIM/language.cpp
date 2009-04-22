@@ -82,6 +82,7 @@ LPCSTR sim502 = "Session closed by other side on error";
 LPCSTR sim505 = "Error while decoding AES message";
 LPCSTR sim506 = "Error while decoding RSA message";
 LPCSTR sim507 = "Session closed on timeout (10 seconds)";
+LPCSTR sim508 = "Session closed by other side when status \"disabled\"";
 LPCSTR sim510 = "Session closed on error: %02x";
 LPCSTR sim520 = "RSA key auto accepted";
 

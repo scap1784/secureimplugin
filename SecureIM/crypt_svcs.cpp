@@ -314,15 +314,25 @@ extern "C" long onRecvMsg(WPARAM wParam, LPARAM lParam) {
 	}
 
 	// received non-pgp secure message from disabled contact
-	if (!bPGP && !bGPG && ptr->status==0) {
+	if( !bPGP && !bGPG && ptr->status==STATUS_DISABLED ) {
+	    if( ptr->mode==ENC_NATIVE ) {
 		// tell to the other side that we have the plugin disabled with him
 		pccsd->lParam = (LPARAM) SIG_DISA;
 		pccsd->szProtoService = PSS_MESSAGE;
 		CallService(MS_PROTO_CHAINSEND, wParam, lParam);
 
 		showPopUp(sim003,pccsd->hContact,g_hPOP[POP_SECDIS],0);
-		SAFE_FREE(ptr->msgSplitted);
-		return 1;
+	    }
+	    else {
+		if( !ptr->cntx ) {
+		    ptr->cntx = cpp_create_context(MODE_RSA);
+		    ptr->keyLoaded = 0;
+		}
+		exp->rsa_disconnect(-ptr->cntx);
+		deleteRSAcntx(ptr);
+	    }
+	    SAFE_FREE(ptr->msgSplitted);
+	    return 1;
 	}
 
 	// combine message splitted by protocol (no tags)
@@ -397,14 +407,14 @@ extern "C" long onRecvMsg(WPARAM wParam, LPARAM lParam) {
 	switch(ssig) {
 
 	case SiG_SECU: { // new secured msg, pass to rsa_recv
-		if(ptr->mode==0) {
-		    ptr->mode = 3;
+		if( ptr->mode==ENC_NATIVE ) {
+		    ptr->mode = ENC_RSAAES;
 		    cpp_delete_context(ptr->cntx);
 		    ptr->cntx = 0;
 		    ptr->keyLoaded = 0;
 		    DBWriteContactSettingByte(ptr->hContact, szModuleName, "mode", ptr->mode);
 		}
-		if(!ptr->cntx) {
+		if( !ptr->cntx ) {
 		    ptr->cntx = cpp_create_context(MODE_RSA);
 		    ptr->keyLoaded = 0;
 		}
@@ -507,8 +517,8 @@ extern "C" long onRecvMsg(WPARAM wParam, LPARAM lParam) {
 	} break;
 
 	case SiG_DISA: { // disabled message
-//		ptr->status=ptr->tstatus=0;
-//		DBWriteContactSettingByte(ptr->hContact, szModuleName, "StatusID", ptr->status);
+		ptr->status=ptr->tstatus=STATUS_DISABLED;
+		DBWriteContactSettingByte(ptr->hContact, szModuleName, "StatusID", ptr->status);
 	}
 	case SiG_DEIN: { // deinit message
 		// other user has disabled SecureIM with you
@@ -523,8 +533,8 @@ extern "C" long onRecvMsg(WPARAM wParam, LPARAM lParam) {
 	case SiG_KEYR:   // key3 message
 	case SiG_KEYA:   // keyA message
 	case SiG_KEYB: { // keyB message
-		if( ptr->mode == 3 ) {
-		    ptr->mode = 0;
+		if( ptr->mode==ENC_RSAAES ) {
+		    ptr->mode = ENC_NATIVE;
 		    cpp_delete_context(ptr->cntx);
 		    ptr->cntx = 0;
 		    ptr->keyLoaded = 0;
@@ -537,10 +547,10 @@ extern "C" long onRecvMsg(WPARAM wParam, LPARAM lParam) {
 			showPopUpKR(ptr->hContact);
 
 			// reinit key exchange if an old key from user is found
-			if (cpp_keyb(ptr->cntx)) {
+			if( cpp_keyb(ptr->cntx) ) {
 				cpp_reset_context(ptr->cntx);
 			}
-			if(InitKeyB(ptr,szEncMsg)!=ERROR_NONE) {
+			if( InitKeyB(ptr,szEncMsg)!=ERROR_NONE ) {
 				// tell to the other side that we have the plugin disabled with him
 				ptr->waitForExchange=false;
 
@@ -572,7 +582,7 @@ extern "C" long onRecvMsg(WPARAM wParam, LPARAM lParam) {
 			}
 
 			// auto send my public key to keyB user if not done before
-			if (!cpp_keya(ptr->cntx)) {
+			if( !cpp_keya(ptr->cntx) ) {
 				LPSTR keyToSend = InitKeyA(ptr,0); // calculate public and private key
 #if defined(_DEBUG) || defined(NETLIB_LOG)
 				Sent_NetLog("Sending KEYA: %s", keyToSend);
@@ -645,8 +655,8 @@ extern "C" long onRecvMsg(WPARAM wParam, LPARAM lParam) {
 		Sent_NetLog("Session established");
 #endif
 
-		ptr->waitForExchange = false;
-		EnterCriticalSection(&localQueueMutex);
+		ptr->waitForExchange = false; // дошлем сообщения из очереди
+/*		EnterCriticalSection(&localQueueMutex);
 		// we need to resend last send back message with new crypto Key
 		pWM ptrMessage = ptr->msgQueue;
 		while (ptrMessage) {
@@ -670,7 +680,7 @@ extern "C" long onRecvMsg(WPARAM wParam, LPARAM lParam) {
 		}
 		ptr->msgQueue = NULL;
 		LeaveCriticalSection(&localQueueMutex);
-		showPopUpSM(ptr->hContact);
+		showPopUpSM(ptr->hContact); */
 		return 1;
 		/* common part (CalcKeyX & SendQueue) */
 	} break;
@@ -716,18 +726,18 @@ extern "C" long onSendMsg(WPARAM wParam, LPARAM lParam) {
 	Sent_NetLog("onSend: %s",(LPSTR)pccsd->lParam);
 #endif
 	// pass unhandled messages
-	if (!ptr ||
+	if ( !ptr ||
 		ssig==SiG_GAME || ssig==SiG_PGPM || ssig==SiG_SECU || ssig==SiG_SECP ||
 		isChatRoom(pccsd->hContact) ||
 /*		(ssig!=SiG_NONE && hMetaContact && (pccsd->wParam & PREF_METANODB)) || */
 		stat==-1 ||
 		(ssig==SiG_NONE && ptr->sendQueue) ||
-		(ssig==SiG_NONE && ptr->status==0) // Native/Disabled 
+		(ssig==SiG_NONE && ptr->status==STATUS_DISABLED) // Disabled - pass unhandled
 		)
 		return CallService(MS_PROTO_CHAINSEND, wParam, lParam);
 
 	// encrypt PGP/GPG message
-	if(isContactPGP(ptr->hContact) || isContactGPG(ptr->hContact)) {
+	if( isContactPGP(ptr->hContact) || isContactGPG(ptr->hContact) ) {
 /*
 		if(stat==ID_STATUS_OFFLINE) {
 			if (msgbox1(0,sim110,szModuleName,MB_YESNO|MB_ICONQUESTION)==IDNO) {
@@ -767,10 +777,13 @@ extern "C" long onSendMsg(WPARAM wParam, LPARAM lParam) {
 		return returnNoError(pccsd->hContact);
 	}
 
+	// get contact SecureIM status
+	int stid = ptr->status;
+
 	// RSA/AES
-	if(ptr->mode == 3) {
+	if( ptr->mode==ENC_RSAAES ) {
 		// contact is offline
-		if (stat==ID_STATUS_OFFLINE) {
+		if ( stat==ID_STATUS_OFFLINE ) {
         		if( ptr->cntx ) {
         			if( exp->rsa_get_state(ptr->cntx)!=0 ) {
 					cpp_reset_context(ptr->cntx);
@@ -791,10 +804,23 @@ extern "C" long onSendMsg(WPARAM wParam, LPARAM lParam) {
 			showPopUpSM(ptr->hContact);
 			return returnNoError(pccsd->hContact);
 		}
+		// SecureIM connection with this contact is disabled
+		if( stid==STATUS_DISABLED ) {
+			if( ptr->cntx ) {
+				exp->rsa_disconnect(-ptr->cntx);
+				deleteRSAcntx(ptr);
+			}
+			if( ssig==SiG_NONE ) {
+			    // просто шлем незашифрованное (не знаю даже когда такое случится)
+			    return CallService(MS_PROTO_CHAINSEND, wParam, lParam);
+			}
+			// ничего не шлем дальше - это служебное сообщение
+			return returnNoError(pccsd->hContact);
+		}
 		// разорвать соединение
-		if (ssig==SiG_DEIN) {
+		if( ssig==SiG_DEIN ) {
 			ptr->waitForExchange=false;
-			if(ptr->cntx) {
+			if( ptr->cntx ) {
 				exp->rsa_disconnect(ptr->cntx);
 				deleteRSAcntx(ptr);
 			}
@@ -818,8 +844,8 @@ extern "C" long onSendMsg(WPARAM wParam, LPARAM lParam) {
 		    if (!ptr->waitForExchange) waitForExchange(ptr);
 		}
 		// установить соединение
-		if (ssig==SiG_INIT) {
-			if(!ptr->cntx) {
+		if( ssig==SiG_INIT ) {
+			if( !ptr->cntx ) {
 				ptr->cntx = cpp_create_context(MODE_RSA);
 				ptr->keyLoaded = 0;
 			}
@@ -833,12 +859,10 @@ extern "C" long onSendMsg(WPARAM wParam, LPARAM lParam) {
 		return CallService(MS_PROTO_CHAINSEND, wParam, lParam);
 	}
 
-	// get contact SecureIM status
-	int stid = ptr->status;
-
 	// SecureIM connection with this contact is disabled
-	if (stid==STATUS_DISABLED) {
-		if (ssig==SiG_INIT) { // if user try initialize connection
+	if( stid==STATUS_DISABLED ) {
+		// if user try initialize connection
+		if( ssig==SiG_INIT ) {
 			// secure IM is disabled ...
 			return returnError(pccsd->hContact,Translate(sim105));
 		}
@@ -859,15 +883,15 @@ extern "C" long onSendMsg(WPARAM wParam, LPARAM lParam) {
 	}
 
 	// contact is offline
-	if (stat==ID_STATUS_OFFLINE) {
+	if( stat==ID_STATUS_OFFLINE ) {
 
-		if (ssig==SiG_INIT && cpp_keyx(ptr->cntx)) {
+		if( ssig==SiG_INIT && cpp_keyx(ptr->cntx) ) {
 			// reinit key exchange
 			cpp_reset_context(ptr->cntx);
 		}
 
-		if (!bSOM) {
-		    if(ssig!=SiG_NONE) {
+		if( !bSOM ) {
+		    if( ssig!=SiG_NONE ) {
 				return returnNoError(pccsd->hContact);
 		    }
 			// exit and send unencrypted message
@@ -875,11 +899,11 @@ extern "C" long onSendMsg(WPARAM wParam, LPARAM lParam) {
 		}
 		BOOL isMiranda = isClientMiranda(ptr->hContact);
 
-		if (stid==STATUS_ALWAYSTRY && isMiranda) {  // always try && Miranda
+		if( stid==STATUS_ALWAYSTRY && isMiranda ) {  // always try && Miranda
 			// set key for offline user
 			DBVARIANT dbv; dbv.type = DBVT_BLOB;
-			if(	DBGetContactSettingDword(ptr->hContact, szModuleName, "offlineKeyTimeout", 0) > gettime() &&
-				DBGetContactSetting(ptr->hContact, szModuleName, "offlineKey", &dbv) == 0
+			if( DBGetContactSettingDword(ptr->hContact, szModuleName, "offlineKeyTimeout", 0) > gettime() &&
+			    DBGetContactSetting(ptr->hContact, szModuleName, "offlineKey", &dbv) == 0
 			  ) {
 				// if valid key is succefully retrieved
 				ptr->offlineKey = true;
@@ -901,8 +925,8 @@ extern "C" long onSendMsg(WPARAM wParam, LPARAM lParam) {
 				int res=msgbox1(0,"User is offline now, Do you want to send your message ?\nIt will be unencrypted !","Can't Send Encrypted Message !",MB_YESNO);
 				if (res==IDNO) return 1;
 			}*/
-		    if(ssig!=SiG_NONE) {
-				return returnNoError(pccsd->hContact);
+		    if( ssig!=SiG_NONE ) {
+			return returnNoError(pccsd->hContact);
 		    }
 			// exit and send unencrypted message
 			return CallService(MS_PROTO_CHAINSEND, wParam, lParam);
@@ -911,7 +935,7 @@ extern "C" long onSendMsg(WPARAM wParam, LPARAM lParam) {
 	}
 	else {
 		// contact is online and we use an offline key -> reset offline key
-		if (ptr->offlineKey) {
+		if( ptr->offlineKey ) {
 			cpp_reset_context(ptr->cntx);
 			ptr->offlineKey = false;
 			ShowStatusIconNotify(ptr->hContact);
@@ -919,12 +943,12 @@ extern "C" long onSendMsg(WPARAM wParam, LPARAM lParam) {
 	}
 
 	// if init is called from contact menu list reinit secure im connection
-	if (ssig==SiG_INIT) {
+	if( ssig==SiG_INIT ) {
 		cpp_reset_context(ptr->cntx);
 	}
 
 	// if deinit is called from contact menu list deinit secure im connection
-	if (ssig==SiG_DEIN) {
+	if( ssig==SiG_DEIN ) {
 		// disable SecureIM only if it was enabled
 		if (ptr->cntx) {
 			cpp_delete_context(ptr->cntx); ptr->cntx=0;
@@ -938,11 +962,11 @@ extern "C" long onSendMsg(WPARAM wParam, LPARAM lParam) {
 		return returnNoError(pccsd->hContact);
 	}
 
-	if (cpp_keya(ptr->cntx) && cpp_keyb(ptr->cntx) && !cpp_keyx(ptr->cntx)) CalculateKeyX(ptr,ptr->hContact);
+	if( cpp_keya(ptr->cntx) && cpp_keyb(ptr->cntx) && !cpp_keyx(ptr->cntx) ) CalculateKeyX(ptr,ptr->hContact);
 	ShowStatusIconNotify(pccsd->hContact);
 
 	// if cryptokey exist
-	if (cpp_keyx(ptr->cntx)) {
+	if( cpp_keyx(ptr->cntx) ) {
 
 /*	    if( !hMetaContact && isProtoMetaContacts(pccsd->hContact) && (DBGetContactSettingByte(NULL, "MetaContacts", "SubcontactHistory", 1) == 1)) {
 		// add sent event to subcontact
@@ -978,7 +1002,7 @@ extern "C" long onSendMsg(WPARAM wParam, LPARAM lParam) {
 	}
 	else {
 	  	// send KeyA if init || always_try || waitkey || always_if_possible
-  		if (ssig==SiG_INIT || (stid==STATUS_ALWAYSTRY && isClientMiranda(ptr->hContact)) || isSecureIM(ptr->hContact) || ptr->waitForExchange) {
+  		if( ssig==SiG_INIT || (stid==STATUS_ALWAYSTRY && isClientMiranda(ptr->hContact)) || isSecureIM(ptr->hContact) || ptr->waitForExchange ) {
 			if (ssig==SiG_NONE) {
 				addMsg2Queue(ptr, pccsd->wParam, (LPSTR)pccsd->lParam);
 			}
@@ -1216,7 +1240,7 @@ int onRebuildContactMenu(WPARAM wParam,LPARAM lParam) {
 	BOOL bMC = isProtoMetaContacts(hContact);
 	if( bMC ) hContact = getMostOnline(hContact); // возьмем тот, через который пойдет сообщение
 	pUinKey ptr = getUinKey(hContact);
-	UINT i;
+	int i;
 
 	CLISTMENUITEM mi = {0};
 	mi.cbSize = sizeof(CLISTMENUITEM);
@@ -1252,7 +1276,7 @@ int onRebuildContactMenu(WPARAM wParam,LPARAM lParam) {
 			CallService(MS_CLIST_MODIFYMENUITEM,(WPARAM)g_hMenu[i],(LPARAM)&mi);
 	}
 
-	if ( isSecureProto && !isChat && !ptr->mode && isClientMiranda(hContact) /*&& !getMetaContact(hContact)*/ ) {
+	if ( isSecureProto && !isChat && (ptr->mode==ENC_NATIVE || ptr->mode==ENC_RSAAES) && isClientMiranda(hContact) /*&& !getMetaContact(hContact)*/ ) {
 		// Native
 		mi.flags = CMIM_FLAGS | CMIF_NOTOFFLINE;
 		if( !isSecured ) {
@@ -1266,47 +1290,36 @@ int onRebuildContactMenu(WPARAM wParam,LPARAM lParam) {
 		// set status menu
 		if(bSCM && !bMC) {
 			mi.flags = CMIM_FLAGS;
-			for(i=2;i<=5;i++) {
+			for(i=2;i<=(ptr->mode==ENC_RSAAES?4:5);i++) {
 				if(g_hMenu[i])
 					CallService(MS_CLIST_MODIFYMENUITEM,(WPARAM)g_hMenu[i],(LPARAM)&mi);
 			}
 
-    		mi.flags = CMIM_FLAGS | CMIM_NAME | CMIM_ICON;
-    		mi.hIcon = g_hICO[ptr->status];
-    		mi.pszName = (char*)states[ptr->status];
-    		CallService(MS_CLIST_MODIFYMENUITEM,(WPARAM)g_hMenu[2],(LPARAM)&mi);
+			mi.flags = CMIM_FLAGS | CMIM_NAME | CMIM_ICON;
+			mi.hIcon = g_hICO[ptr->status];
+			mi.pszName = (char*)states[ptr->status];
+			CallService(MS_CLIST_MODIFYMENUITEM,(WPARAM)g_hMenu[2],(LPARAM)&mi);
 
-    		mi.flags = CMIM_FLAGS | CMIM_ICON;
-    		for(i=0;i<3;i++) {
-    			mi.hIcon = (i == ptr->status) ? g_hICO[ptr->status] : NULL;
-    			CallService(MS_CLIST_MODIFYMENUITEM,(WPARAM)g_hMenu[3+i],(LPARAM)&mi);
-    		}
+			mi.flags = CMIM_FLAGS | CMIM_ICON;
+			for(i=0;i<=(ptr->mode==ENC_RSAAES?1:2);i++) {
+				mi.hIcon = (i == ptr->status) ? g_hICO[ptr->status] : NULL;
+				CallService(MS_CLIST_MODIFYMENUITEM,(WPARAM)g_hMenu[3+i],(LPARAM)&mi);
+			}
 		}
 	}
 
-	if( isSecureProto && !isChat && ptr->mode ) {
+	if( isSecureProto && !isChat && (ptr->mode==ENC_PGP || ptr->mode==ENC_GPG) ) {
 		// PGP, GPG, RSA/AES, RSA
-		if( ptr->mode==1 && bPGPloaded ) {
+		if( ptr->mode==ENC_PGP && bPGPloaded ) {
 			if((bPGPkeyrings || bPGPprivkey) && !isGPG) {
 				mi.flags = CMIM_FLAGS;
 				CallService(MS_CLIST_MODIFYMENUITEM,(WPARAM)g_hMenu[isPGP+6],(LPARAM)&mi);
 			}
 		}
-		if( ptr->mode==2 && bGPGloaded ) {
+		if( ptr->mode==ENC_GPG && bGPGloaded ) {
 			if(bGPGkeyrings && !isPGP) {
 				mi.flags = CMIM_FLAGS;
 				CallService(MS_CLIST_MODIFYMENUITEM,(WPARAM)g_hMenu[isGPG+8],(LPARAM)&mi);
-			}
-		}
-		if( ptr->mode==3 ) { 
-			mi.flags = CMIM_FLAGS | CMIF_NOTOFFLINE;
-			if( !isSecured ) {
-				// create secureim connection
-				CallService(MS_CLIST_MODIFYMENUITEM,(WPARAM)g_hMenu[0],(LPARAM)&mi);
-			}
-			else {
-				// disable secureim connection
-				CallService(MS_CLIST_MODIFYMENUITEM,(WPARAM)g_hMenu[1],(LPARAM)&mi);
 			}
 		}
 	}
