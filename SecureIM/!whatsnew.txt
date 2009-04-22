@@ -1,4 +1,9 @@
 
+Verison 1.0.11.4 [22-04-2009]
+
+[*] patch from Billy_Bons
+
+
 Verison 1.0.11.3 [22-04-2009]
 
 [+] option "Disabled" for RSA/AES
