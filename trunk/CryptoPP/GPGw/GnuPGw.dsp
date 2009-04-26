@@ -40,8 +40,8 @@ RSC=rc.exe
 # PROP Ignore_Export_Lib 1
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MD /W3 /Gi /GX /O2 /YX /FD /c
-# ADD CPP /nologo /MD /W3 /GX /O1 /Yu"commonheaders.h" /FD /c
-# SUBTRACT CPP /Z<none> /Fr
+# ADD CPP /nologo /MD /W3 /GX /O1 /Ob2 /Yu"commonheaders.h" /FD /c
+# SUBTRACT CPP /Fr
 # ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x417 /d "NDEBUG"

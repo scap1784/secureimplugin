@@ -22,6 +22,7 @@
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC60.vsprops"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="false"
+			WholeProgramOptimization="1"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -42,9 +43,7 @@
 				Name="VCCLCompilerTool"
 				AdditionalOptions="/Zm400 "
 				Optimization="1"
-				InlineFunctionExpansion="2"
 				FavorSizeOrSpeed="2"
-				WholeProgramOptimization="true"
 				PreprocessorDefinitions="NDEBUG;_WINDOWS;USE_PRECOMPILED_HEADERS;WIN32"
 				StringPooling="true"
 				RuntimeLibrary="2"
@@ -52,10 +51,6 @@
 				RuntimeTypeInfo="false"
 				UsePrecompiledHeader="2"
 				PrecompiledHeaderThrough="pch.h"
-				PrecompiledHeaderFile=".\Release9/cryptlib.pch"
-				AssemblerListingLocation=".\Release9/"
-				ObjectFile=".\Release9/"
-				ProgramDataBaseFileName=".\Release9/"
 				WarningLevel="3"
 				SuppressStartupBanner="true"
 				DebugInformationFormat="3"
@@ -72,7 +67,6 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile=".\Release9\cryptlib.lib"
 				SuppressStartupBanner="true"
 			/>
 			<Tool
@@ -84,7 +78,6 @@
 			<Tool
 				Name="VCBscMakeTool"
 				SuppressStartupBanner="true"
-				OutputFile=".\Release/cryptlib.bsc"
 			/>
 			<Tool
 				Name="VCFxCopTool"
@@ -172,8 +165,8 @@
 		</Configuration>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory=".\Debug"
-			IntermediateDirectory=".\Debug"
+			OutputDirectory=".\Debug9"
+			IntermediateDirectory=".\Debug9"
 			ConfigurationType="4"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC60.vsprops"
 			UseOfMFC="0"
@@ -199,13 +192,9 @@
 				AdditionalOptions="/Zm400 "
 				EnableIntrinsicFunctions="true"
 				PreprocessorDefinitions="_DEBUG;_WINDOWS;USE_PRECOMPILED_HEADERS;WIN32"
-				RuntimeLibrary="1"
+				RuntimeLibrary="3"
 				UsePrecompiledHeader="2"
 				PrecompiledHeaderThrough="pch.h"
-				PrecompiledHeaderFile=".\Debug/cryptlib.pch"
-				AssemblerListingLocation=".\Debug/"
-				ObjectFile=".\Debug/"
-				ProgramDataBaseFileName=".\Debug/"
 				WarningLevel="3"
 				SuppressStartupBanner="true"
 				DebugInformationFormat="3"
@@ -222,7 +211,6 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile=".\Debug\cryptlib.lib"
 				SuppressStartupBanner="true"
 			/>
 			<Tool
@@ -234,7 +222,6 @@
 			<Tool
 				Name="VCBscMakeTool"
 				SuppressStartupBanner="true"
-				OutputFile=".\Debug/cryptlib.bsc"
 			/>
 			<Tool
 				Name="VCFxCopTool"
