@@ -259,7 +259,7 @@ gpgResult gpgDetectUserID(char *aresult, const char *aciphertext)
   do
   {
     linepos=getNextPart(line, linepos, txtcrlf);
-    if(strncmp(line, txtgpgcolon, strlen(txtgpgcolon))!=0)
+    if(strncmp(line, txtgpgcolon, strlen(txtgpgcolon))!=0 && strstr(line, txtgpgcolon)==0)
     {
       partpos=line;
       partpos=getNextPart(part, partpos, txtquotationmark);

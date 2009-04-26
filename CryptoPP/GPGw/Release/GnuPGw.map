@@ -1,11 +1,11 @@
  GnuPGw
 
- Timestamp is 464f33f6 (Sat May 19 21:29:26 2007)
+ Timestamp is 49ef18bf (Wed Apr 22 17:16:47 2009)
 
  Preferred load address is 46100000
 
  Start         Length     Name                   Class
- 0001:00000000 00001856H .text                   CODE
+ 0001:00000000 00001936H .text                   CODE
  0002:00000000 000000e0H .idata$5                DATA
  0002:000000e0 00000064H .idata$2                DATA
  0002:00000144 00000014H .idata$3                DATA
@@ -20,62 +20,60 @@
   Address         Publics by Value              Rva+Base     Lib:Object
 
  0001:00000000       _LogMessage                46101000 f   commonheaders.obj
- 0001:0000004b       _assembleCommandLine       4610104b f   gpg.obj
- 0001:00000076       _detectKeys                46101076 f   gpg.obj
- 0001:00000166       _gpgListPublicKeys         46101166 f   gpg.obj
- 0001:00000214       _gpgListSecretKeys         46101214 f   gpg.obj
- 0001:000002c2       _gpgDetectUserID           461012c2 f   gpg.obj
- 0001:00000435       _gpgEncrypt                46101435 f   gpg.obj
- 0001:00000585       _gpgDecrypt                46101585 f   gpg.obj
- 0001:000006e7       _initKeyUserIDs            461016e7 f   keys.obj
- 0001:000006fd       _updateKeyUserIDs          461016fd f   keys.obj
- 0001:000007c0       _releaseKeyUserIDs         461017c0 f   keys.obj
- 0001:000007d3       _getKeyUserID              461017d3 f   keys.obj
- 0001:000007e6       _getKeyUserIDCount         461017e6 f   keys.obj
- 0001:000007f2       __gpg_init                 461017f2 f   main.obj
- 0001:00000822       __gpg_done                 46101822 f   main.obj
- 0001:0000083b       __gpg_open_keyrings        4610183b f   main.obj
- 0001:000008a9       __gpg_close_keyrings       461018a9 f   main.obj
- 0001:000008ad       __gpg_get_error            461018ad f   main.obj
- 0001:000008b0       __gpg_set_log              461018b0 f   main.obj
- 0001:000008d0       __gpg_get_passphrases      461018d0 f   main.obj
- 0001:00000978       __gpg_set_passphrases      46101978 f   main.obj
- 0001:00000a16       __gpg_encrypt              46101a16 f   main.obj
- 0001:00000a96       __gpg_decrypt              46101a96 f   main.obj
- 0001:00000d01       __gpg_size_keyid           46101d01 f   main.obj
- 0001:00000d05       __gpg_select_keyid         46101d05 f   main.obj
- 0001:00000d52       _noBackslash               46101d52 f   main.obj
- 0001:00000d6c       _GetRegValue               46101d6c f   main.obj
- 0001:00000dc2       _GetEnvValue               46101dc2 f   main.obj
- 0001:00000ded       _ShowSelectExecDlg         46101ded f   main.obj
- 0001:00000eac       _ShowSelectHomeDlg         46101eac f   main.obj
- 0001:00000f88       _dllmain@12                46101f88 f   main.obj
- 0001:00000f97       _PassphraseDialogProcedure@16 46101f97 f   passdialog.obj
- 0001:00001005       _initPassphrases           46102005 f   passphrases.obj
- 0001:00001014       _releasePassphrases        46102014 f   passphrases.obj
- 0001:0000105d       _addPassphrase             4610205d f   passphrases.obj
- 0001:000010c3       _getPassphrase             461020c3 f   passphrases.obj
- 0001:0000110c       _isWindowsNT               4610210c f   pipeexec.obj
- 0001:00001150       _storeOutput               46102150 f   pipeexec.obj
- 0001:000011a6       _pxExecute                 461021a6 f   pipeexec.obj
- 0001:00001394       _replace                   46102394 f   tools.obj
- 0001:00001405       _getNextPart               46102405 f   tools.obj
- 0001:0000145a       _appendText                4610245a f   tools.obj
- 0001:000014a9       _existsFile                461024a9 f   tools.obj
- 0001:000014d1       _existsPath                461024d1 f   tools.obj
- 0001:000014f9       _writeToFile               461024f9 f   tools.obj
- 0001:00001577       _readFromFile              46102577 f   tools.obj
- 0001:000015ff       _getTemporaryFileName      461025ff f   tools.obj
- 0001:00001616       _UserIdDialogProcedure@16  46102616 f   userdialog.obj
- 0001:00001751       _RefreshListView           46102751 f   userdialog.obj
- 0001:000017f6       _GetOpenFileNameA@4        461027f6 f   comdlg32:comdlg32.dll
- 0001:000017fc       _strcat                    461027fc f   msvcrt:MSVCRT.dll
- 0001:00001802       _strcpy                    46102802 f   msvcrt:MSVCRT.dll
- 0001:00001808       _strcmp                    46102808 f   msvcrt:MSVCRT.dll
- 0001:0000180e       _strlen                    4610280e f   msvcrt:MSVCRT.dll
- 0001:00001820       __alloca_probe             46102820 f   msvcrt:chkstk.obj
- 0001:00001820       __chkstk                   46102820 f   msvcrt:chkstk.obj
- 0001:00001850       _memset                    46102850 f   msvcrt:MSVCRT.dll
+ 0001:0000004b       _detectKeys                4610104b f   gpg.obj
+ 0001:00000157       _gpgListPublicKeys         46101157 f   gpg.obj
+ 0001:00000225       _gpgListSecretKeys         46101225 f   gpg.obj
+ 0001:000002f3       _gpgDetectUserID           461012f3 f   gpg.obj
+ 0001:000004a3       _gpgEncrypt                461014a3 f   gpg.obj
+ 0001:00000611       _gpgDecrypt                46101611 f   gpg.obj
+ 0001:00000791       _initKeyUserIDs            46101791 f   keys.obj
+ 0001:000007a7       _updateKeyUserIDs          461017a7 f   keys.obj
+ 0001:00000880       _releaseKeyUserIDs         46101880 f   keys.obj
+ 0001:00000893       _getKeyUserID              46101893 f   keys.obj
+ 0001:000008a8       _getKeyUserIDCount         461018a8 f   keys.obj
+ 0001:000008b4       __gpg_init                 461018b4 f   main.obj
+ 0001:000008e4       __gpg_done                 461018e4 f   main.obj
+ 0001:000008fd       __gpg_open_keyrings        461018fd f   main.obj
+ 0001:0000096b       __gpg_close_keyrings       4610196b f   main.obj
+ 0001:0000096f       __gpg_get_error            4610196f f   main.obj
+ 0001:00000972       __gpg_set_log              46101972 f   main.obj
+ 0001:00000992       __gpg_get_passphrases      46101992 f   main.obj
+ 0001:00000a3a       __gpg_set_passphrases      46101a3a f   main.obj
+ 0001:00000ad8       __gpg_encrypt              46101ad8 f   main.obj
+ 0001:00000b58       __gpg_decrypt              46101b58 f   main.obj
+ 0001:00000dc4       __gpg_size_keyid           46101dc4 f   main.obj
+ 0001:00000dc8       __gpg_select_keyid         46101dc8 f   main.obj
+ 0001:00000e15       _GetRegValue               46101e15 f   main.obj
+ 0001:00000e7d       _GetEnvValue               46101e7d f   main.obj
+ 0001:00000eba       _ShowSelectExecDlg         46101eba f   main.obj
+ 0001:00000f79       _ShowSelectHomeDlg         46101f79 f   main.obj
+ 0001:00001055       _dllmain@12                46102055 f   main.obj
+ 0001:00001064       _PassphraseDialogProcedure@16 46102064 f   passdialog.obj
+ 0001:000010d2       _initPassphrases           461020d2 f   passphrases.obj
+ 0001:000010e1       _releasePassphrases        461020e1 f   passphrases.obj
+ 0001:0000112a       _addPassphrase             4610212a f   passphrases.obj
+ 0001:00001190       _getPassphrase             46102190 f   passphrases.obj
+ 0001:000011d9       _isWindowsNT               461021d9 f   pipeexec.obj
+ 0001:0000121d       _storeOutput               4610221d f   pipeexec.obj
+ 0001:00001273       _pxExecute                 46102273 f   pipeexec.obj
+ 0001:00001461       _replace                   46102461 f   tools.obj
+ 0001:000014e0       _getNextPart               461024e0 f   tools.obj
+ 0001:00001535       _appendText                46102535 f   tools.obj
+ 0001:00001584       _existsFile                46102584 f   tools.obj
+ 0001:000015ac       _existsPath                461025ac f   tools.obj
+ 0001:000015d4       _writeToFile               461025d4 f   tools.obj
+ 0001:0000165d       _readFromFile              4610265d f   tools.obj
+ 0001:000016e5       _getTemporaryFileName      461026e5 f   tools.obj
+ 0001:000016fc       _UserIdDialogProcedure@16  461026fc f   userdialog.obj
+ 0001:00001837       _RefreshListView           46102837 f   userdialog.obj
+ 0001:000018dc       _GetOpenFileNameA@4        461028dc f   comdlg32:comdlg32.dll
+ 0001:000018e2       _strcat                    461028e2 f   msvcrt:MSVCRT.dll
+ 0001:000018e8       _strcpy                    461028e8 f   msvcrt:MSVCRT.dll
+ 0001:000018ee       _strcmp                    461028ee f   msvcrt:MSVCRT.dll
+ 0001:000018f4       _strlen                    461028f4 f   msvcrt:MSVCRT.dll
+ 0001:00001900       __chkstk                   46102900 f   msvcrt:chkstk.obj
+ 0001:00001900       __alloca_probe             46102900 f   msvcrt:chkstk.obj
+ 0001:00001930       _memset                    46102930 f   msvcrt:MSVCRT.dll
  0002:00000000       __imp__RegCloseKey@4       46103000     advapi32:ADVAPI32.dll
  0002:00000004       __imp__RegOpenKeyA@12      46103004     advapi32:ADVAPI32.dll
  0002:00000008       __imp__SetSecurityDescriptorDacl@16 46103008     advapi32:ADVAPI32.dll
@@ -105,11 +103,11 @@
  0002:00000068       __imp__fread               46103068     msvcrt:MSVCRT.dll
  0002:0000006c       __imp__fwrite              4610306c     msvcrt:MSVCRT.dll
  0002:00000070       __imp__strncpy             46103070     msvcrt:MSVCRT.dll
- 0002:00000074       __imp__strstr              46103074     msvcrt:MSVCRT.dll
- 0002:00000078       __imp__strncat             46103078     msvcrt:MSVCRT.dll
- 0002:0000007c       __imp__memmove             4610307c     msvcrt:MSVCRT.dll
- 0002:00000080       __imp__strchr              46103080     msvcrt:MSVCRT.dll
- 0002:00000084       __imp__memset              46103084     msvcrt:MSVCRT.dll
+ 0002:00000074       __imp__strncat             46103074     msvcrt:MSVCRT.dll
+ 0002:00000078       __imp__memmove             46103078     msvcrt:MSVCRT.dll
+ 0002:0000007c       __imp__strchr              4610307c     msvcrt:MSVCRT.dll
+ 0002:00000080       __imp__memset              46103080     msvcrt:MSVCRT.dll
+ 0002:00000084       __imp__realloc             46103084     msvcrt:MSVCRT.dll
  0002:00000088       __imp__strcat              46103088     msvcrt:MSVCRT.dll
  0002:0000008c       __imp__strcpy              4610308c     msvcrt:MSVCRT.dll
  0002:00000090       __imp__fclose              46103090     msvcrt:MSVCRT.dll
@@ -118,9 +116,9 @@
  0002:0000009c       __imp__strcmp              4610309c     msvcrt:MSVCRT.dll
  0002:000000a0       __imp__malloc              461030a0     msvcrt:MSVCRT.dll
  0002:000000a4       __imp__remove              461030a4     msvcrt:MSVCRT.dll
- 0002:000000a8       __imp__strncmp             461030a8     msvcrt:MSVCRT.dll
- 0002:000000ac       __imp__strlen              461030ac     msvcrt:MSVCRT.dll
- 0002:000000b0       __imp__realloc             461030b0     msvcrt:MSVCRT.dll
+ 0002:000000a8       __imp__strstr              461030a8     msvcrt:MSVCRT.dll
+ 0002:000000ac       __imp__strncmp             461030ac     msvcrt:MSVCRT.dll
+ 0002:000000b0       __imp__strlen              461030b0     msvcrt:MSVCRT.dll
  0002:000000b4       \177MSVCRT_NULL_THUNK_DATA 461030b4     msvcrt:MSVCRT.dll
  0002:000000b8       __imp__DialogBoxParamA@20  461030b8     user32:USER32.dll
  0002:000000bc       __imp__SetDlgItemTextA@12  461030bc     user32:USER32.dll
@@ -144,7 +142,7 @@
  0003:0000000c       _txtendpgpmessage          4610400c     commonheaders.obj
  0003:00000010       ??_C@_0BK@JOKF@?9?9?9?9?9END?5PGP?5MESSAGE?9?9?9?9?9?$AA@ 46104010     commonheaders.obj
  0003:0000002c       ??_C@_0BM@JJIG@?9?9?9?9?9BEGIN?5PGP?5MESSAGE?9?9?9?9?9?$AA@ 4610402c     commonheaders.obj
- 0003:00000048       ??_C@_0BE@HJMJ@GnuPG?5DLL?5?$CI1?40?42?40?$CJ?$AA@ 46104048     commonheaders.obj
+ 0003:00000048       ??_C@_0BE@GHGE@GnuPG?5DLL?5?$CI1?40?43?43?$CJ?$AA@ 46104048     commonheaders.obj
  0003:0000005c       ??_C@_05KOGF@GnuPG?$AA@    4610405c     commonheaders.obj
  0003:00000064       ??_C@_01FCOA@?5?$AA@       46104064     commonheaders.obj
  0003:00000068       ??_C@_01FNLH@a?$AA@        46104068     commonheaders.obj
@@ -179,72 +177,72 @@
  0003:00000108       ??_C@_02PIMC@?$AN?6?$AA@   46104108     gpg.obj
  0003:0000010c       ??_C@_03CLEA@sec?$AA@      4610410c     gpg.obj
  0003:00000110       ??_C@_03BNEF@pub?$AA@      46104110     gpg.obj
- 0003:00000118       ??_C@_0FL@MOKP@?9?9homedir?5?$CC?$CFhome?$CF?$CC?5?9?9yes?5?9?9passp@ 46104118     gpg.obj
- 0003:00000178       ??_C@_0IK@JPKD@?9?9homedir?5?$CC?$CFhome?$CF?$CC?5?9?9batch?5?9?9yes@ 46104178     gpg.obj
- 0003:00000204       ??_C@_0DE@MKBK@?9?9homedir?5?$CC?$CFhome?$CF?$CC?5?9?9batch?5?9?9dec@ 46104204     gpg.obj
- 0003:00000238       ??_C@_0FH@ECPM@?9?9homedir?5?$CC?$CFhome?$CF?$CC?5?9?9batch?5?9?9yes@ 46104238     gpg.obj
- 0003:00000290       ??_C@_0CI@MMOA@?9?9homedir?5?$CC?$CFhome?$CF?$CC?5?9?9import?5?$CC?$CFke@ 46104290     gpg.obj
- 0003:000002b8       ??_C@_0DD@DLMD@?9?9homedir?5?$CC?$CFhome?$CF?$CC?5?9?9with?9colon?5@ 461042b8     gpg.obj
- 0003:000002ec       ??_C@_0DD@DFNM@?9?9homedir?5?$CC?$CFhome?$CF?$CC?5?9?9with?9colon?5@ 461042ec     gpg.obj
- 0003:00000320       ??_C@_04BBGP@?2x3a?$AA@    46104320     gpg.obj
- 0003:00000328       ??_C@_04DKNC@?$DO?$DO?$DO?5?$AA@ 46104328     gpg.obj
- 0003:00000330       ??_C@_0BB@JNKM@list?5public?5keys?$AA@ 46104330     gpg.obj
- 0003:00000344       ??_C@_01BJG@?6?$AA@        46104344     gpg.obj
- 0003:00000348       ??_C@_0BB@JDLD@list?5secret?5keys?$AA@ 46104348     gpg.obj
- 0003:0000035c       ??_C@_0P@LHID@detect?5user?5id?$AA@ 4610435c     gpg.obj
- 0003:0000036c       ??_C@_07CGOE@encrypt?$AA@  4610436c     gpg.obj
- 0003:00000374       ??_C@_07BLJA@decrypt?$AA@  46104374     gpg.obj
- 0003:0000037c       _txtlistpublickeysfailed   4610437c     language.obj
- 0003:00000380       _txtlistsecretkeysfailed   46104380     language.obj
- 0003:00000384       _txtwarning                46104384     language.obj
- 0003:00000388       _txterror                  46104388     language.obj
- 0003:0000038c       _txtdetectuseridfailed     4610438c     language.obj
- 0003:00000390       _txtunknownuserid          46104390     language.obj
- 0003:00000394       _txtencryptfailed          46104394     language.obj
- 0003:00000398       ??_C@_0CP@IGDB@Could?5not?5encrypt?5the?5message?4?5I@ 46104398     language.obj
- 0003:000003c8       ??_C@_0BA@BMKJ@Unknown?5User?5ID?$AA@ 461043c8     language.obj
- 0003:000003d8       ??_C@_0GH@PFNF@You?5received?5an?5encrypted?5messag@ 461043d8     language.obj
- 0003:00000440       ??_C@_0BF@MLAH@GnuPG?5Plugin?5?9?5Error?$AA@ 46104440     language.obj
- 0003:00000458       ??_C@_0BH@MLOA@GnuPG?5Plugin?5?9?5Warning?$AA@ 46104458     language.obj
- 0003:00000470       ??_C@_0DE@HEGN@Could?5not?5generate?5a?5list?5of?5the@ 46104470     language.obj
- 0003:000004a4       ??_C@_0DE@LKHI@Could?5not?5generate?5a?5list?5of?5the@ 461044a4     language.obj
- 0003:000004d8       ??_C@_01FFCO@?$AC?$AA@     461044d8     main.obj
- 0003:000004dc       ??_C@_01KKJH@?$AB?$AA@     461044dc     main.obj
- 0003:000004e0       ??_C@_01FEHD@?$AN?$AA@     461044e0     main.obj
- 0003:000004e4       ??_C@_0BI@DIOP@Select?5GnuPG?5executable?$AA@ 461044e4     main.obj
- 0003:000004fc       ??_C@_0DI@KIMG@GnuPG?5executable?5?$CIgpg?4exe?$CJ?$AAgpg?4e@ 461044fc     main.obj
- 0003:00000534       ??_C@_08GIFB@?2gpg?4exe?$AA@ 46104534     main.obj
- 0003:00000540       ??_C@_0BC@PKCH@Install?5Directory?$AA@ 46104540     main.obj
- 0003:00000554       ??_C@_0L@KPLK@gpgProgram?$AA@ 46104554     main.obj
- 0003:00000560       ??_C@_0BD@FFCB@Software?2GNU?2GnuPG?$AA@ 46104560     main.obj
- 0003:00000574       ??_C@_0BE@JBON@Open?5Public?5Keyring?$AA@ 46104574     main.obj
- 0003:00000588       ??_C@_0EA@FLAI@Public?5key?5rings?5?$CIpubring?4gpg?$CJ?$AAp@ 46104588     main.obj
- 0003:000005c8       ??_C@_06OEPH@?2gnupg?$AA@  461045c8     main.obj
- 0003:000005d0       ??_C@_07DBHH@APPDATA?$AA@  461045d0     main.obj
- 0003:000005d8       ??_C@_07DAJH@HomeDir?$AA@  461045d8     main.obj
- 0003:000005e0       ??_C@_09IHAA@GNUPGHOME?$AA@ 461045e0     main.obj
- 0003:000005ec       ??_C@_08PBHE@output?3?6?$AA@ 461045ec     pipeexec.obj
- 0003:000005f8       ??_C@_0BG@BFBG@create?5process?5failed?$AA@ 461045f8     pipeexec.obj
- 0003:00000610       ??_C@_04IGAC@?9?9?9?5?$AA@ 46104610     pipeexec.obj
- 0003:00000618       ??_C@_0BD@CKEI@create?5pipe?5failed?$AA@ 46104618     pipeexec.obj
- 0003:0000062c       ??_C@_0O@FMDH@commandline?3?6?$AA@ 4610462c     pipeexec.obj
- 0003:0000063c       _escsequence               4610463c     tools.obj
- 0003:00000654       _escsequencecount          46104654     tools.obj
- 0003:00000658       ??_C@_01POCP@?7?$AA@       46104658     tools.obj
- 0003:0000065c       ??_C@_02NLPO@?2t?$AA@      4610465c     tools.obj
- 0003:00000660       ??_C@_02CEIM@?2r?$AA@      46104660     tools.obj
- 0003:00000664       ??_C@_02HDBI@?2n?$AA@      46104664     tools.obj
- 0003:00000668       ??_C@_0L@JBPC@filename?3?6?$AA@ 46104668     tools.obj
- 0003:00000674       ??_C@_0O@HMCP@write?5to?5file?$AA@ 46104674     tools.obj
- 0003:00000684       ??_C@_02NGAF@wb?$AA@       46104684     tools.obj
+ 0003:00000114       ??_C@_0FL@MOKP@?9?9homedir?5?$CC?$CFhome?$CF?$CC?5?9?9yes?5?9?9passp@ 46104114     gpg.obj
+ 0003:00000170       ??_C@_0IK@JPKD@?9?9homedir?5?$CC?$CFhome?$CF?$CC?5?9?9batch?5?9?9yes@ 46104170     gpg.obj
+ 0003:000001fc       ??_C@_0DE@MKBK@?9?9homedir?5?$CC?$CFhome?$CF?$CC?5?9?9batch?5?9?9dec@ 461041fc     gpg.obj
+ 0003:00000230       ??_C@_0FH@ECPM@?9?9homedir?5?$CC?$CFhome?$CF?$CC?5?9?9batch?5?9?9yes@ 46104230     gpg.obj
+ 0003:00000288       ??_C@_0CI@MMOA@?9?9homedir?5?$CC?$CFhome?$CF?$CC?5?9?9import?5?$CC?$CFke@ 46104288     gpg.obj
+ 0003:000002b0       ??_C@_0DD@DLMD@?9?9homedir?5?$CC?$CFhome?$CF?$CC?5?9?9with?9colon?5@ 461042b0     gpg.obj
+ 0003:000002e4       ??_C@_0DD@DFNM@?9?9homedir?5?$CC?$CFhome?$CF?$CC?5?9?9with?9colon?5@ 461042e4     gpg.obj
+ 0003:00000318       ??_C@_04BBGP@?2x3a?$AA@    46104318     gpg.obj
+ 0003:00000320       ??_C@_04DKNC@?$DO?$DO?$DO?5?$AA@ 46104320     gpg.obj
+ 0003:00000328       ??_C@_0BB@JNKM@list?5public?5keys?$AA@ 46104328     gpg.obj
+ 0003:0000033c       ??_C@_01BJG@?6?$AA@        4610433c     gpg.obj
+ 0003:00000340       ??_C@_0BB@JDLD@list?5secret?5keys?$AA@ 46104340     gpg.obj
+ 0003:00000354       ??_C@_0P@LHID@detect?5user?5id?$AA@ 46104354     gpg.obj
+ 0003:00000364       ??_C@_07CGOE@encrypt?$AA@  46104364     gpg.obj
+ 0003:0000036c       ??_C@_07BLJA@decrypt?$AA@  4610436c     gpg.obj
+ 0003:00000374       _txtlistpublickeysfailed   46104374     language.obj
+ 0003:00000378       _txtlistsecretkeysfailed   46104378     language.obj
+ 0003:0000037c       _txtwarning                4610437c     language.obj
+ 0003:00000380       _txterror                  46104380     language.obj
+ 0003:00000384       _txtdetectuseridfailed     46104384     language.obj
+ 0003:00000388       _txtunknownuserid          46104388     language.obj
+ 0003:0000038c       _txtencryptfailed          4610438c     language.obj
+ 0003:00000390       ??_C@_0CP@IGDB@Could?5not?5encrypt?5the?5message?4?5I@ 46104390     language.obj
+ 0003:000003c0       ??_C@_0BA@BMKJ@Unknown?5User?5ID?$AA@ 461043c0     language.obj
+ 0003:000003d0       ??_C@_0GH@PFNF@You?5received?5an?5encrypted?5messag@ 461043d0     language.obj
+ 0003:00000438       ??_C@_0BF@MLAH@GnuPG?5Plugin?5?9?5Error?$AA@ 46104438     language.obj
+ 0003:00000450       ??_C@_0BH@MLOA@GnuPG?5Plugin?5?9?5Warning?$AA@ 46104450     language.obj
+ 0003:00000468       ??_C@_0DE@HEGN@Could?5not?5generate?5a?5list?5of?5the@ 46104468     language.obj
+ 0003:0000049c       ??_C@_0DE@LKHI@Could?5not?5generate?5a?5list?5of?5the@ 4610449c     language.obj
+ 0003:000004d0       ??_C@_01FFCO@?$AC?$AA@     461044d0     main.obj
+ 0003:000004d4       ??_C@_01KKJH@?$AB?$AA@     461044d4     main.obj
+ 0003:000004d8       ??_C@_01FEHD@?$AN?$AA@     461044d8     main.obj
+ 0003:000004dc       ??_C@_0BI@DIOP@Select?5GnuPG?5executable?$AA@ 461044dc     main.obj
+ 0003:000004f4       ??_C@_0DI@KIMG@GnuPG?5executable?5?$CIgpg?4exe?$CJ?$AAgpg?4e@ 461044f4     main.obj
+ 0003:0000052c       ??_C@_08GIFB@?2gpg?4exe?$AA@ 4610452c     main.obj
+ 0003:00000538       ??_C@_0BC@PKCH@Install?5Directory?$AA@ 46104538     main.obj
+ 0003:0000054c       ??_C@_0L@KPLK@gpgProgram?$AA@ 4610454c     main.obj
+ 0003:00000558       ??_C@_0BD@FFCB@Software?2GNU?2GnuPG?$AA@ 46104558     main.obj
+ 0003:0000056c       ??_C@_0BE@JBON@Open?5Public?5Keyring?$AA@ 4610456c     main.obj
+ 0003:00000580       ??_C@_0EA@FLAI@Public?5key?5rings?5?$CIpubring?4gpg?$CJ?$AAp@ 46104580     main.obj
+ 0003:000005c0       ??_C@_06OEPH@?2gnupg?$AA@  461045c0     main.obj
+ 0003:000005c8       ??_C@_07DBHH@APPDATA?$AA@  461045c8     main.obj
+ 0003:000005d0       ??_C@_07DAJH@HomeDir?$AA@  461045d0     main.obj
+ 0003:000005d8       ??_C@_09IHAA@GNUPGHOME?$AA@ 461045d8     main.obj
+ 0003:000005e4       ??_C@_08PBHE@output?3?6?$AA@ 461045e4     pipeexec.obj
+ 0003:000005f0       ??_C@_0BG@BFBG@create?5process?5failed?$AA@ 461045f0     pipeexec.obj
+ 0003:00000608       ??_C@_04IGAC@?9?9?9?5?$AA@ 46104608     pipeexec.obj
+ 0003:00000610       ??_C@_0BD@CKEI@create?5pipe?5failed?$AA@ 46104610     pipeexec.obj
+ 0003:00000624       ??_C@_0O@FMDH@commandline?3?6?$AA@ 46104624     pipeexec.obj
+ 0003:00000638       _escsequence               46104638     tools.obj
+ 0003:00000650       _escsequencecount          46104650     tools.obj
+ 0003:00000654       ??_C@_01POCP@?7?$AA@       46104654     tools.obj
+ 0003:00000658       ??_C@_02NLPO@?2t?$AA@      46104658     tools.obj
+ 0003:0000065c       ??_C@_02CEIM@?2r?$AA@      4610465c     tools.obj
+ 0003:00000660       ??_C@_02HDBI@?2n?$AA@      46104660     tools.obj
+ 0003:00000664       ??_C@_0L@JBPC@filename?3?6?$AA@ 46104664     tools.obj
+ 0003:00000670       ??_C@_0O@HMCP@write?5to?5file?$AA@ 46104670     tools.obj
+ 0003:00000680       ??_C@_02NGAF@wb?$AA@       46104680     tools.obj
+ 0003:00000684       ??_C@_03MOIF@gpg?$AA@      46104684     tools.obj
  0003:00000688       ??_C@_0P@EGMO@read?5from?5file?$AA@ 46104688     tools.obj
  0003:00000698       ??_C@_02JKAF@rb?$AA@       46104698     tools.obj
- 0003:0000069c       ??_C@_03MOIF@gpg?$AA@      4610469c     tools.obj
- 0003:000006b0       ??_C@_07GIAA@User?5ID?$AA@ 461046b0     userdialog.obj
- 0003:000006b8       ??_C@_06LGJA@Key?5ID?$AA@  461046b8     userdialog.obj
+ 0003:000006ac       ??_C@_07GIAA@User?5ID?$AA@ 461046ac     userdialog.obj
+ 0003:000006b4       ??_C@_06LGJA@Key?5ID?$AA@  461046b4     userdialog.obj
  0003:000006c0       ??_C@_00A@?$AA@            461046c0     gpg.obj
- 0003:000007d0       _passphrasecount           461047d0     <common>
- 0003:000007d4       _passphrases               461047d4     <common>
+ 0003:000007cc       _passphrasecount           461047cc     <common>
+ 0003:000007d0       _passphrases               461047d0     <common>
  0003:000007e0       _dlgpassphrase             461047e0     <common>
  0003:000008e0       _keyuseridcount            461048e0     <common>
  0003:000008e8       _keyuserids                461048e8     <common>
