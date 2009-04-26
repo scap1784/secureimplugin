@@ -1,6 +1,7 @@
 #ifndef __LANGUAGE_H__
 #define __LANGUAGE_H__
 
+#pragma once
 #include <windows.h>
 
 //Popup Messages

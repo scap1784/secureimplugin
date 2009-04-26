@@ -5,18 +5,18 @@
 LPSTR InitKeyA(pUinKey ptr,int features) {
 
     if(!ptr->cntx)
-		ptr->cntx = cpp_create_context(isProtoSmallPackets(ptr->hContact)?MODE_BASE64:0);
+		ptr->cntx = cpp_create_context(isProtoSmallPackets(ptr->hContact)?CPP_MODE_BASE64:0);
 
-	char *tmp = simDBGetString(ptr->hContact,szModuleName,"PSK");
+	char *tmp = DBGetString(ptr->hContact,szModuleName,"PSK");
 	if(tmp) {
-		cpp_init_keyp(ptr->cntx,tmp);	// make pre-shared key from password
+	    cpp_init_keyp(ptr->cntx,tmp);	// make pre-shared key from password
 	    mir_free(tmp);
-    }
+	}
 
 	LPSTR pub_text = cpp_init_keya(ptr->cntx,features);	// calculate public and private key & fill KeyA
 
 	LPSTR keysig;
-	if(features&FEATURES_NEWPG) {
+	if(features&CPP_FEATURES_NEWPG) {
 		if(features&KEY_B_SIG)
 			keysig = (LPSTR)SIG_KEYB;
 		else
@@ -43,14 +43,14 @@ LPSTR InitKeyA(pUinKey ptr,int features) {
 int InitKeyB(pUinKey ptr,LPCSTR key) {
 
     if(!ptr->cntx)
-		ptr->cntx = cpp_create_context(isProtoSmallPackets(ptr->hContact)?MODE_BASE64:0);
+		ptr->cntx = cpp_create_context(isProtoSmallPackets(ptr->hContact)?CPP_MODE_BASE64:0);
 
 	if(!cpp_keyp(ptr->cntx)) {
-		char *tmp = simDBGetString(ptr->hContact,szModuleName,"PSK");
+		char *tmp = DBGetString(ptr->hContact,szModuleName,"PSK");
 		if(tmp) {
-			cpp_init_keyp(ptr->cntx,tmp);	// make pre-shared key from password
+		    cpp_init_keyp(ptr->cntx,tmp);	// make pre-shared key from password
 		    mir_free(tmp);
-	    }
+		}
 	}
 	ptr->features = cpp_get_features(ptr->cntx);
 	cpp_init_keyb(ptr->cntx,key);
@@ -63,7 +63,7 @@ int InitKeyB(pUinKey ptr,LPCSTR key) {
 void InitKeyX(pUinKey ptr,BYTE *key) {
 
     if(!ptr->cntx)
-		ptr->cntx = cpp_create_context(isProtoSmallPackets(ptr->hContact)?MODE_BASE64:0);
+		ptr->cntx = cpp_create_context(isProtoSmallPackets(ptr->hContact)?CPP_MODE_BASE64:0);
 
 	cpp_set_keyx(ptr->cntx,key);
 }
@@ -105,7 +105,7 @@ BOOL CalculateKeyX(pUinKey ptr,HANDLE hContact) {
 	}
 	else {
 		// agree value problem
-		showPopUp(sim002,hContact,g_hPOP[POP_SECDIS],0);
+		showPopUp(sim002,hContact,g_hPOP[POP_PU_DIS],0);
 	}
 	return agr!=0;
 }
@@ -161,10 +161,10 @@ LPSTR decodeMsg(pUinKey ptr, LPARAM lParam, LPSTR szEncMsg) {
 	if(szOldMsg == NULL) {
 		ptr->decoded=false;
 		switch(cpp_get_error(ptr->cntx)) {
-		case ERROR_BAD_LEN:
+		case CPP_ERROR_BAD_LEN:
 			szNewMsg = mir_strdup(Translate(sim102));
 			break;
-		case ERROR_BAD_CRC:
+		case CPP_ERROR_BAD_CRC:
 			szNewMsg = mir_strdup(Translate(sim103));
 			break;
 		default: {
@@ -208,7 +208,7 @@ BOOL LoadKeyPGP(pUinKey ptr) {
    	}
    	else
    	if(mode==1) {
-   		LPSTR key = simDBGetStringDecode(ptr->hContact,szModuleName,"pgp");
+   		LPSTR key = DBGetStringDecode(ptr->hContact,szModuleName,"pgp");
 		if( key ) {
    			pgp_set_key(ptr->cntx,key);
    			mir_free(key);
@@ -221,7 +221,7 @@ BOOL LoadKeyPGP(pUinKey ptr) {
 
 BOOL LoadKeyGPG(pUinKey ptr) {
 
-	LPSTR key = simDBGetString(ptr->hContact,szModuleName,"gpg");
+	LPSTR key = DBGetString(ptr->hContact,szModuleName,"gpg");
 	if( key ) {
 		gpg_set_keyid(ptr->cntx,key);
 		mir_free(key);

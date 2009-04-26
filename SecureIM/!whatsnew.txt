@@ -1,4 +1,9 @@
 
+Verison 1.0.12.0 [24-04-2009]
+
+[*] rewrite icons library
+
+
 Verison 1.0.11.4 [22-04-2009]
 
 [*] patch from Billy_Bons

@@ -2,12 +2,12 @@
 
 #define PSKSIZE 4096
 BOOL bChangeSortOrder = false;
-const char *szAdvancedIcons[] = {"None", "Email", "Protocol", "SMS", "Advanced 1", "Advanced 2", "Web", "Client", "VisMode", "Advanced 6", "Advanced 7"};
+const char *szAdvancedIcons[] = {"None", "Email", "Protocol", "SMS", "Advanced 1", "Advanced 2", "Web", "Client", "VisMode", "Advanced 6", "Advanced 7", 0};
 
 
 void TC_InsertItem(HWND hwnd, WPARAM wparam, TCITEM *tci) {
 	if( bCoreUnicode ) {
-		LPWSTR tmp = a2u(tci->pszText);
+		LPWSTR tmp = mir_a2u(tci->pszText);
 		tci->pszText = (LPSTR)TranslateW(tmp);
 		SNDMSG(hwnd, TCM_INSERTITEMW, wparam, (LPARAM)tci);
 		mir_free(tmp);
@@ -19,9 +19,9 @@ void TC_InsertItem(HWND hwnd, WPARAM wparam, TCITEM *tci) {
 }
 
 
-void LV_InsertColumn(HWND hwnd, WPARAM wparam, LVCOLUMN *lvc) {
+static void LV_InsertColumn(HWND hwnd, WPARAM wparam, LVCOLUMN *lvc) {
 	if( bCoreUnicode ) {
-		LPWSTR tmp = a2u(lvc->pszText);
+		LPWSTR tmp = mir_a2u(lvc->pszText);
 		lvc->pszText = (LPSTR)TranslateW(tmp);
 		SNDMSG(hwnd, LVM_INSERTCOLUMNW, wparam, (LPARAM)lvc);
 		mir_free(tmp);
@@ -39,7 +39,7 @@ int LV_InsertItem(HWND hwnd, LVITEM *lvi) {
 
 
 int LV_InsertItemA(HWND hwnd, LVITEM *lvi) {
-	if( bCoreUnicode ) lvi->pszText = (LPSTR) a2u(lvi->pszText);
+	if( bCoreUnicode ) lvi->pszText = (LPSTR) mir_a2u(lvi->pszText);
 	int ret = LV_InsertItem(hwnd, lvi);
 	if( bCoreUnicode ) mir_free(lvi->pszText);
 	return ret;
@@ -55,7 +55,7 @@ void LV_SetItemText(HWND hwnd, WPARAM wparam, int subitem, LPSTR text) {
 
 
 void LV_SetItemTextA(HWND hwnd, WPARAM wparam, int subitem, LPSTR text) {
-	if( bCoreUnicode ) text = (LPSTR) a2u(text);
+	if( bCoreUnicode ) text = (LPSTR) mir_a2u(text);
 	LV_SetItemText(hwnd, wparam, subitem, text);
 	if( bCoreUnicode ) mir_free(text);
 }
@@ -68,7 +68,7 @@ void LV_GetItemTextA(HWND hwnd, WPARAM wparam, int iSubItem, LPSTR text, int cch
 	lvi.pszText = text;
 	SNDMSG(hwnd, bCoreUnicode ? LVM_GETITEMTEXTW : LVM_GETITEMTEXTA, wparam, (LPARAM)&lvi);
 	if( bCoreUnicode ) {
-		lvi.pszText = u2a((LPWSTR)text);
+		lvi.pszText = mir_u2a((LPWSTR)text);
 		strcpy(text, lvi.pszText);
 		mir_free(lvi.pszText);
 	}
@@ -92,19 +92,19 @@ BOOL CALLBACK OptionsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) 
          tci.mask = TCIF_PARAM|TCIF_TEXT;
 
          tci.lParam = (LPARAM)CreateDialog(g_hInst,MAKEINTRESOURCE(IDD_TAB_GENERAL),hwnd,DlgProcOptionsGeneral);
-		 tci.pszText = (LPSTR)sim201;
+	 tci.pszText = (LPSTR)sim201;
          TC_InsertItem(GetDlgItem(hwnd, IDC_OPTIONSTAB), 0, &tci);
          MoveWindow((HWND)tci.lParam,5,26,rcClient.right-8,rcClient.bottom-29,1);
 
          tci.lParam = (LPARAM)CreateDialog(g_hInst,MAKEINTRESOURCE(IDD_TAB_PROTO),hwnd,DlgProcOptionsProto);
-		 tci.pszText = (LPSTR)sim202;
+	 tci.pszText = (LPSTR)sim202;
          TC_InsertItem(GetDlgItem(hwnd, IDC_OPTIONSTAB), 2, &tci);
          MoveWindow((HWND)tci.lParam,5,26,rcClient.right-8,rcClient.bottom-29,1);
          ShowWindow((HWND)tci.lParam, SW_HIDE);
 
          if(bPGP && bPGPloaded) {
          tci.lParam = (LPARAM)CreateDialog(g_hInst,MAKEINTRESOURCE(IDD_TAB_PGP),hwnd,DlgProcOptionsPGP);
-		 tci.pszText = (LPSTR)sim214;
+	 tci.pszText = (LPSTR)sim214;
          TC_InsertItem(GetDlgItem(hwnd, IDC_OPTIONSTAB), 3, &tci);
          MoveWindow((HWND)tci.lParam,5,26,rcClient.right-8,rcClient.bottom-29,1);
          ShowWindow((HWND)tci.lParam, SW_HIDE);
@@ -121,7 +121,7 @@ BOOL CALLBACK OptionsDlgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) 
          // add more tabs here if needed
          // activate the final tab
          iInit = FALSE;
-		 return TRUE;
+	 return TRUE;
       }
 	  break;
 
@@ -217,6 +217,9 @@ BOOL CALLBACK DlgProcOptionsGeneral(HWND hDlg, UINT wMsg, WPARAM wParam, LPARAM 
 
 		  TranslateDialogDefault(hDlg);
 
+#if defined(_DEBUG) || defined(NETLIB_LOG)
+	Sent_NetLog("DlgProcOptionsGeneral(WN_INITDIALOG)");
+#endif
   		  iInit = TRUE;
 //		  SendMessage(hLV, WM_SETREDRAW, FALSE, 0);
 		  ListView_SetExtendedListViewStyle(hLV, ListView_GetExtendedListViewStyle(hLV) | LVS_EX_FULLROWSELECT);
@@ -233,18 +236,21 @@ BOOL CALLBACK DlgProcOptionsGeneral(HWND hDlg, UINT wMsg, WPARAM wParam, LPARAM 
 		  ListView_SetImageList(hLV, hSmall, LVSIL_SMALL);
 		  ListView_SetImageList(hLV, hLarge, LVSIL_NORMAL);
 
-		  static const char *szColHdr[] = { sim203, sim204, sim230, sim205, sim206 };
+		  static const char *szColHdr[] = { sim203, sim204, sim230, sim205, sim206, 0 };
 		  static int iColWidth[] = { 150, 115, 45, 65, 35 };
 		  LVCOLUMN lvc;
 		  lvc.mask = LVCF_FMT | LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM;
 		  lvc.fmt = LVCFMT_LEFT;
-		  for (i = 0; i < SIZEOF(szColHdr); i++) {
+		  for (i = 0; szColHdr[i]; i++) {
+#if defined(_DEBUG) || defined(NETLIB_LOG)
+	Sent_NetLog("LV_InsertColumn(%d,%s)",i,szColHdr[i]);
+#endif
 			  lvc.iSubItem = i;
 			  lvc.pszText = (LPSTR)szColHdr[i];
 			  lvc.cx = iColWidth[i];
 			  LV_InsertColumn(hLV, i, &lvc);
 		  }
-		  for (i = 0; i < SIZEOF(szAdvancedIcons); i++) {
+		  for (i = 0; szAdvancedIcons[i]; i++) {
 			SendMessage(GetDlgItem(hDlg, IDC_ADVICON), CB_ADDSTRING, 0, (LPARAM) Translate(szAdvancedIcons[i]));
 		  }
 
@@ -253,7 +259,7 @@ BOOL CALLBACK DlgProcOptionsGeneral(HWND hDlg, UINT wMsg, WPARAM wParam, LPARAM 
 //		  SendMessage(hLV, WM_SETREDRAW, TRUE, 0);
 
   		  iInit = FALSE;
-	      return TRUE;
+		  return TRUE;
 		} // WM_INITDIALOG
 		break;
 
@@ -294,6 +300,7 @@ BOOL CALLBACK DlgProcOptionsGeneral(HWND hDlg, UINT wMsg, WPARAM wParam, LPARAM 
 				if (ptr) {
 					ptr->tmode = LOWORD(wParam)-ID_SIM_NATIVE;
 					setListViewMode(hLV,idx,ptr->tmode);
+					setListViewIcon(hLV,idx,ptr);
 				}
 			}
 			break;
@@ -325,9 +332,9 @@ BOOL CALLBACK DlgProcOptionsGeneral(HWND hDlg, UINT wMsg, WPARAM wParam, LPARAM 
 		  	break;
 
 		  	case ID_UPDATE_CLIST: {
-				iInit = TRUE;
-				RefreshGeneralDlg(hDlg,FALSE);
-				iInit = FALSE;
+//				iInit = TRUE;
+//				RefreshGeneralDlg(hDlg,FALSE);
+//				iInit = FALSE;
 				return TRUE;
 			}
 			break;
@@ -394,9 +401,9 @@ BOOL CALLBACK DlgProcOptionsGeneral(HWND hDlg, UINT wMsg, WPARAM wParam, LPARAM 
 					ptr = (pUinKey) getListViewParam(hLV,idx);
 					if (ptr) {
 						ptr->tmode++;
-						if( !bPGP && ptr->tmode==ENC_PGP ) ptr->tmode++;
-						if( !bGPG && ptr->tmode==ENC_GPG ) ptr->tmode++;
-						if( ptr->tmode>ENC_MAX ) ptr->tmode=ENC_NATIVE;
+						if( !bPGP && ptr->tmode==MODE_PGP ) ptr->tmode++;
+						if( !bGPG && ptr->tmode==MODE_GPG ) ptr->tmode++;
+						if( ptr->tmode>=MODE_CNT ) ptr->tmode=MODE_NATIVE;
 						setListViewMode(hLV,idx,ptr->tmode);
 						setListViewIcon(hLV,idx,ptr);
 						SendMessage(GetParent(hDlg), PSM_CHANGED, 0, 0);
@@ -418,12 +425,12 @@ BOOL CALLBACK DlgProcOptionsGeneral(HWND hDlg, UINT wMsg, WPARAM wParam, LPARAM 
   				ptr = (pUinKey) getListViewParam(hLV,idx);
 				if (ptr) {
 					POINT p; GetCursorPos(&p);
-					HMENU hMenu = LoadMenu(g_hInst, MAKEINTRESOURCE((ptr->tmode==ENC_NATIVE)?IDM_CLIST0:((ptr->tmode==ENC_RSAAES)?IDM_CLIST1:IDM_CLIST2)));
+					HMENU hMenu = LoadMenu(g_hInst, MAKEINTRESOURCE((ptr->tmode==MODE_NATIVE)?IDM_CLIST0:((ptr->tmode==MODE_RSAAES)?IDM_CLIST1:IDM_CLIST2)));
 					CallService(MS_LANGPACK_TRANSLATEMENU, (WPARAM)hMenu, 0);
 					CheckMenuItem(hMenu, ID_SIM_NATIVE+ptr->tmode, MF_CHECKED );
 					if( !bPGP ) EnableMenuItem(hMenu, ID_SIM_NATIVE+1, MF_GRAYED );
 					if( !bGPG ) EnableMenuItem(hMenu, ID_SIM_NATIVE+2, MF_GRAYED );
-					if( ptr->tmode==ENC_NATIVE || ptr->tmode==ENC_RSAAES ) {
+					if( ptr->tmode==MODE_NATIVE || ptr->tmode==MODE_RSAAES ) {
 						CheckMenuItem(hMenu, ID_DISABLED+ptr->tstatus, MF_CHECKED );
 					}
 					CheckMenuItem(hMenu, ID_ENCRYPTION, MF_BYCOMMAND );
@@ -460,6 +467,9 @@ BOOL CALLBACK DlgProcOptionsProto(HWND hDlg, UINT wMsg, WPARAM wParam, LPARAM lP
 
 		  TranslateDialogDefault(hDlg);
 
+#if defined(_DEBUG) || defined(NETLIB_LOG)
+	Sent_NetLog("DlgProcOptionsProto(WN_INITDIALOG)");
+#endif
   		  iInit = TRUE;
 		  ListView_SetExtendedListViewStyle(hLV, ListView_GetExtendedListViewStyle(hLV) | LVS_EX_FULLROWSELECT | LVS_EX_CHECKBOXES);
 
@@ -528,8 +538,8 @@ BOOL CALLBACK DlgProcOptionsProto(HWND hDlg, UINT wMsg, WPARAM wParam, LPARAM lP
 						if( idx == -1 ) break;
 						EnableWindow(GetDlgItem(hDlg,IDC_SPLITON), true);
 						EnableWindow(GetDlgItem(hDlg,IDC_SPLITOFF), true);
-						itoa(proto[idx].tsplit_on,buf,10);	SetDlgItemText(hDlg,IDC_SPLITON,buf);
-						itoa(proto[idx].tsplit_off,buf,10);	SetDlgItemText(hDlg,IDC_SPLITOFF,buf);
+						mir_itoa(proto[idx].tsplit_on,buf,10);	SetDlgItemText(hDlg,IDC_SPLITON,buf);
+						mir_itoa(proto[idx].tsplit_off,buf,10);	SetDlgItemText(hDlg,IDC_SPLITOFF,buf);
 						SendMessage(GetParent(hDlg), PSM_CHANGED, 0, 0);
 					}
 				}
@@ -556,13 +566,16 @@ BOOL CALLBACK DlgProcOptionsPGP(HWND hDlg, UINT wMsg, WPARAM wParam, LPARAM lPar
 		case WM_INITDIALOG: {
 
 		  TranslateDialogDefault(hDlg);
-  		  iInit = TRUE;
 
+#if defined(_DEBUG) || defined(NETLIB_LOG)
+	Sent_NetLog("DlgProcOptionsPGP(WN_INITDIALOG)");
+#endif
+  		  iInit = TRUE;
 		  ListView_SetExtendedListViewStyle(hLV, ListView_GetExtendedListViewStyle(hLV) | LVS_EX_FULLROWSELECT);
 
 		  hLarge = ImageList_Create(GetSystemMetrics(SM_CXICON), GetSystemMetrics(SM_CYICON), iBmpDepth, 1, 1);
 		  hSmall = ImageList_Create(GetSystemMetrics(SM_CXSMICON), GetSystemMetrics(SM_CYSMICON), iBmpDepth, 1, 1);
-		  for (i = ICO_DISKEY; i < ICO_TRYKEY; i++) {
+		  for (i = ICO_ST_DIS; i <= ICO_ST_TRY; i++) {
 			  ImageList_AddIcon(hSmall, g_hICO[i]);
 			  ImageList_AddIcon(hLarge, g_hICO[i]);
 		  }
@@ -570,12 +583,12 @@ BOOL CALLBACK DlgProcOptionsPGP(HWND hDlg, UINT wMsg, WPARAM wParam, LPARAM lPar
 		  ListView_SetImageList(hLV, hSmall, LVSIL_SMALL);
 		  ListView_SetImageList(hLV, hLarge, LVSIL_NORMAL);
 
-		  static const char *szColHdr[] = { sim203, sim204, sim215 };
+		  static const char *szColHdr[] = { sim203, sim204, sim215, 0 };
 		  static int iColWidth[] = { 160, 150, 80 };
 		  LVCOLUMN lvc;
 		  lvc.mask = LVCF_FMT | LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM;
 		  lvc.fmt = LVCFMT_LEFT;
-		  for (i = 0; i < SIZEOF(szColHdr); i++) {
+		  for (i = 0; szColHdr[i]; i++) {
 			  lvc.iSubItem = i;
 			  lvc.pszText = (LPSTR)szColHdr[i];
 			  lvc.cx = iColWidth[i];
@@ -704,13 +717,16 @@ BOOL CALLBACK DlgProcOptionsGPG(HWND hDlg, UINT wMsg, WPARAM wParam, LPARAM lPar
 		case WM_INITDIALOG: {
 
 		  TranslateDialogDefault(hDlg);
-  		  iInit = TRUE;
 
+#if defined(_DEBUG) || defined(NETLIB_LOG)
+	Sent_NetLog("DlgProcOptionsGPG(WN_INITDIALOG)");
+#endif
+  		  iInit = TRUE;
 		  ListView_SetExtendedListViewStyle(hLV, ListView_GetExtendedListViewStyle(hLV) | LVS_EX_FULLROWSELECT);
 
 		  hLarge = ImageList_Create(GetSystemMetrics(SM_CXICON), GetSystemMetrics(SM_CYICON), iBmpDepth, 1, 1);
 		  hSmall = ImageList_Create(GetSystemMetrics(SM_CXSMICON), GetSystemMetrics(SM_CYSMICON), iBmpDepth, 1, 1);
-		  for (i = ICO_DISKEY; i < ICO_TRYKEY; i++) {
+		  for (i = ICO_ST_DIS; i <= ICO_ST_TRY; i++) {
 			  ImageList_AddIcon(hSmall, g_hICO[i]);
 			  ImageList_AddIcon(hLarge, g_hICO[i]);
 		  }
@@ -718,12 +734,12 @@ BOOL CALLBACK DlgProcOptionsGPG(HWND hDlg, UINT wMsg, WPARAM wParam, LPARAM lPar
 		  ListView_SetImageList(hLV, hSmall, LVSIL_SMALL);
 		  ListView_SetImageList(hLV, hLarge, LVSIL_NORMAL);
 
-		  static const char *szColHdr[] = { sim203, sim204, sim215, sim227 };
+		  static const char *szColHdr[] = { sim203, sim204, sim215, sim227, 0 };
 		  static int iColWidth[] = { 140, 120, 120, 40 };
 		  LVCOLUMN lvc;
 		  lvc.mask = LVCF_FMT | LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM;
 		  lvc.fmt = LVCFMT_LEFT;
-		  for (i = 0; i < SIZEOF(szColHdr); i++) {
+		  for (i = 0; szColHdr[i]; i++) {
 			  lvc.iSubItem = i;
 			  lvc.pszText = (LPSTR)szColHdr[i];
 			  lvc.cx = iColWidth[i];
@@ -781,7 +797,7 @@ BOOL CALLBACK DlgProcOptionsGPG(HWND hDlg, UINT wMsg, WPARAM wParam, LPARAM lPar
     			strcpy(filter, Translate(txtexecutablefiles));
     			strcat(filter, " (*.exe)");
     			strcpy(filter+strlen(filter)+1, "*.exe");
-    			
+
     			// OPENFILENAME initialisieren
     			ZeroMemory(&ofn, sizeof(ofn));
     			ofn.lStructSize=sizeof(ofn);
@@ -791,7 +807,7 @@ BOOL CALLBACK DlgProcOptionsGPG(HWND hDlg, UINT wMsg, WPARAM wParam, LPARAM lPar
     			ofn.nMaxFile=sizeof(gpgexe);
     			ofn.lpstrTitle=Translate(txtselectexecutable);
     			ofn.Flags=OFN_FILEMUSTEXIST|OFN_LONGNAMES|OFN_HIDEREADONLY;
-    			
+
     			if (GetOpenFileName(&ofn))
     			{
     				SetDlgItemText(hDlg, IDC_GPGEXECUTABLE_EDIT, ofn.lpstrFile);
@@ -907,17 +923,20 @@ BOOL CALLBACK DlgProcSetPSK(HWND hDlg,UINT uMsg,WPARAM wParam,LPARAM lParam) {
 
 void RefreshGeneralDlg(HWND hDlg, BOOL iInit) {
 
-	char timeout[5];
+	char timeout[10];
 	UINT data;
 
+#if defined(_DEBUG) || defined(NETLIB_LOG)
+	Sent_NetLog("RefreshGeneralDlg");
+#endif
 	// Key Exchange Timeout
 	data = DBGetContactSettingWord(0, szModuleName, "ket", 10);
-	itoa(data,timeout,10);
+	mir_itoa(data,timeout,10);
 	SetDlgItemText(hDlg,IDC_KET,timeout);
 
 	// Offline Key Timeout
 	data = DBGetContactSettingWord(0, szModuleName, "okt", 2);
-	itoa(data,timeout,10);
+	mir_itoa(data,timeout,10);
 	SetDlgItemText(hDlg,IDC_OKT,timeout);
 
 	GetFlags();
@@ -940,8 +959,6 @@ void RefreshGeneralDlg(HWND hDlg, BOOL iInit) {
 	}	
 */
 	// Advanced
-//	for(i=0;i<ADV_CNT;i++)
-//		SendMessage(GetDlgItem(hDlg,IDC_ADV0+i),BM_SETCHECK,(i==bADV)?BST_CHECKED:BST_UNCHECKED,0L);
 	SendMessage(GetDlgItem(hDlg, IDC_ADVICON), CB_SETCURSEL, bADV, 0);
 
 	// Select {OFF,PGP,GPG}
@@ -999,6 +1016,9 @@ void RefreshProtoDlg(HWND hDlg) {
 
 	int i;
 
+#if defined(_DEBUG) || defined(NETLIB_LOG)
+	Sent_NetLog("RefreshProtoDlg");
+#endif
 	HWND hLV = GetDlgItem(hDlg,IDC_PROTO);
 	ListView_DeleteAllItems(hLV);
 
@@ -1006,6 +1026,9 @@ void RefreshProtoDlg(HWND hDlg) {
 	lvi.mask = LVIF_TEXT | LVIF_PARAM;
 
 	for(i=0;i<proto_cnt;i++) {
+#if defined(_DEBUG) || defined(NETLIB_LOG)
+	Sent_NetLog("LV_InsertItemA(%d,%s);",i,proto[i].name);
+#endif
 		lvi.iItem = i+1;
 		lvi.pszText = proto[i].name;
 		lvi.lParam = (LPARAM)i;
@@ -1018,8 +1041,11 @@ void RefreshProtoDlg(HWND hDlg) {
 	EnableWindow(GetDlgItem(hDlg,IDC_SPLITON), false);
 	EnableWindow(GetDlgItem(hDlg,IDC_SPLITOFF), false);
 
-	BYTE sha[32]; int len; exp->rsa_get_keyhash(MODE_RSA,NULL,NULL,(PBYTE)&sha,&len);
+	BYTE sha[32]; int len; exp->rsa_get_keyhash(CPP_MODE_RSA,NULL,NULL,(PBYTE)&sha,&len);
 	LPSTR txt = mir_strdup(to_hex(sha,len));
+#if defined(_DEBUG) || defined(NETLIB_LOG)
+	Sent_NetLog("to_hex(%s)",txt);
+#endif
 	SetDlgItemText(hDlg, IDC_RSA_SHA, txt);
 	mir_free(txt);
 }
@@ -1030,6 +1056,9 @@ void RefreshPGPDlg(HWND hDlg, BOOL iInit) {
 	int ver = pgp_get_version();
 	bPGP9 = (ver>=0x03050000);
 
+#if defined(_DEBUG) || defined(NETLIB_LOG)
+	Sent_NetLog("RefreshPGPDlg");
+#endif
 	EnableWindow(GetDlgItem(hDlg, IDC_SET_KEYRINGS), bUseKeyrings && !bPGP9);
 	EnableWindow(GetDlgItem(hDlg, IDC_LOAD_PRIVKEY), !bUseKeyrings);
 	SetDlgItemText(hDlg, IDC_PGP_PRIVKEY, bPGPprivkey?Translate(sim222):Translate(sim223));
@@ -1060,9 +1089,9 @@ void RefreshPGPDlg(HWND hDlg, BOOL iInit) {
 	while (hContact) {
 
 		pUinKey ptr = getUinKey(hContact);
-		if (ptr && ptr->mode==ENC_PGP && isSecureProtocol(hContact) /*&& !getMetaContact(hContact)*/ && !isChatRoom(hContact)) {
+		if (ptr && ptr->mode==MODE_PGP && isSecureProtocol(hContact) /*&& !getMetaContact(hContact)*/ && !isChatRoom(hContact)) {
 
-			LPSTR szKeyID = simDBGetString(hContact,szModuleName,"pgp_abbr");
+			LPSTR szKeyID = DBGetString(hContact,szModuleName,"pgp_abbr");
 
 			lvi.iItem++;
 			lvi.iImage = (szKeyID!=0);
@@ -1088,17 +1117,20 @@ void RefreshGPGDlg(HWND hDlg, BOOL iInit) {
 
 	LPSTR path;
 
-	path = simDBGetString(0,szModuleName,"gpgExec");
+#if defined(_DEBUG) || defined(NETLIB_LOG)
+	Sent_NetLog("RefreshGPGDlg");
+#endif
+	path = DBGetString(0,szModuleName,"gpgExec");
 	if(path) {
 		SetDlgItemText(hDlg, IDC_GPGEXECUTABLE_EDIT, path);
 		mir_free(path);
 	}
-	path = simDBGetString(0,szModuleName,"gpgHome");
+	path = DBGetString(0,szModuleName,"gpgHome");
 	if(path) {
 		SetDlgItemText(hDlg, IDC_GPGHOME_EDIT, path);
 		mir_free(path);
 	}
-	path = simDBGetString(0,szModuleName,"gpgLog");
+	path = DBGetString(0,szModuleName,"gpgLog");
 	if(path) {
 		SetDlgItemText(hDlg, IDC_GPGLOGFILE_EDIT, path);
 		mir_free(path);
@@ -1120,13 +1152,13 @@ void RefreshGPGDlg(HWND hDlg, BOOL iInit) {
 	while (hContact) {
 
 		pUinKey ptr = getUinKey(hContact);
-		if (ptr && ptr->mode==ENC_GPG && isSecureProtocol(hContact) /*&& !getMetaContact(hContact)*/ && !isChatRoom(hContact)) {
+		if (ptr && ptr->mode==MODE_GPG && isSecureProtocol(hContact) /*&& !getMetaContact(hContact)*/ && !isChatRoom(hContact)) {
 
 			if( iInit ) {
 				ptr->tgpgMode = ptr->gpgMode;
 			}
 
-			LPSTR szKeyID = simDBGetString(hContact,szModuleName,"gpg");
+			LPSTR szKeyID = DBGetString(hContact,szModuleName,"gpg");
 
 			lvi.iItem++;
 			lvi.iImage = (szKeyID!=0);
@@ -1188,7 +1220,7 @@ void ResetGeneralDlg(HWND hDlg) {
 			pUinKey ptr = getUinKey(hContact);
 			if(!ptr) continue;
 
-			ptr->tmode=ENC_NATIVE;
+			ptr->tmode=MODE_NATIVE;
 			ptr->tstatus=STATUS_ENABLED;
 
 			lvi.iItem++;
@@ -1230,14 +1262,14 @@ void ApplyGeneralSettings(HWND hDlg) {
 	GetDlgItemText(hDlg,IDC_KET,timeout,5);
 	tmp = atoi(timeout); if(tmp > 65535) tmp = 65535;
 	DBWriteContactSettingWord(0,szModuleName,"ket",tmp);
-	itoa(tmp,timeout,10);
+	mir_itoa(tmp,timeout,10);
 	SetDlgItemText(hDlg,IDC_KET,timeout);
 
 	// Offline Key Timeout
 	GetDlgItemText(hDlg,IDC_OKT,timeout,5);
 	tmp = atoi(timeout); if(tmp > 65535) tmp = 65535;
 	DBWriteContactSettingWord(0,szModuleName,"okt",tmp);
-	itoa(tmp,timeout,10);
+	mir_itoa(tmp,timeout,10);
 	SetDlgItemText(hDlg,IDC_OKT,timeout);
 
 	bSFT = (SendMessage(GetDlgItem(hDlg, IDC_SFT),BM_GETCHECK,0L,0L)==BST_CHECKED);
@@ -1250,20 +1282,6 @@ void ApplyGeneralSettings(HWND hDlg) {
 	bNOL = (SendMessage(GetDlgItem(hDlg, IDC_NOL),BM_GETCHECK,0L,0L)==BST_CHECKED);
 	bAAK = (SendMessage(GetDlgItem(hDlg, IDC_AAK),BM_GETCHECK,0L,0L)==BST_CHECKED);
 	bADV = (BYTE)SendMessage(GetDlgItem(hDlg, IDC_ADVICON), CB_GETCURSEL, 0, 0);
-
-	// Advanced
-//	for(i=0;i<ADV_CNT;i++)
-//	   if(SendMessage(GetDlgItem(hDlg, IDC_ADV0+i),BM_GETCHECK,0L,0L)==BST_CHECKED) {
-//			bADV = i;
-//			break;
-//	   }
-
-	// update extraicon position
-//	g_IEC[0].ColumnType = EXTRA_ICON_ADV1 + bADV - 1;
-	g_IEC[0].ColumnType = bADV;
-	for(i=0;i<IEC_CNT;i++){
-		if(i) g_IEC[i].ColumnType = g_IEC[0].ColumnType;
-	}
 
 	SetFlags();
 
@@ -1287,23 +1305,23 @@ void ApplyGeneralSettings(HWND hDlg) {
 	i = ListView_GetNextItem(hLV,(UINT)-1,LVNI_ALL);
 	while(i!=-1) {
 		pUinKey ptr = (pUinKey)getListViewParam(hLV,i);
-		if(!ptr) continue;
-		if(ptr->mode!=ptr->tmode) {
+		if( !ptr ) continue;
+		if( ptr->mode!=ptr->tmode ) {
 			ptr->mode = ptr->tmode;
 			DBWriteContactSettingByte(ptr->hContact, szModuleName, "mode", ptr->mode);
 		}
-		if(ptr->status!=ptr->tstatus) {
+		if( ptr->status!=ptr->tstatus ) {
 			ptr->status = ptr->tstatus;
-			if(ptr->status==1)	DBDeleteContactSetting(ptr->hContact, szModuleName, "StatusID");
+			if(ptr->status==STATUS_ENABLED)	DBDeleteContactSetting(ptr->hContact, szModuleName, "StatusID");
 			else 				DBWriteContactSettingByte(ptr->hContact, szModuleName, "StatusID", ptr->status);
 		}
-		if(getListViewPSK(hLV,i)) {
-			LPSTR tmp = simDBGetString(ptr->hContact,szModuleName,"tPSK");
+		if( getListViewPSK(hLV,i) ) {
+		    LPSTR tmp = DBGetString(ptr->hContact,szModuleName,"tPSK");
 		    DBWriteContactSettingString(ptr->hContact, szModuleName, "PSK", tmp);
 		    mir_free(tmp);
 		}
 		else {
-			DBDeleteContactSetting(ptr->hContact, szModuleName, "PSK");
+		    DBDeleteContactSetting(ptr->hContact, szModuleName, "PSK");
 		}
 		DBDeleteContactSetting(ptr->hContact, szModuleName, "tPSK");
 		i = ListView_GetNextItem(hLV,i,LVNI_ALL);
@@ -1337,11 +1355,11 @@ void ApplyPGPSettings(HWND hDlg) {
 	bUseKeyrings = !(SendMessage(GetDlgItem(hDlg, IDC_NO_KEYRINGS),BM_GETCHECK,0L,0L)==BST_CHECKED);
 	DBWriteContactSettingByte(0,szModuleName,"ukr",bUseKeyrings);
 
-	char *priv = simDBGetString(0,szModuleName,"tpgpPrivKey");
+	char *priv = DBGetString(0,szModuleName,"tpgpPrivKey");
 	if(priv) {
    	    bPGPprivkey = true;
 	    pgp_set_key(-1,priv);
-		simDBWriteStringEncode(0,szModuleName,"pgpPrivKey",priv);
+		DBWriteStringEncode(0,szModuleName,"pgpPrivKey",priv);
 		mir_free(priv);
   		DBDeleteContactSetting(0,szModuleName,"tpgpPrivKey");
 	}
@@ -1403,7 +1421,18 @@ void setListViewIcon(HWND hLV, UINT iItem, pUinKey ptr) {
 
 	LVITEM lvi = {0};
 	lvi.iItem = iItem;
-	lvi.iImage = (ptr->tmode)?(ptr->tmode+ICO_PGPKEY-1):ptr->tstatus;
+	switch(ptr->tmode) {
+	case MODE_NATIVE:
+	case MODE_RSAAES:
+		lvi.iImage = ICO_ST_DIS+ptr->tstatus;
+		break;
+	case MODE_PGP:
+		lvi.iImage = ICO_OV_PGP;
+		break;
+	case MODE_GPG:
+		lvi.iImage = ICO_OV_GPG;
+		break;
+	}
 	lvi.mask = LVIF_IMAGE;
 	ListView_SetItem(hLV, &lvi);
 }
@@ -1411,7 +1440,7 @@ void setListViewIcon(HWND hLV, UINT iItem, pUinKey ptr) {
 
 void setListViewMode(HWND hLV, UINT iItem, UINT iMode) {
 
-	char tmp[128];
+	char tmp[256];
 	strncpy(tmp, Translate(sim231[iMode]), sizeof(tmp));
 	LV_SetItemTextA(hLV, iItem, 2, tmp);
 }
@@ -1438,7 +1467,7 @@ void setListViewPSK(HWND hLV, UINT iItem, UINT iStatus) {
 	// change status text
 	char szPSK[128];
 	if (iStatus)	strncpy(szPSK, Translate(sim212), sizeof(szPSK));
-	else 			strncpy(szPSK, Translate(sim213), sizeof(szPSK));
+	else 		strncpy(szPSK, Translate(sim213), sizeof(szPSK));
 	LV_SetItemTextA(hLV, iItem, 4, szPSK);
 }
 

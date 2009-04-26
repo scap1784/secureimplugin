@@ -1,36 +1,36 @@
 #ifndef __CRYPTOPP_H__
 #define __CRYPTOPP_H__
 
-#define FEATURES_UTF8			0x01
-#define FEATURES_BASE64			0x02
-#define FEATURES_GZIP			0x04
-#define FEATURES_CRC32			0x08
-#define FEATURES_PSK			0x10
-#define FEATURES_NEWPG			0x20
+#define CPP_FEATURES_UTF8		0x01
+#define CPP_FEATURES_BASE64		0x02
+#define CPP_FEATURES_GZIP		0x04
+#define CPP_FEATURES_CRC32		0x08
+#define CPP_FEATURES_PSK		0x10
+#define CPP_FEATURES_NEWPG		0x20
 
-#define MODE_BASE16			0x0000
-#define MODE_BASE64			0x0001
-#define MODE_PGP			0x0002
-#define MODE_GPG			0x0004
-#define MODE_GPG_ANSI			0x0008
-#define MODE_RSA_PRIV			0x0010
-#define MODE_RSA_2048			0x0020
-#define MODE_RSA_4096			0x0040
-#define MODE_RSA			MODE_RSA_4096
-#define MODE_RSA_ONLY			0x0080
-#define MODE_RSA_ZLIB			0x0100
+#define CPP_MODE_BASE16			0x0000
+#define CPP_MODE_BASE64			0x0001
+#define CPP_MODE_PGP			0x0002
+#define CPP_MODE_GPG			0x0004
+#define CPP_MODE_GPG_ANSI		0x0008
+#define CPP_MODE_RSA_PRIV		0x0010
+#define CPP_MODE_RSA_2048		0x0020
+#define CPP_MODE_RSA_4096		0x0040
+#define CPP_MODE_RSA			CPP_MODE_RSA_4096
+#define CPP_MODE_RSA_ONLY		0x0080
+#define CPP_MODE_RSA_ZLIB		0x0100
 
-#define ERROR_NONE			0
-#define ERROR_SEH			1
-#define ERROR_NO_KEYA			2
-#define ERROR_NO_KEYB			3
-#define ERROR_NO_KEYX			4
-#define ERROR_BAD_LEN			5
-#define ERROR_BAD_CRC			6
-#define ERROR_NO_PSK			7
-#define ERROR_BAD_PSK			8
-#define ERROR_BAD_KEYB			9
-#define ERROR_NO_PGP_KEY		10
+#define CPP_ERROR_NONE			0
+#define CPP_ERROR_SEH			1
+#define CPP_ERROR_NO_KEYA		2
+#define CPP_ERROR_NO_KEYB		3
+#define CPP_ERROR_NO_KEYX		4
+#define CPP_ERROR_BAD_LEN		5
+#define CPP_ERROR_BAD_CRC		6
+#define CPP_ERROR_NO_PSK		7
+#define CPP_ERROR_BAD_PSK		8
+#define CPP_ERROR_BAD_KEYB		9
+#define CPP_ERROR_NO_PGP_KEY		10
 
 typedef struct {
     int (__cdecl *rsa_gen_keypair)(short);				// генерит RSA-ключи дл€ указанной длины (либо тока 2048, либо 2048 и 4096)

@@ -9,7 +9,7 @@ int clist_cnt = 0;
 void loadSupportedProtocols() {
     int numberOfProtocols;
     PROTOCOLDESCRIPTOR **protos;
-    char *szNames = simDBGetString(0,szModuleName,"protos");
+    LPSTR szNames = DBGetString(0,szModuleName,"protos");
     if( szNames && strchr(szNames,':') == NULL ) {
 	LPSTR tmp = (LPSTR) mir_alloc(2048); int j=0;
 	for(int i=0; szNames[i]; i++) {

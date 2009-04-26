@@ -68,8 +68,7 @@ void __cdecl sttWaitForExchange( LPVOID param ) {
    		ShowStatusIconNotify(ptr->hContact);
    	}
    	else {
-   	    // дошлем через установленное соединение
-//   	    if( ptr->mode==ENC_RSAAES ) {
+   		// дошлем через установленное соединение
 		EnterCriticalSection(&localQueueMutex);
 		// we need to resend last send back message with new crypto Key
 		pWM ptrMessage = ptr->msgQueue;
@@ -86,8 +85,6 @@ void __cdecl sttWaitForExchange( LPVOID param ) {
 		}
 		ptr->msgQueue = NULL;
 		LeaveCriticalSection(&localQueueMutex);
-//		showPopUpSM(ptr->hContact);
-//   	    }
    	}
 }
 

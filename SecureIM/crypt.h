@@ -122,6 +122,14 @@ BOOL isChatRoom(HANDLE);
 BOOL isFileExist(LPCSTR);
 BOOL isSecureIM(HANDLE);
 
+// crypt_icons.cpp
+HICON mode2icon(int,int);
+IconExtraColumn mode2iec(int);
+void RefreshContactListIcons(void);
+void ShowStatusIcon(HANDLE,UINT);
+void ShowStatusIcon(HANDLE);
+void ShowStatusIconNotify(HANDLE);
+
 // crypt_popups.cpp
 //static int CALLBACK PopupDlgProc(HWND,UINT,WPARAM,LPARAM);
 void showPopUp(LPCSTR,HANDLE,HICON,UINT);
@@ -133,10 +141,6 @@ void showPopUpKRmsg(HANDLE,LPCSTR);
 void showPopUpKR(HANDLE);
 void showPopUpSM(HANDLE);
 void showPopUpRM(HANDLE);
-void ShowStatusIcon(HANDLE,UINT);
-void ShowStatusIcon(HANDLE);
-void ShowStatusIconNotify(HANDLE);
-void RefreshContactListIcons(void);
 
 // crypt_meta.cpp
 BOOL isProtoMetaContacts(HANDLE);
@@ -161,17 +165,17 @@ void __cdecl sttWaitForExchange(LPVOID);
 
 // crypt_svcs.cpp
 int sendSplitMessage(pUinKey,LPSTR);
-extern "C" long onRecvMsg(WPARAM,LPARAM);
-extern "C" long onSendMsgW(WPARAM,LPARAM);
-extern "C" long onSendMsg(WPARAM,LPARAM);
-extern "C" long onSendFile(WPARAM,LPARAM);
-int onProtoAck(WPARAM,LPARAM);
-int onContactSettingChanged(WPARAM,LPARAM);
-int onRebuildContactMenu(WPARAM,LPARAM);
-int onExtraImageListRebuilding(WPARAM,LPARAM);
-int onExtraImageApplying(WPARAM,LPARAM);
-int onContactAdded(WPARAM,LPARAM);
-int onContactDeleted(WPARAM,LPARAM);
+long __cdecl onRecvMsg(WPARAM,LPARAM);
+long __cdecl onSendMsgW(WPARAM,LPARAM);
+long __cdecl onSendMsg(WPARAM,LPARAM);
+long __cdecl onSendFile(WPARAM,LPARAM);
+int __cdecl onProtoAck(WPARAM,LPARAM);
+int __cdecl onContactSettingChanged(WPARAM,LPARAM);
+int __cdecl onRebuildContactMenu(WPARAM,LPARAM);
+int __cdecl onExtraImageListRebuilding(WPARAM,LPARAM);
+int __cdecl onExtraImageApplying(WPARAM,LPARAM);
+int __cdecl onContactAdded(WPARAM,LPARAM);
+int __cdecl onContactDeleted(WPARAM,LPARAM);
 
 // crypt_rsa.cpp
 extern pRSA_EXPORT exp;

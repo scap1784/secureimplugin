@@ -15,7 +15,7 @@ void getContactNameA(HANDLE hContact, LPSTR szName) {
 void getContactUin(HANDLE hContact, LPSTR szUIN) {
 	getContactUinA(hContact, szUIN);
 	if( bCoreUnicode && *szUIN ) {
-		LPWSTR tmp = a2u(szUIN);
+		LPWSTR tmp = mir_a2u(szUIN);
 		wcscpy((LPWSTR)szUIN, tmp);
 		mir_free(tmp);
 	}
@@ -71,10 +71,13 @@ BOOL isSecureProtocol(HANDLE hContact) {
 
 
 BYTE isContactSecured(HANDLE hContact) {
+
 	if (!clist_cnt) return 0;
 
+	BYTE r=0;
+
 	if( isProtoMetaContacts(hContact) )
-		hContact = getMostOnline(hContact); // ў®§м¬Ґ¬ в®в, зҐаҐ§ Є®в®ал© Ї®©¤Ґв б®®ЎйҐ­ЁҐ
+		hContact = getMostOnline(hContact); // возьмем тот, через который пойдет сообщение
 
 //	HANDLE hMetaContact = getMetaContact(hContact);
 //	if( hMetaContact ) hContact = hMetaContact;
@@ -90,31 +93,33 @@ BYTE isContactSecured(HANDLE hContact) {
 					}
 				}
 			}*/
-			if(clist[j].mode==3) {
-				if(exp->rsa_get_state(clist[j].cntx)==7)
-					return IEC_ON;
+       			DBVARIANT dbv;
+			r=clist[j].mode;
+			switch(r) {
+			case MODE_NATIVE:
+				if(cpp_keyx(clist[j].cntx)!=0) r|=SECURED;
 				break;
-			}
-			else
-			if(clist[j].mode==4) {
-				if(clist[j].cntx)
-					return IEC_ON;
+			case MODE_PGP:
+        		DBGetContactSetting(hContact,szModuleName,"pgp",&dbv);
+        		if( dbv.type!=0 ) r|=SECURED;
+        		DBFreeVariant(&dbv);
+        		break;
+			case MODE_GPG:
+        		DBGetContactSetting(hContact,szModuleName,"gpg",&dbv);
+        		if( dbv.type!=0 ) r|=SECURED;
+        		DBFreeVariant(&dbv);
+        		break;
+			case MODE_RSAAES:
+				if(exp->rsa_get_state(clist[j].cntx)==7) r|=SECURED;
 				break;
-			}
-			else
-			if(clist[j].mode==0 && cpp_keyx(clist[j].cntx)!=0) {
-				int features = cpp_get_features(clist[j].cntx);
-				if( features == 0)
-					return IEC_ON_OLD;
-				else
-				if(features & FEATURES_NEWPG)
-					return IEC_ON;
-				return IEC_ON_MID;
+			case MODE_RSA:
+				if(clist[j].cntx) r|=SECURED;
+				break;
 			}
 			break;
 		}
 	}
-	return 0;
+	return r; // (mode&SECURED) - проверка на EST/DIS
 }
 
 
@@ -197,7 +202,7 @@ BOOL isContactNewPG(HANDLE hContact) {
 	if (!clist_cnt) return false;
 	for(int j=0;j<clist_cnt;j++) {
 		if (clist[j].hContact == hContact && clist[j].cntx) {
-			return (cpp_get_features(clist[j].cntx) & FEATURES_NEWPG) != 0;
+			return (cpp_get_features(clist[j].cntx) & CPP_FEATURES_NEWPG) != 0;
 		}
 	}
 	return false;
@@ -210,7 +215,7 @@ BOOL isContactPGP(HANDLE hContact) {
 //	HANDLE hMetaContact = getMetaContact(hContact);
 //   	if( hMetaContact ) hContact = hMetaContact;
 	for(int j=0;j<clist_cnt;j++) {
-	    if (clist[j].hContact == hContact && clist[j].mode==1) {
+	    if (clist[j].hContact == hContact && clist[j].mode==MODE_PGP) {
 //        	HANDLE hMetaContact = getMetaContact(hContact);
         	DBVARIANT dbv;
         	DBGetContactSetting(hContact,szModuleName,"pgp",&dbv);
@@ -234,7 +239,7 @@ BOOL isContactGPG(HANDLE hContact) {
 //	HANDLE hMetaContact = getMetaContact(hContact);
 //   	if( hMetaContact ) hContact = hMetaContact;
 	for(int j=0;j<clist_cnt;j++) {
-	    if (clist[j].hContact == hContact && clist[j].mode==2) {
+	    if (clist[j].hContact == hContact && clist[j].mode==MODE_GPG) {
 //        	HANDLE hMetaContact = getMetaContact(hContact);
         	DBVARIANT dbv;
         	DBGetContactSetting(hContact,szModuleName,"gpg",&dbv);
@@ -257,7 +262,7 @@ BOOL isContactRSAAES(HANDLE hContact) {
 //	HANDLE hMetaContact = getMetaContact(hContact);
 //   	if( hMetaContact ) hContact = hMetaContact;
         for(int j=0;j<clist_cnt;j++) {
-		if (clist[j].hContact == hContact && clist[j].mode==3) {
+		if (clist[j].hContact == hContact && clist[j].mode==MODE_RSAAES) {
         		return true;
 		}
 	}
@@ -270,7 +275,7 @@ BOOL isContactRSA(HANDLE hContact) {
 //	HANDLE hMetaContact = getMetaContact(hContact);
 //   	if( hMetaContact ) hContact = hMetaContact;
         for(int j=0;j<clist_cnt;j++) {
-		if (clist[j].hContact == hContact && clist[j].mode==4) {
+		if (clist[j].hContact == hContact && clist[j].mode==MODE_RSA) {
         		return true;
 		}
 	}
@@ -318,5 +323,6 @@ BOOL isSecureIM(HANDLE hContact) {
 	}
 	return false;
 }
+
 
 // EOF

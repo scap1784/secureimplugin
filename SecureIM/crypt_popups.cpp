@@ -78,7 +78,7 @@ void showPopUp(LPCSTR lpzText,HANDLE hContact,HICON hIcon, UINT type) {
 		ppd.lchIcon = hIcon;
 		LPWSTR lpwzContactName = (LPWSTR)CallService(MS_CLIST_GETCONTACTDISPLAYNAME,(WPARAM)hContact,GCMDF_UNICODE);
 		wcscpy(ppd.lpwzContactName, lpwzContactName);
-		LPWSTR lpwzText = a2u(lpzText);
+		LPWSTR lpwzText = mir_a2u(lpzText);
 		wcscpy(ppd.lpwzText, TranslateW(lpwzText));
 		mir_free(lpwzText);
 		ppd.colorBack = colorBack;
@@ -115,103 +115,39 @@ void showPopUp(LPCSTR lpzText,HANDLE hContact,HICON hIcon, UINT type) {
 
 
 void showPopUpDCmsg(HANDLE hContact,LPCSTR msg) {
-	showPopUp(msg,hContact,g_hPOP[POP_SECDIS],1);
+	int indic=DBGetContactSettingByte(0, szModuleName, "dc",1);
+	if (indic==1) showPopUp(msg,hContact,g_hPOP[POP_PU_DIS],1);
 }
 void showPopUpDC(HANDLE hContact) {
 	int indic=DBGetContactSettingByte(0, szModuleName, "dc",1);
-	if (indic==1) showPopUp(sim006,hContact,g_hPOP[POP_SECDIS],1);
+	if (indic==1) showPopUp(sim006,hContact,g_hPOP[POP_PU_DIS],1);
 }
 void showPopUpEC(HANDLE hContact) {
 	int indic=DBGetContactSettingByte(0, szModuleName, "ec",1);
-	if (indic==1) showPopUp(sim001,hContact,g_hPOP[POP_SECENA],1);
+	if (indic==1) showPopUp(sim001,hContact,g_hPOP[POP_PU_EST],1);
 }
 void showPopUpKS(HANDLE hContact) {
 	int indic=DBGetContactSettingByte(0, szModuleName, "ks",1);
-	if (indic==1) showPopUp(sim007,hContact,g_hPOP[POP_SENDKEY],0);
+	if (indic==1) showPopUp(sim007,hContact,g_hPOP[POP_PU_PRC],0);
 }
 void showPopUpKRmsg(HANDLE hContact,LPCSTR msg) {
-	showPopUp(msg,hContact,g_hPOP[POP_RECVKEY],0);
+	int indic=DBGetContactSettingByte(0, szModuleName, "kr",1);
+	if (indic==1) showPopUp(msg,hContact,g_hPOP[POP_PU_PRC],0);
 }
 void showPopUpKR(HANDLE hContact) {
 	int indic=DBGetContactSettingByte(0, szModuleName, "kr",1);
-	if (indic==1) showPopUp(sim008,hContact,g_hPOP[POP_RECVKEY],0);
+	if (indic==1) showPopUp(sim008,hContact,g_hPOP[POP_PU_PRC],0);
 }
 void showPopUpSM(HANDLE hContact) {
 	int indic=DBGetContactSettingByte(0, szModuleName, "ss",0);
-	if (indic==1) showPopUp(sim009,hContact,g_hPOP[POP_SECMSS],2);
+	if (indic==1) showPopUp(sim009,hContact,g_hPOP[POP_PU_MSS],2);
 	SkinPlaySound("OutgoingSecureMessage");
 }
 void showPopUpRM(HANDLE hContact) {
 	int indic=DBGetContactSettingByte(0, szModuleName, "sr",0);
-	if (indic==1) showPopUp(sim010,hContact,g_hPOP[POP_SECMSR],2);
+	if (indic==1) showPopUp(sim010,hContact,g_hPOP[POP_PU_MSR],2);
 	SkinPlaySound("IncomingSecureMessage");
 }
 
-
-void ShowStatusIcon(HANDLE hContact,UINT mode) {
-	HANDLE hMC = getMetaContact(hContact);
-	if( bADV ) {
-		CallService(MS_CLIST_EXTRA_SET_ICON, (WPARAM)hContact, (LPARAM)&g_IEC[mode]);
-		if( hMC )
-		CallService(MS_CLIST_EXTRA_SET_ICON, (WPARAM)hMC, (LPARAM)&g_IEC[mode]);
-	}
-	if( ServiceExists(MS_MSG_MODIFYICON) ) {
-		StatusIconData sid = {0};
-		sid.cbSize = sizeof(sid);
-		sid.szModule = (char*)szModuleName;
-		if( mode ); //sid.hIcon = CopyIcon(g_hIEC[mode]);
-		else		sid.flags = MBF_DISABLED;
-		if( isChatRoom(hContact) )
-			sid.flags |= MBF_HIDDEN;
-//		sid.hIconDisabled = g_hIEC[IEC_OFF];
-//		sid.szTooltip = Translate("SecureIM");
-		CallService(MS_MSG_MODIFYICON, (WPARAM)hContact, (LPARAM)&sid);
-		if( hMC )
-		CallService(MS_MSG_MODIFYICON, (WPARAM)hMC, (LPARAM)&sid);
-	}
-}
-
-
-void ShowStatusIcon(HANDLE hContact) {
-	int mode = isContactSecured(hContact);
-	if(isContactPGP(hContact)) mode = IEC_PGP;
-	else
-	if(isContactGPG(hContact)) mode = IEC_GPG;
-	ShowStatusIcon(hContact,mode);
-}
-
-
-void ShowStatusIconNotify(HANDLE hContact) {
-	int mode = isContactSecured(hContact);
-	NotifyEventHooks(g_hEvent[mode!=0], (WPARAM)hContact, 0);
-	if(bASI && !mode) mode = IEC_OFF;
-	if(isContactPGP(hContact)) mode = IEC_PGP;
-	else
-	if(isContactGPG(hContact)) mode = IEC_GPG;
-	ShowStatusIcon(hContact,mode);
-}
-
-
-void RefreshContactListIcons(void) {
-
-//	CallService(MS_CLUI_LISTBEGINREBUILD,0,0);
-	HANDLE hContact = (HANDLE)CallService(MS_DB_CONTACT_FINDFIRST, 0, 0);
-	while (hContact) {
-		ShowStatusIcon(hContact,0);
-		hContact = (HANDLE)CallService(MS_DB_CONTACT_FINDNEXT, (WPARAM)hContact, 0);
-	}
-//	g_IEC[0].ColumnType = EXTRA_ICON_ADV1 + bADV - 1;
-	g_IEC[0].ColumnType = bADV;
-	for(int i=1;i<IEC_CNT;i++){
-		g_IEC[i].ColumnType = g_IEC[0].ColumnType;
-	}
-	hContact = (HANDLE)CallService(MS_DB_CONTACT_FINDFIRST, 0, 0);
-	while (hContact) {
-		if (isSecureProtocol(hContact))
-			ShowStatusIcon(hContact);
-		hContact = (HANDLE)CallService(MS_DB_CONTACT_FINDNEXT, (WPARAM)hContact, 0);
-	}
-//	CallService(MS_CLUI_LISTENDREBUILD,0,0);
-}
 
 // EOF

@@ -42,7 +42,7 @@ int __cdecl rsa_check_pub(int context, PBYTE pub, int pubLen, PBYTE sig, int sig
 	}
 	else {
 		LPSTR sha = mir_strdup(to_hex(sig,sigLen));
-		LPSTR cnm = (LPSTR) alloca(128); getContactNameA(ptr->hContact,cnm);
+		LPSTR cnm = (LPSTR) alloca(NAMSIZE); getContactNameA(ptr->hContact,cnm);
 		LPSTR msg = (LPSTR) alloca(512); sprintf(msg,Translate(sim404),cnm,sha);
 		v=(msgbox(0,msg,szModuleName,MB_YESNO|MB_ICONQUESTION)==IDYES);
 		mir_free(sha);
@@ -125,13 +125,13 @@ void __cdecl sttGenerateRSA( LPVOID param ) {
 	char priv_key[4096]; int priv_len;
 	char pub_key[4096]; int pub_len;
 
-	exp->rsa_gen_keypair(MODE_RSA_2048|MODE_RSA_4096);
+	exp->rsa_gen_keypair(CPP_MODE_RSA_2048|CPP_MODE_RSA_4096);
 
 	DBCONTACTWRITESETTING cws;
 	cws.szModule = szModuleName;
 	cws.value.type = DBVT_BLOB;
 
-	exp->rsa_get_keypair(MODE_RSA_2048,(PBYTE)&priv_key,&priv_len,(PBYTE)&pub_key,&pub_len);
+	exp->rsa_get_keypair(CPP_MODE_RSA_2048,(PBYTE)&priv_key,&priv_len,(PBYTE)&pub_key,&pub_len);
 	cws.szSetting = "rsa_priv_2048";
 	cws.value.pbVal = (PBYTE)&priv_key;
 	cws.value.cpbVal = priv_len;
@@ -142,7 +142,7 @@ void __cdecl sttGenerateRSA( LPVOID param ) {
 	CallService(MS_DB_CONTACT_WRITESETTING, (WPARAM)0, (LPARAM)&cws);
 	rsa_2048=1;
 
-	exp->rsa_get_keypair(MODE_RSA_4096,(PBYTE)&priv_key,&priv_len,(PBYTE)&pub_key,&pub_len);
+	exp->rsa_get_keypair(CPP_MODE_RSA_4096,(PBYTE)&priv_key,&priv_len,(PBYTE)&pub_key,&pub_len);
 	cws.szSetting = "rsa_priv_4096";
 	cws.value.pbVal = (PBYTE)&priv_key;
 	cws.value.cpbVal = priv_len;
