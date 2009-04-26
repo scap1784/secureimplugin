@@ -194,28 +194,6 @@ END
 
 /////////////////////////////////////////////////////////////////////////////
 //
-// Icon
-//
-/*
-// Icon with lowest ID value placed first to ensure application icon
-// remains consistent on all systems.
-IDI_GREENKEY            ICON                    "icons\\key0.ico"
-IDI_YELLOWKEY           ICON                    "icons\\key1.ico"
-IDI_REDKEY              ICON                    "icons\\key2.ico"
-IDI_BLUEKEY             ICON                    "icons\\key3.ico"
-IDI_COLORKEY            ICON                    "icons\\key4.ico"
-IDI_GREYKEY             ICON                    "icons\\key5.ico"
-IDI_LOCK                ICON                    "icons\\lock.ico"
-IDI_NOTICK              ICON                    "icons\\tick0.ico"
-IDI_TICK                ICON                    "icons\\tick1.ico"
-IDI_DISKEY              ICON                    "icons\\red.right.ico"
-IDI_ENAKEY              ICON                    "icons\\salad.right.ico"
-IDI_TRYKEY              ICON                    "icons\\blue.right.ico"
-IDI_PGPKEY              ICON                    "icons\\pgp.ico"
-*/
-
-/////////////////////////////////////////////////////////////////////////////
-//
 // Menu
 //
 

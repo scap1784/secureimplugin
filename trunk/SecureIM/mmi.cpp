@@ -1,11 +1,9 @@
 #include "commonheaders.h"
 
 
-#ifndef _DEBUG
 void *operator new(size_t sz) {
 	return mir_alloc(sz);
 }
-#endif
 
 
 void *operator new[](size_t size) {

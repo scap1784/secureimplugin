@@ -4,22 +4,19 @@
 #include "resource.h"
 
 // режимы шифрования SecureIM
-#define ENC_NATIVE	0
-#define ENC_PGP		1
-#define ENC_GPG		2
-#define ENC_RSAAES	3
-#define ENC_MAX		3
+#define MODE_NATIVE	0
+#define MODE_PGP	1
+#define MODE_GPG	2
+#define MODE_RSAAES	3
+#define MODE_CNT	(3+1)
+#define MODE_RSA	4
+
+#define SECURED		0x10
 
 // статусы для Native и RSA/AES режимов
 #define STATUS_DISABLED		0
 #define STATUS_ENABLED		1
 #define STATUS_ALWAYSTRY	2
-
-#define ADV_CNT		8
-#define IEC_CNT		9
-#define ICO_CNT		5
-#define POP_CNT		6
-#define ALL_CNT		(IEC_CNT+ICO_CNT+POP_CNT)
 
 #define SiG_KEYR 0
 #define SiG_KEY3 SiG_KEYR
@@ -108,57 +105,66 @@ const SIG signs[] = {
 #define TBL_ICO		0x02
 #define TBL_POP		0x03
 
-#define IEC_NONE	0x00
-#define IEC_ON	 	0x01
-#define IEC_ON_OLD	0x02
-#define IEC_ON_MID	0x03
-#define IEC_OFF		0x04
-#define IEC_SHIELD	0x05
-#define IEC_QUERY	0x06
-#define IEC_PGP  	0x07
-#define IEC_GPG  	0x08
+#define IEC_CL_DIS	0x00
+#define IEC_CL_EST	0x01
+#define IEC_CNT		(0x01+1)
 
-#define ICO_DISKEY 	0x00
-#define ICO_ENAKEY	0x01
-#define ICO_TRYKEY	0x02
-#define ICO_PGPKEY	0x03
-#define ICO_GPGKEY	0x04
+#define ICO_CM_DIS	0x00
+#define ICO_CM_EST	0x01
+#define ICO_MW_DIS	0x02
+#define ICO_MW_EST	0x03
+#define ICO_ST_DIS 	0x04
+#define ICO_ST_ENA	0x05
+#define ICO_ST_TRY	0x06
+#define ICO_OV_NAT	0x07
+#define ICO_OV_PGP	0x08
+#define ICO_OV_GPG	0x09
+#define ICO_OV_RSA	0x0A
+#define ICO_CNT		(0x0A+1)
 
-#define POP_RECVKEY	0x00
-#define POP_SENDKEY	0x01
-#define POP_SECENA 	0x02
-#define POP_SECDIS 	0x03
-#define POP_SECMSR	0x04
-#define POP_SECMSS	0x05
+#define POP_PU_DIS	0x00
+#define POP_PU_EST	0x01
+#define POP_PU_PRC	0x02
+#define POP_PU_MSR	0x03
+#define POP_PU_MSS	0x04
+#define POP_CNT		(0x04+1)
+
+#define ADV_CNT		8
+#define ALL_CNT		(IEC_CNT+ICO_CNT+POP_CNT)
 
 struct ICONS {
-	UINT key;
-	BYTE tbl;
-	BYTE idx;
+	UINT key; // Resource ID
+	BYTE tbl; // Table NUM
+	BYTE idx; // Table IDX
 	char *name;
 	char *text;
 };
 
 const ICONS icons[] = {
-	{IDI_REDKEY,	TBL_IEC, IEC_OFF,		"sim_off", "Connection Disabled"},
-	{IDI_GREENKEY,	TBL_IEC, IEC_ON,		"sim_on", "Connection Established (valid prime)"},
-	{IDI_COLORKEY,	TBL_IEC, IEC_SHIELD,	"sim_shld", "Establishe Secure Connection"},
-	{IDI_BLUEKEY,	TBL_IEC, IEC_QUERY,		"sim_quer", "Key Exchange"},
-	{IDI_GREYKEY,	TBL_IEC, IEC_ON_OLD,	"sim_old", "Connection Established (ver <= 1.0.4.4c)"},
-	{IDI_YELLOWKEY,	TBL_IEC, IEC_ON_MID,	"sim_mid", "Connection Established (ver >= 1.0.5.0)"},
-	{IDI_PGPKEY,	TBL_IEC, IEC_PGP,		"sim_pgp", "PGP Key"},
-	{IDI_GPGKEY,	TBL_IEC, IEC_GPG,		"sim_gpg", "GPG Key"},
-	{IDI_DISKEY,	TBL_ICO, ICO_DISKEY,	"sim_dis", "flag Disabled"},
-	{IDI_ENAKEY,	TBL_ICO, ICO_ENAKEY,	"sim_ena", "flag Enabled"},
-	{IDI_TRYKEY,	TBL_ICO, ICO_TRYKEY,	"sim_try", "flag Always Try"},
-	{IDI_PGPKEY,	TBL_ICO, ICO_PGPKEY,	"sim_pgpk", "flag PGP Key"},
-	{IDI_GPGKEY,	TBL_ICO, ICO_GPGKEY,	"sim_gpgk", "flag GPG Key"},
-	{IDI_LOCK,		TBL_POP, POP_SECMSR,	"sim_msr", "Recv Secured MSG (popup)"},
-	{IDI_LOCK,		TBL_POP, POP_SECMSS,	"sim_mss", "Send Secured MSG (popup)"},
-	{IDI_BLUEKEY,	TBL_POP, POP_RECVKEY,	"sim_rk", "Recv Key (popup)"},
-	{IDI_BLUEKEY,	TBL_POP, POP_SENDKEY,	"sim_sk", "Send Key (popup)"},
-	{IDI_GREENKEY,	TBL_POP, POP_SECENA,	"sim_sece", "Connection Established (popup)"},
-	{IDI_REDKEY,	TBL_POP, POP_SECDIS,	"sim_secd", "Connection Disabled (popup)"},
+	// Contact List
+	{IDI_CL_DIS,	TBL_IEC, IEC_CL_DIS,	"sim_cl_dis", "cl: Connection Disabled"},
+	{IDI_CL_EST,	TBL_IEC, IEC_CL_EST,	"sim_cl_est", "cl: Connection Established"},
+	// Contact Menu
+	{IDI_CM_DIS,	TBL_ICO, ICO_CM_DIS,	"sim_cm_dis", "cm: Disable Secure Connection"},
+	{IDI_CM_EST,	TBL_ICO, ICO_CM_EST,	"sim_cm_est", "cm: Establishe Secure Connection"},
+	// Message Window
+	{IDI_MW_DIS,	TBL_ICO, ICO_MW_DIS,	"sim_mw_dis", "mw: Connection Disabled"},
+	{IDI_MW_EST,	TBL_ICO, ICO_MW_EST,	"sim_mw_est", "mw: Connection Established"},
+	// popup's
+	{IDI_PU_DIS,	TBL_POP, POP_PU_DIS,	"sim_pu_dis", "pu: Secure Connection Disabled"},
+	{IDI_PU_EST,	TBL_POP, POP_PU_EST,	"sim_pu_est", "pu: Secure Connection Established"},
+	{IDI_PU_PRC,	TBL_POP, POP_PU_PRC,	"sim_pu_prc", "pu: Secure Connection In Process"},
+	{IDI_PU_MSG,	TBL_POP, POP_PU_MSR,	"sim_pu_msr", "pu: Recv Secured Message"},
+	{IDI_PU_MSG,	TBL_POP, POP_PU_MSS,	"sim_pu_mss", "pu: Sent Secured Message"},
+	// statuses
+	{IDI_ST_DIS,	TBL_ICO, ICO_ST_DIS,	"sim_st_dis", "st: Disabled"},
+	{IDI_ST_ENA,	TBL_ICO, ICO_ST_ENA,	"sim_st_ena", "st: Enabled"},
+	{IDI_ST_TRY,	TBL_ICO, ICO_ST_TRY,	"sim_st_try", "st: Always Try"},
+	// overlay
+	{IDI_OV_NAT,	TBL_ICO, ICO_OV_NAT,	"sim_ov_nat", "ov: Native mode"},
+	{IDI_OV_PGP,	TBL_ICO, ICO_OV_PGP,	"sim_ov_pgp", "ov: PGP mode"},
+	{IDI_OV_GPG,	TBL_ICO, ICO_OV_GPG,	"sim_ov_gpg", "ov: GPG mode"},
+	{IDI_OV_RSA,	TBL_ICO, ICO_OV_RSA,	"sim_ov_rsa", "ov: RSA/AES mode"},
 	{0}
 };
 

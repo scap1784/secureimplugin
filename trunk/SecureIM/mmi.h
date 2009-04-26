@@ -15,8 +15,6 @@ void *operator new[](size_t size);
 void operator delete[](void * p);
 
 #define SAFE_INIT(t,p)			t p=NULL;
-//#define SAFE_FREE(p)			if(p) {mir_free((PVOID)p); p=NULL;}
-//#define SAFE_DELETE(p)			if(p) {delete p; p=NULL;}
 #define SAFE_FREE(p)			safe_free((void **)&(p));
 #define SAFE_DELETE(p)			safe_delete((void **)&(p));
 

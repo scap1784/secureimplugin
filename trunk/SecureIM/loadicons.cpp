@@ -25,19 +25,17 @@ HINSTANCE LoadIconsPack(const char* szIconsPack)
 
 int ReloadIcons(WPARAM wParam, LPARAM lParam)
 {
-	HICON hIcon[ALL_CNT] = {0};
+	HICON hIcon;
 	for (int i=0; icons[i].key; i++) {
-		if(!hIcon[i]) {
-			hIcon[i] = (HICON)CallService(MS_SKIN2_GETICON, 0, (LPARAM)icons[i].name);
-		}
+		hIcon = (HICON)CallService(MS_SKIN2_GETICON, 0, (LPARAM)icons[i].name);
 		if(icons[i].tbl == TBL_IEC)
-			g_hIEC[icons[i].idx]=hIcon[i];
+			g_hIEC[icons[i].idx]=hIcon;
 		else
 		if(icons[i].tbl == TBL_ICO)
-			g_hICO[icons[i].idx]=hIcon[i];
+			g_hICO[icons[i].idx]=hIcon;
 		else
 		if(icons[i].tbl == TBL_POP)
-			g_hPOP[icons[i].idx]=hIcon[i];
+			g_hPOP[icons[i].idx]=hIcon;
 	}
 
 	return 0;
@@ -65,7 +63,7 @@ void InitIcons(void)
 	sid.cbSize = sizeof(SKINICONDESC);
 	sid.pszSection = "SecureIM";
 
-	HICON hIcon[ALL_CNT] = {0};
+	HICON hIcon;
 	for (int i=0; icons[i].key; i++) {
 		if(ServiceExists(MS_SKIN2_ADDICON)) {
 			sid.pszDescription = Translate(icons[i].text);
@@ -74,26 +72,19 @@ void InitIcons(void)
 			sid.iDefaultIndex = icons[i].key;
 			sid.hDefaultIcon = (HICON)LoadImage(g_hIconInst, MAKEINTRESOURCE(icons[i].key), IMAGE_ICON, 16, 16, LR_SHARED);
 			CallService(MS_SKIN2_ADDICON, 0, (LPARAM)&sid);
-			hIcon[i] = (HICON)CallService(MS_SKIN2_GETICON, 0, (LPARAM)icons[i].name);
+			hIcon = (HICON)CallService(MS_SKIN2_GETICON, 0, (LPARAM)icons[i].name);
 		}
 		else {
-			for (int j=i-1; j>=0; j--)
-				if(icons[i].key==icons[j].key) {
-					hIcon[i]=hIcon[j];
-					break;
-				}
-			if(!hIcon[i]) {
-				hIcon[i] = (HICON)LoadImage(g_hIconInst, MAKEINTRESOURCE(icons[i].key), IMAGE_ICON, 16, 16, LR_SHARED);
-			}
+			hIcon = (HICON)LoadImage(g_hIconInst, MAKEINTRESOURCE(icons[i].key), IMAGE_ICON, 16, 16, LR_SHARED);
 		}
 		if(icons[i].tbl == TBL_IEC)
-			g_hIEC[icons[i].idx]=hIcon[i];
+			g_hIEC[icons[i].idx]=hIcon;
 		else
 		if(icons[i].tbl == TBL_ICO)
-			g_hICO[icons[i].idx]=hIcon[i];
+			g_hICO[icons[i].idx]=hIcon;
 		else
 		if(icons[i].tbl == TBL_POP)
-			g_hPOP[icons[i].idx]=hIcon[i];
+			g_hPOP[icons[i].idx]=hIcon;
 	}
 
 	if(ServiceExists(MS_SKIN2_ADDICON)) {

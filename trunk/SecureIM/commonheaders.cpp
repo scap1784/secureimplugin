@@ -2,7 +2,7 @@
 
 HINSTANCE g_hInst, g_hIconInst;
 PLUGINLINK *pluginLink;
-MM_INTERFACE memoryManagerInterface;
+MM_INTERFACE mmi = {0};
 MUUID interfaces[] = {MIID_SECUREIM, MIID_LAST};
 
 LPCSTR szModuleName = MODULENAME;
@@ -12,8 +12,10 @@ int  TEMP_SIZE = 0;
 
 HANDLE g_hEvent[2], g_hMenu[10], g_hService[14], g_hHook[17];
 int iService=0, iHook=0;
-HICON g_hIcon[ALL_CNT], g_hICO[ICO_CNT], g_hIEC[IEC_CNT], g_hPOP[POP_CNT];
-IconExtraColumn g_IEC[IEC_CNT];
+
+HICON g_hICO[ICO_CNT], g_hPOP[POP_CNT], g_hIEC[1+IEC_CNT*MODE_CNT] = {0};
+IconExtraColumn g_IEC[1+IEC_CNT*MODE_CNT];
+
 int iBmpDepth;
 BOOL bCoreUnicode = false, bMetaContacts = false, bPopupExists = false, bPopupUnicode = false;
 BOOL bPGPloaded = false, bPGPkeyrings = false, bUseKeyrings = false, bPGPprivkey = false;
@@ -50,7 +52,7 @@ PLUGININFOEX pluginInfoEx = {
 };
 
 
-char *simDBGetString(HANDLE hContact,const char *szModule,const char *szSetting) {
+LPSTR simDBGetString(HANDLE hContact,const char *szModule,const char *szSetting) {
 	char *val=NULL;
 	DBVARIANT dbv;
 	dbv.type = DBVT_ASCIIZ;
@@ -62,7 +64,7 @@ char *simDBGetString(HANDLE hContact,const char *szModule,const char *szSetting)
 }
 
 
-char *simDBGetStringDecode(HANDLE hContact,const char *szModule,const char *szSetting) {
+LPSTR DBGetStringDecode(HANDLE hContact,const char *szModule,const char *szSetting) {
 	char *val = simDBGetString(hContact,szModule,szSetting);
 	if(!val) return NULL;
 	int len = strlen(val)+64;
@@ -73,7 +75,7 @@ char *simDBGetStringDecode(HANDLE hContact,const char *szModule,const char *szSe
 }
 
 
-int simDBWriteStringEncode(HANDLE hContact,const char *szModule,const char *szSetting,const char *val) {
+int DBWriteStringEncode(HANDLE hContact,const char *szModule,const char *szSetting,const char *val) {
 	int len = strlen(val)+64;
 	char *buf = (LPSTR)alloca(len);
 	strcpy(buf,val);
@@ -137,7 +139,7 @@ void SetFlags() {
 
 
 /*-----------------------------------------------------*/
-
+/*
 LPSTR u2a( LPCWSTR src )
 {
 	int codepage = ServiceExists(MS_LANGPACK_GETCODEPAGE)?CallService( MS_LANGPACK_GETCODEPAGE, 0, 0 ):CP_ACP;
@@ -157,15 +159,17 @@ LPWSTR a2u( LPCSTR src )
 	int codepage = ServiceExists(MS_LANGPACK_GETCODEPAGE)?CallService( MS_LANGPACK_GETCODEPAGE, 0, 0 ):CP_ACP;
 
 	int cbLen = MultiByteToWideChar( codepage, 0, src, -1, NULL, 0 );
+
 	LPWSTR result = (LPWSTR) mir_alloc( sizeof(WCHAR)*(cbLen+1));
 	if ( result == NULL )
 		return NULL;
 
 	MultiByteToWideChar( codepage, 0, src, -1, result, cbLen );
 	result[ cbLen ] = 0;
+
 	return result;
 }
-
+*/
 struct A2U {
 	LPSTR a;
 	LPSTR u;
@@ -186,14 +190,14 @@ LPSTR TranslateU( LPCSTR lpText ) {
 	pa2u = (pA2U) mir_realloc(pa2u,sizeof(A2U)*ca2u);
 	pa2u[i].a = (LPSTR) lpText;
 	if( bCoreUnicode ) {
-		LPWSTR lpwText = a2u(lpText);
+		LPWSTR lpwText = mir_a2u(lpText);
 		LPWSTR lpwTran = TranslateW(lpwText);
 		mir_free(lpwText);
 		pa2u[i].u = mir_strdup(exp->utf8encode(lpwTran));
 	}
 	else {
 		LPSTR lpTran = Translate(lpText);
-		LPWSTR lpwTran = a2u(lpTran);
+		LPWSTR lpwTran = mir_a2u(lpTran);
 		lpTran = exp->utf8encode(lpwTran);
 		mir_free(lpwTran);
 		pa2u[i].u = mir_strdup(lpTran);
@@ -203,8 +207,8 @@ LPSTR TranslateU( LPCSTR lpText ) {
 
 int msgbox( HWND hWnd, LPCSTR lpText, LPCSTR lpCaption, UINT uType) {
 	if( bCoreUnicode ) {
-		LPWSTR lpwText = a2u(lpText);
-		LPWSTR lpwCaption = a2u(lpCaption);
+		LPWSTR lpwText = mir_a2u(lpText);
+		LPWSTR lpwCaption = mir_a2u(lpCaption);
 		int r = MessageBoxW(hWnd,TranslateW(lpwText),TranslateW(lpwCaption),uType);
 		mir_free(lpwCaption);
 		mir_free(lpwText);

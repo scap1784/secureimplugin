@@ -29,18 +29,23 @@ LANGUAGE LANG_RUSSIAN, SUBLANG_DEFAULT
 
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
-IDI_GREENKEY            ICON                    "icons\\key0.ico"
-IDI_YELLOWKEY           ICON                    "icons\\key1.ico"
-IDI_REDKEY              ICON                    "icons\\key2.ico"
-IDI_BLUEKEY             ICON                    "icons\\key3.ico"
-IDI_COLORKEY            ICON                    "icons\\key4.ico"
-IDI_GREYKEY             ICON                    "icons\\key5.ico"
-IDI_LOCK                ICON                    "icons\\lock.ico"
-IDI_DISKEY              ICON                    "icons\\red.right.ico"
-IDI_ENAKEY              ICON                    "icons\\salad.right.ico"
-IDI_TRYKEY              ICON                    "icons\\blue.right.ico"
-IDI_PGPKEY              ICON                    "icons\\pgp.ico"
-IDI_GPGKEY              ICON                    "icons\\gnupg.ico"
+IDI_CL_DIS ICON "icons\\cl_dis.ico"
+IDI_CL_EST ICON "icons\\cl_est.ico"
+IDI_CM_DIS ICON "icons\\cm_dis.ico"
+IDI_CM_EST ICON "icons\\cm_est.ico"
+IDI_MW_DIS ICON "icons\\mw_dis.ico"
+IDI_MW_EST ICON "icons\\mw_est.ico"
+IDI_PU_DIS ICON "icons\\pu_dis.ico"
+IDI_PU_EST ICON "icons\\pu_est.ico"
+IDI_PU_PRC ICON "icons\\pu_prc.ico"
+IDI_PU_MSG ICON "icons\\pu_msg.ico"
+IDI_ST_DIS ICON "icons\\st_dis.ico"
+IDI_ST_ENA ICON "icons\\st_ena.ico"
+IDI_ST_TRY ICON "icons\\st_try.ico"
+IDI_OV_NAT ICON "icons\\ov_nat.ico"
+IDI_OV_PGP ICON "icons\\ov_pgp.ico"
+IDI_OV_GPG ICON "icons\\ov_gpg.ico"
+IDI_OV_RSA ICON "icons\\ov_rsa.ico"
 
 #ifdef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////

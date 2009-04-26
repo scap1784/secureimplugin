@@ -45,9 +45,9 @@ BOOL CALLBACK PopOptionsDlgProc(HWND hDlg, UINT wMsg, WPARAM wParam, LPARAM lPar
 		  switch (LOWORD(wParam)) {
 		  case IDC_PREV: {
 			  //preview popups...
-			  showPopUp("Key Popup",NULL,g_hPOP[POP_RECVKEY],0);
-			  showPopUp("Secure Popup",NULL,g_hPOP[POP_SECENA],1);
-			  showPopUp("Message Popup",NULL,g_hPOP[POP_SECMSR],2);
+			  showPopUp("Key Popup",NULL,g_hPOP[POP_PU_PRC],0);
+			  showPopUp("Secure Popup",NULL,g_hPOP[POP_PU_EST],1);
+			  showPopUp("Message Popup",NULL,g_hPOP[POP_PU_MSR],2);
 		  }
 		  break;
 		  case IDC_EC: {
@@ -83,21 +83,21 @@ BOOL CALLBACK PopOptionsDlgProc(HWND hDlg, UINT wMsg, WPARAM wParam, LPARAM lPar
 		  case IDC_TIMEKEY: {
 			  //set timeout value
 			  GetDlgItemText(hDlg,IDC_TIMEKEY,getTimeout,sizeof(getTimeout));
-			  itoa(atoi(getTimeout),getTimeout,10);
+			  mir_itoa(atoi(getTimeout),getTimeout,10);
 			  DBWriteContactSettingString(0, szModuleName, "timeoutKey", getTimeout);
 		  }
 		  break;
 		  case IDC_TIMESEC: {
 			  //set timeout value
 			  GetDlgItemText(hDlg,IDC_TIMESEC,getTimeout,sizeof(getTimeout));
-			  itoa(atoi(getTimeout),getTimeout,10);
+			  mir_itoa(atoi(getTimeout),getTimeout,10);
 			  DBWriteContactSettingString(0, szModuleName, "timeoutSec", getTimeout);
 		  }
 		  break;
 		  case IDC_TIMESR: {
 			  //set timeout value
 			  GetDlgItemText(hDlg,IDC_TIMESR,getTimeout,sizeof(getTimeout));
-			  itoa(atoi(getTimeout),getTimeout,10);
+			  mir_itoa(atoi(getTimeout),getTimeout,10);
 			  DBWriteContactSettingString(0, szModuleName, "timeoutSR", getTimeout);
 		  }
 		  break;

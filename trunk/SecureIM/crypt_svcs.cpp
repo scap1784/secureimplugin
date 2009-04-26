@@ -53,7 +53,7 @@ LPSTR utf8_to_miranda(LPCSTR szUtfMsg, DWORD& flags) {
 	if( iCoreVersion < 0x00060000 ) {
 		flags &= ~(PREF_UTF|PREF_UNICODE);
 		LPWSTR wszMsg = exp->utf8decode(szUtfMsg);
-		LPSTR szMsg = u2a(wszMsg);
+		LPSTR szMsg = mir_u2a(wszMsg);
 		if( bCoreUnicode ) {
 		    flags |= PREF_UNICODE;
 		    int olen = wcslen((LPWSTR)wszMsg)+1;
@@ -86,7 +86,7 @@ LPSTR miranda_to_utf8(LPCSTR szMirMsg, DWORD flags) {
 		szNewMsg = exp->utf8encode((LPCWSTR)(szMirMsg+strlen(szMirMsg)+1));
 	}
 	else {
-		LPWSTR wszMirMsg = a2u(szMirMsg);
+		LPWSTR wszMirMsg = mir_a2u(szMirMsg);
 		szNewMsg = exp->utf8encode((LPCWSTR)wszMirMsg);
 		mir_free(wszMirMsg);
 	}
@@ -219,6 +219,9 @@ BYTE loadRSAkey(pUinKey ptr) {
        	    dbv.type = DBVT_BLOB;
        	    if(	DBGetContactSetting(ptr->hContact,szModuleName,"rsa_pub",&dbv) == 0 ) {
        		ptr->keyLoaded = exp->rsa_set_pubkey(ptr->cntx,dbv.pbVal,dbv.cpbVal);
+#if defined(_DEBUG) || defined(NETLIB_LOG)
+		Sent_NetLog("loadRSAkey %d", ptr->keyLoaded);
+#endif
        		DBFreeVariant(&dbv);
        	    }
        	}
@@ -237,7 +240,7 @@ LPSTR szUnrtfMsg = NULL;
 
 
 // RecvMsg handler
-extern "C" long onRecvMsg(WPARAM wParam, LPARAM lParam) {
+long __cdecl onRecvMsg(WPARAM wParam, LPARAM lParam) {
 
 	CCSDATA *pccsd = (CCSDATA *)lParam;
 	PROTORECVEVENT *ppre = (PROTORECVEVENT *)pccsd->lParam;
@@ -275,7 +278,7 @@ extern "C" long onRecvMsg(WPARAM wParam, LPARAM lParam) {
 	}
 
 	int ssig = getSecureSig(ppre->szMessage,&szEncMsg);
-	BOOL bSecured = isContactSecured(pccsd->hContact);
+	BOOL bSecured = isContactSecured(pccsd->hContact)&SECURED;
 	BOOL bPGP = isContactPGP(pccsd->hContact);
 	BOOL bGPG = isContactGPG(pccsd->hContact);
 
@@ -285,21 +288,21 @@ extern "C" long onRecvMsg(WPARAM wParam, LPARAM lParam) {
 //	}
 
 	// pass any unchanged message
-	if (!ptr ||
+	if( !ptr ||
 		ssig==SiG_GAME ||
 		!isSecureProtocol(pccsd->hContact) ||
 		(isProtoMetaContacts(pccsd->hContact) && (pccsd->wParam & PREF_SIMNOMETA)) ||
 		isChatRoom(pccsd->hContact) ||
-		(ssig==SiG_NONE && !ptr->msgSplitted && !bSecured && !bPGP && !bGPG))
+		(ssig==SiG_NONE && !ptr->msgSplitted && !bSecured && !bPGP && !bGPG)
+	  )
 		return CallService(MS_PROTO_CHAINRECV, wParam, lParam);
 
 	// drop message: fake, unsigned or from invisible contacts
-	if (isContactInvisible(pccsd->hContact) ||
-		ssig==SiG_FAKE)
+	if( isContactInvisible(pccsd->hContact) || ssig==SiG_FAKE )
 		return 1;
 
 	// receive non-secure message in secure mode
-	if (ssig==SiG_NONE && !ptr->msgSplitted) {
+	if( ssig==SiG_NONE && !ptr->msgSplitted ) {
 		if(ppre->flags & PREF_UNICODE) {
 			szPlainMsg = m_awstrcat(Translate(sim402),szEncMsg);
 		}
@@ -314,18 +317,18 @@ extern "C" long onRecvMsg(WPARAM wParam, LPARAM lParam) {
 	}
 
 	// received non-pgp secure message from disabled contact
-	if( !bPGP && !bGPG && ptr->status==STATUS_DISABLED ) {
-	    if( ptr->mode==ENC_NATIVE ) {
+	if( ssig!=SiG_PGPM && !bPGP && !bGPG && ptr->status==STATUS_DISABLED ) {
+	    if( ptr->mode==MODE_NATIVE ) {
 		// tell to the other side that we have the plugin disabled with him
 		pccsd->lParam = (LPARAM) SIG_DISA;
 		pccsd->szProtoService = PSS_MESSAGE;
 		CallService(MS_PROTO_CHAINSEND, wParam, lParam);
 
-		showPopUp(sim003,pccsd->hContact,g_hPOP[POP_SECDIS],0);
+		showPopUp(sim003,pccsd->hContact,g_hPOP[POP_PU_DIS],0);
 	    }
 	    else {
 		if( !ptr->cntx ) {
-		    ptr->cntx = cpp_create_context(MODE_RSA);
+		    ptr->cntx = cpp_create_context(CPP_MODE_RSA);
 		    ptr->keyLoaded = 0;
 		}
 		exp->rsa_disconnect(-ptr->cntx);
@@ -336,7 +339,7 @@ extern "C" long onRecvMsg(WPARAM wParam, LPARAM lParam) {
 	}
 
 	// combine message splitted by protocol (no tags)
-	if(ssig==SiG_NONE && ptr->msgSplitted) {
+	if( ssig==SiG_NONE && ptr->msgSplitted ) {
 		LPSTR tmp = (LPSTR) mir_alloc(strlen(ptr->msgSplitted)+strlen(szEncMsg)+1);
 		strcpy(tmp,ptr->msgSplitted);
 		strcat(tmp,szEncMsg);
@@ -349,7 +352,7 @@ extern "C" long onRecvMsg(WPARAM wParam, LPARAM lParam) {
 	}
 
 	// combine message splitted by secureim (with tags)
-	if(ssig==SiG_SECP || ssig==SiG_PART) {
+	if( ssig==SiG_SECP || ssig==SiG_PART ) {
 		LPSTR msg = combineMessage(ptr,szEncMsg);
 		if( !msg ) return 1;
 		szEncMsg = ppre->szMessage = msg;
@@ -357,12 +360,13 @@ extern "C" long onRecvMsg(WPARAM wParam, LPARAM lParam) {
 	}
 
 	// decrypt PGP/GPG message
-	if(ssig==SiG_PGPM &&
+	if( ssig==SiG_PGPM &&
 	   ((bPGPloaded && (bPGPkeyrings || bPGPprivkey))||
-	   (bGPGloaded && bGPGkeyrings))) {
+	   (bGPGloaded && bGPGkeyrings))
+	  ) {
 		szEncMsg = ppre->szMessage;
-		if(!ptr->cntx) {
-			ptr->cntx = cpp_create_context(((bGPGloaded && bGPGkeyrings)?MODE_GPG:MODE_PGP) | ((DBGetContactSettingByte(pccsd->hContact,szModuleName,"gpgANSI",0))?MODE_GPG_ANSI:0));
+		if( !ptr->cntx ) {
+			ptr->cntx = cpp_create_context(((bGPGloaded && bGPGkeyrings)?CPP_MODE_GPG:CPP_MODE_PGP) | ((DBGetContactSettingByte(pccsd->hContact,szModuleName,"gpgANSI",0))?CPP_MODE_GPG_ANSI:0));
 			ptr->keyLoaded = 0;
 		}
 
@@ -406,16 +410,19 @@ extern "C" long onRecvMsg(WPARAM wParam, LPARAM lParam) {
 
 	switch(ssig) {
 
+	case SiG_PGPM:
+		return CallService(MS_PROTO_CHAINRECV, wParam, lParam);
+
 	case SiG_SECU: { // new secured msg, pass to rsa_recv
-		if( ptr->mode==ENC_NATIVE ) {
-		    ptr->mode = ENC_RSAAES;
+		if( ptr->mode==MODE_NATIVE ) {
+		    ptr->mode = MODE_RSAAES;
 		    cpp_delete_context(ptr->cntx);
 		    ptr->cntx = 0;
 		    ptr->keyLoaded = 0;
 		    DBWriteContactSettingByte(ptr->hContact, szModuleName, "mode", ptr->mode);
 		}
 		if( !ptr->cntx ) {
-		    ptr->cntx = cpp_create_context(MODE_RSA);
+		    ptr->cntx = cpp_create_context(CPP_MODE_RSA);
 		    ptr->keyLoaded = 0;
 		}
 		loadRSAkey(ptr);
@@ -468,7 +475,7 @@ extern "C" long onRecvMsg(WPARAM wParam, LPARAM lParam) {
 			CallService(MS_PROTO_CHAINSEND, wParam, lParam); // send new key
 			mir_free(keyToSend);
 
-			showPopUp(sim005,NULL,g_hPOP[POP_SECDIS],0);
+			showPopUp(sim005,NULL,g_hPOP[POP_PU_DIS],0);
 			showPopUpKS(ptr->hContact);
 
 			return 1;
@@ -511,7 +518,7 @@ extern "C" long onRecvMsg(WPARAM wParam, LPARAM lParam) {
 			mir_free(szPlainMsg);
 
 			showPopUpRM(ptr->hContact);
-			showPopUp(sim004,NULL,g_hPOP[POP_SECDIS],0);
+			showPopUp(sim004,NULL,g_hPOP[POP_PU_DIS],0);
 		}
 		return 1; // don't display it ...
 	} break;
@@ -533,8 +540,8 @@ extern "C" long onRecvMsg(WPARAM wParam, LPARAM lParam) {
 	case SiG_KEYR:   // key3 message
 	case SiG_KEYA:   // keyA message
 	case SiG_KEYB: { // keyB message
-		if( ptr->mode==ENC_RSAAES ) {
-		    ptr->mode = ENC_NATIVE;
+		if( ptr->mode==MODE_RSAAES ) {
+		    ptr->mode = MODE_NATIVE;
 		    cpp_delete_context(ptr->cntx);
 		    ptr->cntx = 0;
 		    ptr->keyLoaded = 0;
@@ -550,7 +557,7 @@ extern "C" long onRecvMsg(WPARAM wParam, LPARAM lParam) {
 			if( cpp_keyb(ptr->cntx) ) {
 				cpp_reset_context(ptr->cntx);
 			}
-			if( InitKeyB(ptr,szEncMsg)!=ERROR_NONE ) {
+			if( InitKeyB(ptr,szEncMsg)!=CPP_ERROR_NONE ) {
 				// tell to the other side that we have the plugin disabled with him
 				ptr->waitForExchange=false;
 
@@ -558,16 +565,16 @@ extern "C" long onRecvMsg(WPARAM wParam, LPARAM lParam) {
 				pccsd->szProtoService = PSS_MESSAGE;
 				CallService(MS_PROTO_CHAINSEND, wParam, lParam);
 
-				showPopUp(sim013,ptr->hContact,g_hPOP[POP_SECDIS],0);
+				showPopUp(sim013,ptr->hContact,g_hPOP[POP_PU_DIS],0);
 				ShowStatusIconNotify(ptr->hContact);
 				return 1;
 			}
 
 			// other side support new key format ?
-			if( cpp_get_features(ptr->cntx) & FEATURES_NEWPG ) {
+			if( cpp_get_features(ptr->cntx) & CPP_FEATURES_NEWPG ) {
 				cpp_reset_context(ptr->cntx);
 
-				LPSTR keyToSend = InitKeyA(ptr,FEATURES_NEWPG|KEY_A_SIG); // calculate NEW public and private key
+				LPSTR keyToSend = InitKeyA(ptr,CPP_FEATURES_NEWPG|KEY_A_SIG); // calculate NEW public and private key
 #if defined(_DEBUG) || defined(NETLIB_LOG)
 				Sent_NetLog("Sending KEYA: %s", keyToSend);
 #endif
@@ -601,7 +608,7 @@ extern "C" long onRecvMsg(WPARAM wParam, LPARAM lParam) {
 			showPopUpKR(ptr->hContact);
 
 			cpp_reset_context(ptr->cntx);
-			if(InitKeyB(ptr,szEncMsg)!=ERROR_NONE) {
+			if(InitKeyB(ptr,szEncMsg)!=CPP_ERROR_NONE) {
 				// tell to the other side that we have the plugin disabled with him
 				ptr->waitForExchange=false;
 
@@ -609,12 +616,12 @@ extern "C" long onRecvMsg(WPARAM wParam, LPARAM lParam) {
 				pccsd->szProtoService = PSS_MESSAGE;
 				CallService(MS_PROTO_CHAINSEND, wParam, lParam);
 
-				showPopUp(sim013,ptr->hContact,g_hPOP[POP_SECDIS],0);
+				showPopUp(sim013,ptr->hContact,g_hPOP[POP_PU_DIS],0);
 				ShowStatusIconNotify(ptr->hContact);
 				return 1;
 			}
 
-			LPSTR keyToSend = InitKeyA(ptr,FEATURES_NEWPG|KEY_B_SIG); // calculate NEW public and private key
+			LPSTR keyToSend = InitKeyA(ptr,CPP_FEATURES_NEWPG|KEY_B_SIG); // calculate NEW public and private key
 #if defined(_DEBUG) || defined(NETLIB_LOG)
 			Sent_NetLog("Sending KEYB: %s", keyToSend);
 #endif
@@ -629,7 +636,7 @@ extern "C" long onRecvMsg(WPARAM wParam, LPARAM lParam) {
 			showPopUpKR(ptr->hContact);
 
 			// clear all and send DISA if received KeyB, and not exist KeyA or error on InitKeyB
-			if(!cpp_keya(ptr->cntx) || InitKeyB(ptr,szEncMsg)!=ERROR_NONE) {
+			if(!cpp_keya(ptr->cntx) || InitKeyB(ptr,szEncMsg)!=CPP_ERROR_NONE) {
 				// tell to the other side that we have the plugin disabled with him
 				ptr->waitForExchange=false;
 
@@ -637,7 +644,7 @@ extern "C" long onRecvMsg(WPARAM wParam, LPARAM lParam) {
 				pccsd->szProtoService = PSS_MESSAGE;
 				CallService(MS_PROTO_CHAINSEND, wParam, lParam);
 
-				showPopUp(sim013,ptr->hContact,g_hPOP[POP_SECDIS],0);
+				showPopUp(sim013,ptr->hContact,g_hPOP[POP_PU_DIS],0);
 				ShowStatusIconNotify(ptr->hContact);
 
 				cpp_reset_context(ptr->cntx);
@@ -699,7 +706,7 @@ extern "C" long onRecvMsg(WPARAM wParam, LPARAM lParam) {
 
 
 // SendMsgW handler
-extern "C" long onSendMsgW(WPARAM wParam, LPARAM lParam) {
+long __cdecl onSendMsgW(WPARAM wParam, LPARAM lParam) {
 	if(!lParam) return 0;
 
 	CCSDATA *ccs = (CCSDATA *) lParam;
@@ -711,7 +718,7 @@ extern "C" long onSendMsgW(WPARAM wParam, LPARAM lParam) {
 
 
 // SendMsg handler
-extern "C" long onSendMsg(WPARAM wParam, LPARAM lParam) {
+long __cdecl onSendMsg(WPARAM wParam, LPARAM lParam) {
 
 	CCSDATA *pccsd = (CCSDATA *)lParam;
 	pUinKey ptr = getUinKey(pccsd->hContact);
@@ -733,7 +740,7 @@ extern "C" long onSendMsg(WPARAM wParam, LPARAM lParam) {
 		stat==-1 ||
 		(ssig==SiG_NONE && ptr->sendQueue) ||
 		(ssig==SiG_NONE && ptr->status==STATUS_DISABLED) // Disabled - pass unhandled
-		)
+	   )
 		return CallService(MS_PROTO_CHAINSEND, wParam, lParam);
 
 	// encrypt PGP/GPG message
@@ -747,25 +754,25 @@ extern "C" long onSendMsg(WPARAM wParam, LPARAM lParam) {
 			return CallService(MS_PROTO_CHAINSEND, wParam, lParam);
 		}
 */
-		if(!ptr->cntx) {
-			ptr->cntx = cpp_create_context((isContactGPG(ptr->hContact)?MODE_GPG:MODE_PGP) | ((DBGetContactSettingByte(ptr->hContact,szModuleName,"gpgANSI",0))?MODE_GPG_ANSI:0));
+		if( !ptr->cntx ) {
+			ptr->cntx = cpp_create_context((isContactGPG(ptr->hContact)?CPP_MODE_GPG:CPP_MODE_PGP) | ((DBGetContactSettingByte(ptr->hContact,szModuleName,"gpgANSI",0))?CPP_MODE_GPG_ANSI:0));
 			ptr->keyLoaded = 0;
 		}
-		if(!ptr->keyLoaded && bPGPloaded) ptr->keyLoaded = LoadKeyPGP(ptr);
-		if(!ptr->keyLoaded && bGPGloaded) ptr->keyLoaded = LoadKeyGPG(ptr);
-		if(!ptr->keyLoaded) return returnError(pccsd->hContact,Translate(sim108));
+		if( !ptr->keyLoaded && bPGPloaded ) ptr->keyLoaded = LoadKeyPGP(ptr);
+		if( !ptr->keyLoaded && bGPGloaded ) ptr->keyLoaded = LoadKeyGPG(ptr);
+		if( !ptr->keyLoaded ) return returnError(pccsd->hContact,Translate(sim108));
 
 		LPSTR szNewMsg = NULL;
 		LPSTR szUtfMsg = miranda_to_utf8((LPCSTR)pccsd->lParam,pccsd->wParam);
-		if(ptr->keyLoaded == 1) { // PGP
+		if( ptr->keyLoaded == 1 ) { // PGP
     			szNewMsg = pgp_encode(ptr->cntx,szUtfMsg);
     		}
     		else
-		if(ptr->keyLoaded == 2) { // GPG
+		if( ptr->keyLoaded == 2 ) { // GPG
     			szNewMsg = gpg_encode(ptr->cntx,szUtfMsg);
 		}
 		mir_free(szUtfMsg);
-		if(!szNewMsg) {
+		if( !szNewMsg ) {
 			return returnError(pccsd->hContact,Translate(sim109));
 		}
 
@@ -781,7 +788,7 @@ extern "C" long onSendMsg(WPARAM wParam, LPARAM lParam) {
 	int stid = ptr->status;
 
 	// RSA/AES
-	if( ptr->mode==ENC_RSAAES ) {
+	if( ptr->mode==MODE_RSAAES ) {
 		// contact is offline
 		if ( stat==ID_STATUS_OFFLINE ) {
         		if( ptr->cntx ) {
@@ -791,7 +798,7 @@ extern "C" long onSendMsg(WPARAM wParam, LPARAM lParam) {
 				}
         		}
         		else {
-        			ptr->cntx = cpp_create_context(MODE_RSA);
+        			ptr->cntx = cpp_create_context(CPP_MODE_RSA);
         			ptr->keyLoaded = 0;
         		}
 			if( !loadRSAkey(ptr) || !bSOM ) {
@@ -846,7 +853,7 @@ extern "C" long onSendMsg(WPARAM wParam, LPARAM lParam) {
 		// установить соединение
 		if( ssig==SiG_INIT ) {
 			if( !ptr->cntx ) {
-				ptr->cntx = cpp_create_context(MODE_RSA);
+				ptr->cntx = cpp_create_context(CPP_MODE_RSA);
 				ptr->keyLoaded = 0;
 			}
 			loadRSAkey(ptr);
@@ -1034,14 +1041,14 @@ extern "C" long onSendMsg(WPARAM wParam, LPARAM lParam) {
 
 int file_idx = 0;
 
-extern "C" long onSendFile(WPARAM wParam, LPARAM lParam) {
+long __cdecl onSendFile(WPARAM wParam, LPARAM lParam) {
 
 	CCSDATA *pccsd=(CCSDATA*)lParam;
 
 	pUinKey ptr = getUinKey(pccsd->hContact);
 	if (!ptr || !bSFT) return CallService(PSS_FILE, wParam, lParam);
 
-	if (isContactSecured(pccsd->hContact)) {
+	if( isContactSecured(pccsd->hContact)&SECURED ) {
 
 		char **file=(char **)pccsd->lParam;
 		if(file_idx==100) file_idx=0;
@@ -1059,7 +1066,7 @@ extern "C" long onSendFile(WPARAM wParam, LPARAM lParam) {
 
 			char buf[MAX_PATH];
 			sprintf(buf,"%s\n%s",Translate(sim011),file[i]);
-			showPopUp(buf,NULL,g_hPOP[POP_SECMSS],2);
+			showPopUp(buf,NULL,g_hPOP[POP_PU_MSS],2);
 
 			cpp_encrypt_file(ptr->cntx,file[i],file_out);
 
@@ -1078,7 +1085,7 @@ extern "C" long onSendFile(WPARAM wParam, LPARAM lParam) {
 }
 
 
-int onProtoAck(WPARAM wParam,LPARAM lParam) {
+int __cdecl onProtoAck(WPARAM wParam,LPARAM lParam) {
 
 	ACKDATA *ack=(ACKDATA*)lParam;
 	if (ack->type!=ACKTYPE_FILE) return 0; //quit if not file transfer event
@@ -1087,7 +1094,7 @@ int onProtoAck(WPARAM wParam,LPARAM lParam) {
 	pUinKey ptr = getUinKey(ack->hContact);
 	if (!ptr || (f && f->sending && !bSFT)) return 0;
 
-	if (isContactSecured(ack->hContact)) {
+	if( isContactSecured(ack->hContact)&SECURED ) {
 		switch(ack->result) {
 //		case ACKRESULT_FILERESUME:
 		case ACKRESULT_DATA: {
@@ -1104,17 +1111,17 @@ int onProtoAck(WPARAM wParam,LPARAM lParam) {
 		case ACKRESULT_DENIED:
 		case ACKRESULT_FAILED: {
 			if (ptr->lastFileRecv) {
-				if (strstr(ptr->lastFileRecv,".AESHELL")) unlink(ptr->lastFileRecv);
+				if (strstr(ptr->lastFileRecv,".AESHELL")) mir_unlink(ptr->lastFileRecv);
 				SAFE_FREE(ptr->lastFileRecv);
 			}
 			if (ptr->lastFileSend) {
-				if (strstr(ptr->lastFileSend,".AESHELL")) unlink(ptr->lastFileSend);
+				if (strstr(ptr->lastFileSend,".AESHELL")) mir_unlink(ptr->lastFileSend);
 				SAFE_FREE(ptr->lastFileSend);
 			}
 			if (ptr->fileSend) {
 				char **file=ptr->fileSend;
         		for(int i=0;file[i];i++) {
-					if (strstr(file[i],".AESHELL")) unlink(file[i]);
+					if (strstr(file[i],".AESHELL")) mir_unlink(file[i]);
 					mir_free(file[i]);
 				}
 				SAFE_FREE(ptr->fileSend);
@@ -1144,17 +1151,17 @@ int onProtoAck(WPARAM wParam,LPARAM lParam) {
 
 					char buf[MAX_PATH];
 					sprintf(buf,"%s\n%s",Translate(sim012),file_out);
-					showPopUp(buf,NULL,g_hPOP[POP_SECMSR],2);
+					showPopUp(buf,NULL,g_hPOP[POP_PU_MSR],2);
 
 					cpp_decrypt_file(ptr->cntx,ptr->lastFileRecv,file_out);
 					mir_free(file_out);
-					unlink(ptr->lastFileRecv);
+					mir_unlink(ptr->lastFileRecv);
 				}
 				SAFE_FREE(ptr->lastFileRecv);
 				ptr->finFileRecv = false;
 			}
 			if (ptr->finFileSend && ptr->lastFileSend) {
-				if (strstr(ptr->lastFileSend,".AESHELL")) unlink(ptr->lastFileSend);
+				if (strstr(ptr->lastFileSend,".AESHELL")) mir_unlink(ptr->lastFileSend);
 				SAFE_FREE(ptr->lastFileSend);
 				ptr->finFileSend = false;
 			}
@@ -1165,7 +1172,7 @@ int onProtoAck(WPARAM wParam,LPARAM lParam) {
 }
 
 
-int onContactSettingChanged(WPARAM wParam,LPARAM lParam) {
+int __cdecl onContactSettingChanged(WPARAM wParam,LPARAM lParam) {
 
 	HANDLE hContact = (HANDLE)wParam;
 	DBCONTACTWRITESETTING *cws=(DBCONTACTWRITESETTING*)lParam;
@@ -1182,7 +1189,7 @@ int onContactSettingChanged(WPARAM wParam,LPARAM lParam) {
 //	}
 
 	if (stat==ID_STATUS_OFFLINE) { // go offline
-		if (ptr->mode==0 && cpp_keyx(ptr->cntx)) { // have active context
+		if (ptr->mode==MODE_NATIVE && cpp_keyx(ptr->cntx)) { // have active context
 			cpp_delete_context(ptr->cntx); ptr->cntx=0; // reset context
 //			if(hMetaContact) { // is subcontact of metacontact
 //				showPopUpDC(hMetaContact);
@@ -1197,7 +1204,7 @@ int onContactSettingChanged(WPARAM wParam,LPARAM lParam) {
 //			}
 		}
 		else
-		if (ptr->mode==3 && exp->rsa_get_state(ptr->cntx)==7) {
+		if (ptr->mode==MODE_RSAAES && exp->rsa_get_state(ptr->cntx)==7) {
 			deleteRSAcntx(ptr);
 //			if(hMetaContact) { // is subcontact of metacontact
 //				showPopUpDC(hMetaContact);
@@ -1221,12 +1228,6 @@ int onContactSettingChanged(WPARAM wParam,LPARAM lParam) {
 			ShowStatusIconNotify(hContact); // change icon in CL
 //		}
 	}
-	if(bADV) {
-		if(isContactPGP((HANDLE)wParam))
-			CallService(MS_CLIST_EXTRA_SET_ICON, wParam, (LPARAM)&g_IEC[IEC_PGP]);
-		if(isContactGPG((HANDLE)wParam)) 
-			CallService(MS_CLIST_EXTRA_SET_ICON, wParam, (LPARAM)&g_IEC[IEC_GPG]);
-	}
 	return 0;
 }
 
@@ -1234,8 +1235,11 @@ int onContactSettingChanged(WPARAM wParam,LPARAM lParam) {
 static LPCSTR states[] = {sim303,sim304,sim305};
 
 
-int onRebuildContactMenu(WPARAM wParam,LPARAM lParam) {
+int __cdecl onRebuildContactMenu(WPARAM wParam,LPARAM lParam) {
 
+#if defined(_DEBUG) || defined(NETLIB_LOG)
+	Sent_NetLog("onRebuildContactMenu start");
+#endif
 	HANDLE hContact = (HANDLE)wParam;
 	BOOL bMC = isProtoMetaContacts(hContact);
 	if( bMC ) hContact = getMostOnline(hContact); // возьмем тот, через который пойдет сообщение
@@ -1266,7 +1270,7 @@ int onRebuildContactMenu(WPARAM wParam,LPARAM lParam) {
 	BOOL isPGP = isContactPGP(hContact);
 	BOOL isGPG = isContactGPG(hContact);
 	BOOL isRSAAES = isContactRSAAES(hContact);
-	BOOL isSecured = isContactSecured(hContact);
+	BOOL isSecured = isContactSecured(hContact)&SECURED;
 	BOOL isChat = isChatRoom(hContact);
 
 	// hide all menu bars
@@ -1276,7 +1280,7 @@ int onRebuildContactMenu(WPARAM wParam,LPARAM lParam) {
 			CallService(MS_CLIST_MODIFYMENUITEM,(WPARAM)g_hMenu[i],(LPARAM)&mi);
 	}
 
-	if ( isSecureProto && !isChat && (ptr->mode==ENC_NATIVE || ptr->mode==ENC_RSAAES) && isClientMiranda(hContact) /*&& !getMetaContact(hContact)*/ ) {
+	if ( isSecureProto && !isChat && (ptr->mode==MODE_NATIVE || ptr->mode==MODE_RSAAES) && isClientMiranda(hContact) /*&& !getMetaContact(hContact)*/ ) {
 		// Native
 		mi.flags = CMIM_FLAGS | CMIF_NOTOFFLINE;
 		if( !isSecured ) {
@@ -1290,33 +1294,33 @@ int onRebuildContactMenu(WPARAM wParam,LPARAM lParam) {
 		// set status menu
 		if(bSCM && !bMC) {
 			mi.flags = CMIM_FLAGS;
-			for(i=2;i<=(ptr->mode==ENC_RSAAES?4:5);i++) {
+			for(i=2;i<=(ptr->mode==MODE_RSAAES?4:5);i++) {
 				if(g_hMenu[i])
 					CallService(MS_CLIST_MODIFYMENUITEM,(WPARAM)g_hMenu[i],(LPARAM)&mi);
 			}
 
 			mi.flags = CMIM_FLAGS | CMIM_NAME | CMIM_ICON;
-			mi.hIcon = g_hICO[ptr->status];
+			mi.hIcon = g_hICO[ICO_ST_DIS+ptr->status];
 			mi.pszName = (char*)states[ptr->status];
 			CallService(MS_CLIST_MODIFYMENUITEM,(WPARAM)g_hMenu[2],(LPARAM)&mi);
 
 			mi.flags = CMIM_FLAGS | CMIM_ICON;
-			for(i=0;i<=(ptr->mode==ENC_RSAAES?1:2);i++) {
-				mi.hIcon = (i == ptr->status) ? g_hICO[ptr->status] : NULL;
+			for(i=0;i<=(ptr->mode==MODE_RSAAES?1:2);i++) {
+				mi.hIcon = (i == ptr->status) ? g_hICO[ICO_ST_DIS+ptr->status] : NULL;
 				CallService(MS_CLIST_MODIFYMENUITEM,(WPARAM)g_hMenu[3+i],(LPARAM)&mi);
 			}
 		}
 	}
-
-	if( isSecureProto && !isChat && (ptr->mode==ENC_PGP || ptr->mode==ENC_GPG) ) {
-		// PGP, GPG, RSA/AES, RSA
-		if( ptr->mode==ENC_PGP && bPGPloaded ) {
+	else
+	if( isSecureProto && !isChat && (ptr->mode==MODE_PGP || ptr->mode==MODE_GPG) ) {
+		// PGP, GPG
+		if( ptr->mode==MODE_PGP && bPGPloaded ) {
 			if((bPGPkeyrings || bPGPprivkey) && !isGPG) {
 				mi.flags = CMIM_FLAGS;
 				CallService(MS_CLIST_MODIFYMENUITEM,(WPARAM)g_hMenu[isPGP+6],(LPARAM)&mi);
 			}
 		}
-		if( ptr->mode==ENC_GPG && bGPGloaded ) {
+		if( ptr->mode==MODE_GPG && bGPGloaded ) {
 			if(bGPGkeyrings && !isPGP) {
 				mi.flags = CMIM_FLAGS;
 				CallService(MS_CLIST_MODIFYMENUITEM,(WPARAM)g_hMenu[isGPG+8],(LPARAM)&mi);
@@ -1328,29 +1332,21 @@ int onRebuildContactMenu(WPARAM wParam,LPARAM lParam) {
 }
 
 
-int onExtraImageListRebuilding(WPARAM, LPARAM) {
-	if(bADV && ServiceExists(MS_CLIST_EXTRA_ADD_ICON)) {
-		for(int i=1;i<IEC_CNT;i++)
-			g_IEC[i].hImage = (HANDLE) CallService(MS_CLIST_EXTRA_ADD_ICON, (WPARAM)g_hIEC[i], (LPARAM)0);
+int __cdecl onExtraImageListRebuilding(WPARAM, LPARAM) {
+#if defined(_DEBUG) || defined(NETLIB_LOG)
+	Sent_NetLog("onExtraImageListRebuilding");
+#endif
+	if( bADV && ServiceExists(MS_CLIST_EXTRA_ADD_ICON) ) {
 		RefreshContactListIcons();
 	}
 	return 0;
 }
 
 
-int onExtraImageApplying(WPARAM wParam, LPARAM) {
-	if(bADV && ServiceExists(MS_CLIST_EXTRA_SET_ICON) && isSecureProtocol((HANDLE)wParam)) {
-		if(isContactPGP((HANDLE)wParam)) {
-			CallService(MS_CLIST_EXTRA_SET_ICON, wParam, (LPARAM)&g_IEC[IEC_PGP]);
-			return 0;
-		}
-		if(isContactGPG((HANDLE)wParam)) {
-			CallService(MS_CLIST_EXTRA_SET_ICON, wParam, (LPARAM)&g_IEC[IEC_GPG]);
-			return 0;
-		}
-		int mode = isContactSecured((HANDLE)wParam);
-		if(bASI && !mode) mode=IEC_OFF;
-		CallService(MS_CLIST_EXTRA_SET_ICON, wParam, (LPARAM)&g_IEC[mode]);
+int __cdecl onExtraImageApplying(WPARAM wParam, LPARAM) {
+	if( bADV && ServiceExists(MS_CLIST_EXTRA_SET_ICON) && isSecureProtocol((HANDLE)wParam) ) {
+		IconExtraColumn iec = mode2iec(isContactSecured((HANDLE)wParam));
+		CallService(MS_CLIST_EXTRA_SET_ICON, wParam, (LPARAM)&iec);
 	}
 	return 0;
 }
@@ -1358,7 +1354,7 @@ int onExtraImageApplying(WPARAM wParam, LPARAM) {
 
 //  wParam=(WPARAM)(HANDLE)hContact
 //  lParam=0
-int onContactAdded(WPARAM wParam,LPARAM lParam) {
+int __cdecl onContactAdded(WPARAM wParam,LPARAM lParam) {
 	addContact((HANDLE)wParam);
 	return 0;
 }
@@ -1366,7 +1362,7 @@ int onContactAdded(WPARAM wParam,LPARAM lParam) {
 
 //  wParam=(WPARAM)(HANDLE)hContact
 //  lParam=0
-int onContactDeleted(WPARAM wParam,LPARAM lParam) {
+int __cdecl onContactDeleted(WPARAM wParam,LPARAM lParam) {
 	delContact((HANDLE)wParam);
 	return 0;
 }

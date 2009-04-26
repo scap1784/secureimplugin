@@ -1,30 +1,39 @@
 // Windows API
 
-#define STRICT
 #define WIN32_LEAN_AND_MEAN
 //#define NETLIB_LOG
 
 #ifdef _MSC_VER
-#if _MSC_VER >= 1300 && !defined _DEBUG
-//#pragma comment (compiler,"/GS-")
-//#pragma comment (linker,"/NODEFAULTLIB:libcmt.lib") 
-//#pragma comment (lib,"../../lib/msvcrt.lib")
-//#pragma comment (lib,"../../lib/msvcrt71.lib")
+#pragma once
+#define _CRT_SECURE_NO_WARNINGS
+// _MSC_VER: 1200=6.0 1300=7.0(2003) 1400=8.0(2005) 1500=9.0(2008)
+#if _MSC_VER >= 1300
+// MSVC 7.0 and above
+#define mir_itoa _itoa
+#define mir_unlink _unlink
 #else
+// MSVC 6.0 and below
+#define mir_itoa itoa
+#define mir_unlink unlink
+#ifndef _DEBUG
 #pragma optimize("gsy", on)
 #endif 
 #endif 
+#endif
+
+#ifndef _WIN32_WINNT
+#define _WIN32_WINNT 0x0501
+#endif
+
+#ifndef _WIN32_IE
+#define _WIN32_IE 0x0501
+#endif
 
 #ifndef M_SIM_COMMONHEADERS_H
 #define M_SIM_COMMONHEADERS_H
 
-#ifndef _WIN32_WINNT
-#define _WIN32_WINNT 0x0500 
-#endif
-
-#ifndef _WIN32_IE
-#define _WIN32_IE 0x0500
-#endif
+#define MIRANDA_VER 0x0700
+#include <m_stdhdr.h>
 
 // Windows API
 #ifdef _MSC_VER
@@ -39,9 +48,9 @@
 #include <winsock2.h>
 #include <commdlg.h>
 #include <commctrl.h>
-#include <io.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <io.h>
 #include <shlwapi.h>
 #include <process.h>
 #include <time.h>
@@ -100,6 +109,7 @@
 #include "forkthread.h"
 #include "rtfconv.h"
 #include "cryptopp.h"
+#include "images.h"
 
 #define MODULENAME "SecureIM"
 
@@ -113,7 +123,7 @@ extern HINSTANCE g_hInst, g_hIconInst;
 extern PLUGINLINK *pluginLink;
 extern PLUGININFO pluginInfo;
 extern PLUGININFOEX pluginInfoEx;
-extern MM_INTERFACE memoryManagerInterface;
+extern MM_INTERFACE mmi;
 extern MUUID interfaces[];
 
 #define MIID_SECUREIM	{0x1B2A39E5, 0xE2F6, 0x494D, { 0x95, 0x8D, 0x18, 0x08, 0xFD, 0x11, 0x0D, 0xD5 }} //1B2A39E5-E2F6-494D-958D-1808FD110DD5
@@ -135,8 +145,8 @@ extern "C" {
 
 extern HANDLE g_hEvent[2], g_hMenu[10], g_hService[14], g_hHook[17];
 extern int iService, iHook;
-extern HICON g_hIcon[ALL_CNT], g_hICO[ICO_CNT], g_hIEC[IEC_CNT], g_hPOP[POP_CNT];
-extern IconExtraColumn g_IEC[IEC_CNT];
+extern HICON g_hICO[ICO_CNT], g_hIEC[1+IEC_CNT*MODE_CNT], g_hPOP[POP_CNT];
+extern IconExtraColumn g_IEC[1+IEC_CNT*MODE_CNT];
 extern int iBmpDepth;
 extern BOOL bCoreUnicode, bMetaContacts, bPopupExists, bPopupUnicode;
 extern BOOL bPGPloaded, bPGPkeyrings, bUseKeyrings, bPGPprivkey;
@@ -149,9 +159,9 @@ extern CRITICAL_SECTION localQueueMutex;
 int onModulesLoaded(WPARAM,LPARAM);
 int onSystemOKToExit(WPARAM,LPARAM);
 
-char *simDBGetString(HANDLE,const char *,const char *);
-char *simDBGetStringDecode(HANDLE,const char *,const char *);
-int simDBWriteStringEncode(HANDLE,const char *,const char *,const char *);
+LPSTR simDBGetString(HANDLE,const char *,const char *);
+LPSTR DBGetStringDecode(HANDLE,const char *,const char *);
+int DBWriteStringEncode(HANDLE,const char *,const char *,const char *);
 
 #if defined(_DEBUG) || defined(NETLIB_LOG)
 extern HANDLE hNetlibUser;
