@@ -68,7 +68,7 @@ typedef RSAPRIV* pRSAPRIV;
 
 typedef struct __RSADATA {
 	short			state;	// 0 - нифига нет, 1..6 - keyexchange, 7 - соединение установлено
-	int			time;	// для прерывания keyexchange, если долго нет ответа
+	u_int			time;	// для прерывания keyexchange, если долго нет ответа
 	string			pub_k;	// public key string
 	string			pub_s;	// hash(pub_k)
 	RSA::PublicKey		pub;	// public key
@@ -150,6 +150,8 @@ typedef struct {
     int   (__cdecl *rsa_send)(int,LPCSTR);				// вызываем для отправки сообщения клиенту
     LPSTR  (__cdecl *utf8encode)(LPCWSTR);
     LPWSTR (__cdecl *utf8decode)(LPCSTR);
+    int (__cdecl *is_7bit_string)(LPCSTR);
+    int (__cdecl *is_utf8_string)(LPCSTR);
 } RSA_EXPORT;
 typedef RSA_EXPORT* pRSA_EXPORT;
 

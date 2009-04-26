@@ -55,6 +55,8 @@
 #include <process.h>
 #include <time.h>
 
+#define MODULENAME "SecureIM"
+
 #ifndef ListView_SetCheckState
 #define ListView_SetCheckState(hwndLV, i, fCheck) \
   ListView_SetItemState(hwndLV, i, INDEXTOSTATEIMAGEMASK((fCheck)?2:1), LVIS_STATEIMAGEMASK)
@@ -110,8 +112,6 @@
 #include "rtfconv.h"
 #include "cryptopp.h"
 #include "images.h"
-
-#define MODULENAME "SecureIM"
 
 extern LPCSTR szModuleName;
 extern LPCSTR szVersionStr;

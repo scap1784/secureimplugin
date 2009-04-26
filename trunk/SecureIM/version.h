@@ -1,10 +1,6 @@
 #ifndef __VERSION_H_INCLUDED
 #define __VERSION_H_INCLUDED
 
-//#define __FILEVERSION_STRING        1,0,11,0
-//#define __VERSION_STRING            "1.0.11.0"
-//#define __VERSION_DWORD             0x01000B00
-
 #define __MAJOR_VERSION			1
 #define __MINOR_VERSION			0
 #define __RELEASE_NUM			12

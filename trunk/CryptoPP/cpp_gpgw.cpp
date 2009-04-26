@@ -259,10 +259,10 @@ LPSTR __cdecl gpg_decode(int context, LPCSTR szEncMsg)
 			int slen = strlen(szOldMsg)+1;
 			LPWSTR wszMsg = (LPWSTR) alloca(slen*sizeof(WCHAR));
 			MultiByteToWideChar(CP_ACP, 0, szOldMsg, -1, wszMsg, slen*sizeof(WCHAR));
-			szNewMsg = m_strdup(utf8encode(wszMsg));
+			szNewMsg = mir_strdup(utf8encode(wszMsg));
 		}
 		else {
-			szNewMsg = m_strdup(szOldMsg);
+			szNewMsg = mir_strdup(szOldMsg);
 		}
 	}
 	SAFE_FREE(ptr->tmp);

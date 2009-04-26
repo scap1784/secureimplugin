@@ -25,7 +25,7 @@ LPSTR __cdecl cpp_init_keya(int context, int features) {
 		p->dh = new DH(p0,g0);
 	}
 
-	BYTE priv1[KEYSIZE] = {0};		// private key of 2048 bit
+	BYTE priv1[KEYSIZE] = {0};	// private key of 2048 bit
 	BYTE publ1[KEYSIZE+2] = {0};	// public key of 2048 bit + faetures field
 
 	AutoSeededRandomPool autorng;

@@ -45,6 +45,8 @@ typedef struct {
     int   (__cdecl *rsa_send)(int,LPCSTR);				// вызываем для отправки сообщения клиенту
     LPSTR  (__cdecl *utf8encode)(LPCWSTR);
     LPWSTR (__cdecl *utf8decode)(LPCSTR);
+    int (__cdecl *is_7bit_string)(LPCSTR);
+    int (__cdecl *is_utf8_string)(LPCSTR);
 } RSA_EXPORT;
 typedef RSA_EXPORT* pRSA_EXPORT;
 

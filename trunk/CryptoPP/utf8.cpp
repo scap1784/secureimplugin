@@ -83,7 +83,7 @@ LPWSTR __cdecl utf8decode(LPCSTR str) {
 
 
 // Returns true if the buffer only contains 7-bit characters.
-BOOL __cdecl is_7bit_string(LPCSTR str) {
+int __cdecl is_7bit_string(LPCSTR str) {
 	while( *str ) {
 		if ( *str & 0x80 ) {
 			return FALSE;
@@ -98,7 +98,7 @@ BOOL __cdecl is_7bit_string(LPCSTR str) {
 
 //Copyright (C) 2001, 2002 Peter Verthez
 //under GNU LGPL
-BOOL __cdecl is_utf8_string(LPCSTR str) {
+int __cdecl is_utf8_string(LPCSTR str) {
   int expect_bytes = 0;
 
   if (!str) return 0;

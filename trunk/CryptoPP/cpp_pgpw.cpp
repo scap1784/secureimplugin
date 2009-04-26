@@ -242,7 +242,7 @@ LPSTR __cdecl pgp_encode(int context, LPCSTR szPlainMsg)
 {
 	pCNTX ptr = get_context_on_id(context); if(!ptr) return NULL;
 	pPGPDATA p = (pPGPDATA) cpp_alloc_pdata(ptr);
-	if(!p->pgpKeyID && !p->pgpKey) { ptr->error = ERROR_NO_PGP_KEY; return NULL; }
+	if( !p->pgpKeyID && !p->pgpKey ) { ptr->error = ERROR_NO_PGP_KEY; return NULL; }
 
 	// utf8 message: encrypt.
 	return pgp_encrypt(ptr, szPlainMsg);
@@ -254,8 +254,23 @@ LPSTR __cdecl pgp_decode(int context, LPCSTR szEncMsg)
 	pCNTX ptr = get_context_on_id(context);
 	if(!ptr) return NULL;
 
-	// utf8 message: decrypt.
-	return pgp_decrypt(ptr, szEncMsg);
+	LPSTR szNewMsg = NULL;
+	LPSTR szOldMsg = pgp_decrypt(ptr, szEncMsg);
+
+	if(szOldMsg) {
+		if( !is_7bit_string(szOldMsg) && !is_utf8_string(szOldMsg) ) {
+			int slen = strlen(szOldMsg)+1;
+			LPWSTR wszMsg = (LPWSTR) alloca(slen*sizeof(WCHAR));
+			MultiByteToWideChar(CP_ACP, 0, szOldMsg, -1, wszMsg, slen*sizeof(WCHAR));
+			szNewMsg = mir_strdup(utf8encode(wszMsg));
+		}
+		else {
+			szNewMsg = mir_strdup(szOldMsg);
+		}
+	}
+	SAFE_FREE(ptr->tmp);
+	ptr->tmp = szNewMsg;
+	return szNewMsg;
 }
 
 

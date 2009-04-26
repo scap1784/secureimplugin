@@ -1,0 +1,5 @@
+Verison 1.0.3.5 [26-04-2009]
+
+[*] GPG empty password fixed
+[*] export utf8 string function
+
