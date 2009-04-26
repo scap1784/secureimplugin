@@ -56,10 +56,10 @@ int Load(PLUGINLINK *link) {
 
 	pluginLink = link;
 	DisableThreadLibraryCalls(g_hInst);
-#ifdef _DEBUG
+
 	// get memoryManagerInterface address
-	mir_getMMI(&memoryManagerInterface);
-#endif
+	mir_getMMI( &mmi );
+
 	// register plugin module
 	PROTOCOLDESCRIPTOR pd = {0};
 	pd.cbSize = sizeof(pd);
@@ -76,3 +76,6 @@ int Load(PLUGINLINK *link) {
 int Unload() {
 	return 0;
 }
+
+
+// EOF

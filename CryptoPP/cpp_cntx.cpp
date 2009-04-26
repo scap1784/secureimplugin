@@ -11,20 +11,21 @@ void __cdecl sttTimeoutThread( LPVOID );
 pCNTX get_context_on_id(int context) {
 
     if(	!thread_timeout ) {
-	thread_timeout = _beginthread(sttTimeoutThread, 0, 0);
+		thread_timeout = _beginthread(sttTimeoutThread, 0, 0);
     }
     if( context ) {
-	for(int i=0;i<cntx_cnt;i++) {
-	    if(cntx[i].cntx == context)
-	    		return &(cntx[i]);
-	}
-	switch( context ) {
+		for(int i=0;i<cntx_cnt;i++) {
+			if(cntx[i].cntx == context)
+				return &(cntx[i]);
+		}
+		switch( context ) {
 		case -1:
 		{
 			// create context for private pgp keys
 			pCNTX tmp = get_context_on_id(cpp_create_context(0));
 			tmp->cntx = context; tmp->mode = MODE_PGP;
 			tmp->pdata = (PBYTE) mir_alloc(sizeof(PGPDATA));
+			memset(tmp->pdata,0,sizeof(PGPDATA));
 			return tmp;
 		}
 		case -2:
@@ -35,9 +36,9 @@ pCNTX get_context_on_id(int context) {
 			tmp->cntx = context; tmp->mode = (context==-3) ? MODE_RSA_4096 : MODE_RSA_2048;
 			pRSAPRIV p = new RSAPRIV;
 			tmp->pdata = (PBYTE) p;
-	    	return tmp;
+			return tmp;
 		}
-	} // switch
+		} // switch
     }
     return NULL;
 }
@@ -49,10 +50,10 @@ int __cdecl cpp_create_context(int mode) {
 
 	int i;
 	for(i=0; i<cntx_cnt && cntx[i].cntx; i++);
-	if(i == cntx_cnt) {
+	if(i == cntx_cnt) { // надо добавить новый
 		cntx_cnt++; 
 		cntx = (pCNTX) mir_realloc(cntx,sizeof(CNTX)*cntx_cnt);
-		ZeroMemory(&cntx[i], sizeof(CNTX));
+		memset(&(cntx[i]),0,sizeof(CNTX));
 	}
 	cntx[i].cntx = cntx_idx;
 	cntx[i].mode = mode;
@@ -80,19 +81,28 @@ void __cdecl cpp_reset_context(int context) {
 PBYTE cpp_alloc_pdata(pCNTX ptr) {
 	if( !ptr->pdata ) {
 	    if( ptr->mode & MODE_PGP ) {
-		ptr->pdata = (PBYTE) mir_alloc(sizeof(PGPDATA));
+			ptr->pdata = (PBYTE) mir_alloc(sizeof(PGPDATA));
+			memset(ptr->pdata,0,sizeof(PGPDATA));
 	    }
 	    else
 	    if( ptr->mode & MODE_GPG ) {
-		ptr->pdata = (PBYTE) mir_alloc(sizeof(GPGDATA));
+			ptr->pdata = (PBYTE) mir_alloc(sizeof(GPGDATA));
+			memset(ptr->pdata,0,sizeof(GPGDATA));
 	    }
 	    else
 	    if( ptr->mode & MODE_RSA ) {
-		pRSADATA p = new RSADATA;
-		ptr->pdata = (PBYTE) p;
+			pRSADATA p = new RSADATA;
+			p->state = 0;
+			p->time = 0;
+/*			p->pub_k.assign("");
+			p->pub_s.assign("");
+			p->aes_k.assign("");
+			p->aes_v.assign("");*/
+			ptr->pdata = (PBYTE) p;
 	    }
 	    else {
-		ptr->pdata = (PBYTE) mir_alloc(sizeof(SIMDATA));
+			ptr->pdata = (PBYTE) mir_alloc(sizeof(SIMDATA));
+			memset(ptr->pdata,0,sizeof(SIMDATA));
 	    }
 	}
 	return ptr->pdata;
@@ -107,11 +117,11 @@ void __cdecl sttTimeoutThread( LPVOID ) {
 	    Sleep( 1000 );
 	    DWORD time = gettime();
 	    for(int i=0;i<cntx_cnt;i++) {
-	    	if( cntx[i].cntx>0 && cntx[i].mode&MODE_RSA ) {
-			pRSADATA p = (pRSADATA) cntx[i].pdata;
-			if( p->time && p->time < time ) {
-				rsa_timeout(cntx[i].cntx,p);
-			}
+	    	if( cntx[i].cntx>0 && cntx[i].mode&MODE_RSA && cntx[i].pdata ) {
+				pRSADATA p = (pRSADATA) cntx[i].pdata;
+				if( p->time && p->time < time ) {
+					rsa_timeout(cntx[i].cntx,p);
+				}
 	    	}
 	    }
 	}

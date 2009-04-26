@@ -4,7 +4,7 @@ LPCSTR szModuleName = MODULENAME;
 LPCSTR szVersionStr = MODULENAME" DLL ("__VERSION_STRING")";
 HINSTANCE g_hInst;
 PLUGINLINK *pluginLink;
-MM_INTERFACE memoryManagerInterface={0};
+MM_INTERFACE mmi={0};
 MUUID interfaces[] = {MIID_CRYPTOPP, MIID_LAST};
 
 char TEMP[MAX_PATH];

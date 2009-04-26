@@ -27,7 +27,7 @@ MUUID* MirandaPluginInterfaces(void) {
 }
 
 
-extern "C" long Service_CreateIM(WPARAM wParam,LPARAM lParam){
+long __cdecl Service_CreateIM(WPARAM wParam,LPARAM lParam){
 
 	if (!CallService(MS_PROTO_ISPROTOONCONTACT, (WPARAM)wParam, (LPARAM)szModuleName))
 		CallService(MS_PROTO_ADDTOCONTACT, (WPARAM)wParam, (LPARAM)szModuleName);
@@ -44,7 +44,7 @@ extern "C" long Service_CreateIM(WPARAM wParam,LPARAM lParam){
 }
 
 
-extern "C" long Service_DisableIM(WPARAM wParam,LPARAM lParam) {
+long __cdecl Service_DisableIM(WPARAM wParam,LPARAM lParam) {
 
 //	WPARAM flags = 0;
 //	HANDLE hMetaContact = getMetaContact((HANDLE)wParam);
@@ -58,13 +58,13 @@ extern "C" long Service_DisableIM(WPARAM wParam,LPARAM lParam) {
 }
 
 
-extern "C" long Service_IsContactSecured(WPARAM wParam, LPARAM lParam) {
+long __cdecl Service_IsContactSecured(WPARAM wParam, LPARAM lParam) {
 
 	return isContactSecured((HANDLE)wParam) || isContactPGP((HANDLE)wParam) || isContactGPG((HANDLE)wParam);
 }
 
 
-extern "C" long Service_Status(WPARAM wParam, LPARAM lParam) {
+long __cdecl Service_Status(WPARAM wParam, LPARAM lParam) {
 
     switch(--lParam) {
     case 0:
@@ -82,25 +82,25 @@ extern "C" long Service_Status(WPARAM wParam, LPARAM lParam) {
 }
 
 
-extern "C" long Service_Status0(WPARAM wParam, LPARAM lParam) {
+long __cdecl Service_Status0(WPARAM wParam, LPARAM lParam) {
 
 	return Service_Status(wParam,1);
 }
 
 
-extern "C" long Service_Status1(WPARAM wParam, LPARAM lParam) {
+long __cdecl Service_Status1(WPARAM wParam, LPARAM lParam) {
 
 	return Service_Status(wParam,2);
 }
 
 
-extern "C" long Service_Status2(WPARAM wParam, LPARAM lParam) {
+long __cdecl Service_Status2(WPARAM wParam, LPARAM lParam) {
 
 	return Service_Status(wParam,3);
 }
 
 
-extern "C" long Service_PGPdelKey(WPARAM wParam, LPARAM lParam) {
+long __cdecl Service_PGPdelKey(WPARAM wParam, LPARAM lParam) {
 
 	if(bPGPloaded) {
     	    DBDeleteContactSetting((HANDLE)wParam, szModuleName, "pgp");
@@ -116,7 +116,7 @@ extern "C" long Service_PGPdelKey(WPARAM wParam, LPARAM lParam) {
 }
 
 
-extern "C" long Service_GPGdelKey(WPARAM wParam, LPARAM lParam) {
+long __cdecl Service_GPGdelKey(WPARAM wParam, LPARAM lParam) {
 
 	if(bGPGloaded) {
     	    DBDeleteContactSetting((HANDLE)wParam, szModuleName, "gpg");
@@ -130,7 +130,7 @@ extern "C" long Service_GPGdelKey(WPARAM wParam, LPARAM lParam) {
 }
 
 
-extern "C" long Service_PGPsetKey(WPARAM wParam, LPARAM lParam) {
+long __cdecl Service_PGPsetKey(WPARAM wParam, LPARAM lParam) {
 
 	BOOL del = true;
 	if(bPGPloaded) {
@@ -178,7 +178,7 @@ extern "C" long Service_PGPsetKey(WPARAM wParam, LPARAM lParam) {
 }
 
 
-extern "C" long Service_GPGsetKey(WPARAM wParam, LPARAM lParam) {
+long __cdecl Service_GPGsetKey(WPARAM wParam, LPARAM lParam) {
 
 	BOOL del = true;
 	if(bGPGloaded && bGPGkeyrings) {

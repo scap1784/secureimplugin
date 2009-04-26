@@ -1,8 +1,34 @@
 // Windows API
 
-#define STRICT
 #define WIN32_LEAN_AND_MEAN
 //#define NETLIB_LOG
+
+#ifdef _MSC_VER
+#pragma once
+#define _CRT_SECURE_NO_WARNINGS
+#define _SCL_SECURE_NO_WARNINGS
+#if _MSC_VER >= 1300
+//#pragma comment (compiler,"/GS-")
+//#pragma comment (linker,"/NODEFAULTLIB:libcmt.lib") 
+//#pragma comment (lib,"../../lib/msvcrt.lib")
+//#pragma comment (lib,"../../lib/msvcrt71.lib")
+#else
+#ifndef _DEBUG
+#pragma optimize("gsy", on)
+#endif
+#endif 
+#endif 
+
+#ifndef _WIN32_WINNT
+#define _WIN32_WINNT 0x0501
+#endif
+
+#ifndef _WIN32_IE
+#define _WIN32_IE 0x0501
+#endif
+
+#define MIRANDA_VER 0x0700
+#include <m_stdhdr.h>
 
 #if _MSC_VER > 1000
 #include <windows.h>
@@ -17,14 +43,22 @@
 
 //#pragma comment(linker,"/filealign:16")
 //#pragma comment(linker,"/align:16")
+//#pragma optimize("gsy", on)
 #ifdef _DEBUG
+#if _MSC_VER >= 1300
+#pragma comment(lib,"crypto/Debug9/cryptlib.lib")
+#else
 #pragma comment(lib,"crypto/Debug/cryptlib.lib")
+#endif
+#else
+#if _MSC_VER >= 1300
+#pragma comment(lib,"crypto/Release9/cryptlib.lib")
 #else
 #pragma comment(lib,"crypto/Release/cryptlib.lib")
 #endif
+#endif
 #pragma comment(lib,"kernel32.lib")
 #pragma comment(lib,"user32.lib")
-#pragma optimize("gsy", on)
 
 #ifndef M_API_H__
 #define M_API_H__
@@ -66,7 +100,7 @@ extern HINSTANCE g_hInst;
 extern PLUGINLINK *pluginLink;
 extern PLUGININFO pluginInfo;
 extern PLUGININFOEX pluginInfoEx;
-extern MM_INTERFACE memoryManagerInterface;
+//extern MM_INTERFACE mmi;
 extern MUUID interfaces[];
 
 extern void ExtractFile(char*,int,int);

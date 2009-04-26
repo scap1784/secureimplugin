@@ -1,6 +1,6 @@
 #include "commonheaders.h"
 
-
+/*
 void m_check(void *ptr, const char *module) {
     if(ptr==NULL) {
     	char buffer[128];
@@ -14,9 +14,8 @@ void m_check(void *ptr, const char *module) {
 
 void *m_alloc(size_t size) {
 	void *ptr;
-/*	if(memoryManagerInterface.cbSize)	ptr = memoryManagerInterface.mmi_malloc(size);
-    else	*/							ptr = malloc(size);
-    m_check(ptr,"m_alloc");
+	ptr = malloc(size);
+	m_check(ptr,"m_alloc");
    	ZeroMemory(ptr,size);
 	return ptr;
 }
@@ -25,15 +24,13 @@ void *m_alloc(size_t size) {
 void m_free(void *ptr) {
 //    m_check(ptr,"m_free");
     if(ptr) {
-/*		if(memoryManagerInterface.cbSize)	memoryManagerInterface.mmi_free(ptr);
-	    else	*/							free(ptr);
+	free(ptr);
     }
 }
 
 
 void *m_realloc(void *ptr,size_t size) {
-/*	if(memoryManagerInterface.cbSize)	ptr = memoryManagerInterface.mmi_realloc(ptr,size);
-    else	*/							ptr = realloc(ptr,size);
+    r = realloc(ptr,size);
     m_check(ptr,"m_realloc");
 	return ptr;
 }
@@ -41,13 +38,13 @@ void *m_realloc(void *ptr,size_t size) {
 
 #ifndef _DEBUG
 void *operator new(size_t size) {
-	return m_alloc(size);
+	return mir_alloc(size);
 }
 #endif
 
 
 void operator delete(void *p) {
-	m_free(p);
+	mir_free(p);
 }
 
 
@@ -68,12 +65,12 @@ char *m_strdup(const char *str) {
 	MoveMemory((void*)dup,(void*)str,len);
 	return dup;
 }
-
+*/
 
 void __fastcall safe_free(void** p)
 {
   if (*p) {
-    m_free(*p);
+    mir_free(*p);
     *p = NULL;
   }
 }

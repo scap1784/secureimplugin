@@ -56,3 +56,6 @@ char *base16decode(const char *inBuffer) {
     int count = (int)strlen(inBuffer);
 	return base16decode(inBuffer, &count);
 }
+
+
+// EOF

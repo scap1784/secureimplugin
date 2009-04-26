@@ -66,8 +66,9 @@ void InitIcons(void)
 	HICON hIcon;
 	for (int i=0; icons[i].key; i++) {
 		if(ServiceExists(MS_SKIN2_ADDICON)) {
-			sid.pszDescription = Translate(icons[i].text);
+			sid.pszSection = icons[i].section;
 			sid.pszName = icons[i].name;
+			sid.pszDescription = icons[i].text;
 			sid.pszDefaultFile = "secureim_icons.dll";
 			sid.iDefaultIndex = icons[i].key;
 			sid.hDefaultIcon = (HICON)LoadImage(g_hIconInst, MAKEINTRESOURCE(icons[i].key), IMAGE_ICON, 16, 16, LR_SHARED);

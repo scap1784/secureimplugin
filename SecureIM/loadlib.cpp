@@ -68,7 +68,7 @@ BOOL loadlib(void) {
 	cpp.rsa_i  = (_rsa_init) GetProcAddress(h, "rsa_init");
 	cpp.rsa_d  = (_rsa_done) GetProcAddress(h, "rsa_done");
 
-	return (cpp_get_version()>=0x01000304);
+	return (cpp_get_version()>=0x01000305);
 }
 
 // EOF

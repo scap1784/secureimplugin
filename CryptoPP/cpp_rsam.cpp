@@ -64,7 +64,9 @@ RSA_EXPORT exp = {
     rsa_recv,
     rsa_send,
     utf8encode,
-    utf8decode
+    utf8decode,
+    is_7bit_string,
+    is_utf8_string
 };
 
 pRSA_IMPORT imp;
