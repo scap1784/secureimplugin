@@ -3,6 +3,7 @@ Verison 1.0.12.0 [27-04-2009]
 
 [*] rewrite icons library
 [+] add support for extraicon plugin
+[+] RSA/AES Secure File Transfer
 
 
 Verison 1.0.11.4 [22-04-2009]

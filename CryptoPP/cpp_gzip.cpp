@@ -4,7 +4,7 @@
 BYTE *cpp_gzip(BYTE *pData, int nLen, int& nCompressedLen) {
 
 	string zipped;
-	Gzip gzip(new StringSink(zipped),9);    // 1 is fast, 9 is slow
+	Gzip gzip(new StringSink(zipped),5);    // 1 is fast, 9 is slow
 	gzip.Put(pData, nLen);
 	gzip.MessageEnd();
 
@@ -25,7 +25,7 @@ BYTE *cpp_gunzip(BYTE *pCompressedData, int nCompressedLen, int& nLen) {
 
 	nLen = (int) unzipped.length();
 	BYTE* pData = (BYTE*) mir_alloc(nLen+1);
-	memcpy(pData,unzipped.data(),nLen);
+	memcpy(pData,unzipped.c_str(),nLen+1);
 
 	return pData;
 }

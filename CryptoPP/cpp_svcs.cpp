@@ -124,7 +124,7 @@ LPSTR __cdecl cpp_decrypt(pCNTX ptr, LPCSTR szEncMsg) {
 		}
 		else {
 			ptr->tmp = (LPSTR) mir_alloc(unciphered.length()+1);
-			memcpy(ptr->tmp,unciphered.data(),unciphered.length()+1);
+			memcpy(ptr->tmp,unciphered.c_str(),unciphered.length()+1);
 		}
 
 		ptr->error = ERROR_NONE;
@@ -286,9 +286,14 @@ int __cdecl cpp_encrypt_file(int context,LPCSTR file_in,LPCSTR file_out) {
 	cpp_alloc_pdata(ptr); pSIMDATA p = (pSIMDATA) ptr->pdata;
 	if(!p->KeyX) return 0;
 
-	CBC_Mode<AES>::Encryption enc(p->KeyX,Tiger::DIGESTSIZE,IV);
-	FileSource *f = new FileSource(file_in,true,new StreamTransformationFilter (enc,new FileSink(file_out)));
-	delete f;
+	try{
+		CBC_Mode<AES>::Encryption enc(p->KeyX,Tiger::DIGESTSIZE,IV);
+		FileSource *f = new FileSource(file_in,true,new StreamTransformationFilter (enc,new FileSink(file_out)));
+		delete f;
+	}
+	catch (...) {
+		return 0;
+	}
 	return 1;
 }
 
@@ -299,9 +304,14 @@ int __cdecl cpp_decrypt_file(int context,LPCSTR file_in,LPCSTR file_out) {
 	cpp_alloc_pdata(ptr); pSIMDATA p = (pSIMDATA) ptr->pdata;
 	if(!p->KeyX) return 0;
 
-	CBC_Mode<AES>::Decryption dec(p->KeyX,Tiger::DIGESTSIZE,IV);
-	FileSource *f = new FileSource(file_in,true,new StreamTransformationFilter (dec,new FileSink(file_out)));
-	delete f;
+	try{
+		CBC_Mode<AES>::Decryption dec(p->KeyX,Tiger::DIGESTSIZE,IV);
+		FileSource *f = new FileSource(file_in,true,new StreamTransformationFilter (dec,new FileSink(file_out)));
+		delete f;
+	}
+	catch (...) {
+		return 0;
+	}
 	return 1;
 }
 
