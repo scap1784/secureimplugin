@@ -1068,7 +1068,7 @@ long __cdecl onSendFile(WPARAM wParam, LPARAM lParam) {
 			sprintf(buf,"%s\n%s",Translate(sim011),file[i]);
 			showPopUp(buf,NULL,g_hPOP[POP_PU_MSS],2);
 
-			if( ptr->mode & MODE_RSA ) {
+			if( ptr->mode==MODE_RSAAES ) {
 				exp->rsa_encrypt_file(ptr->cntx,file[i],file_out);
 			}
 			else {
@@ -1158,7 +1158,7 @@ int __cdecl onProtoAck(WPARAM wParam,LPARAM lParam) {
 					sprintf(buf,"%s\n%s",Translate(sim012),file_out);
 					showPopUp(buf,NULL,g_hPOP[POP_PU_MSR],2);
 
-					if( ptr->mode & MODE_RSA ) {
+					if( ptr->mode==MODE_RSAAES ) {
 						exp->rsa_decrypt_file(ptr->cntx,ptr->lastFileRecv,file_out);
 					}
 					else {
