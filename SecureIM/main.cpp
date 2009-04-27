@@ -492,6 +492,10 @@ int onModulesLoaded(WPARAM wParam,LPARAM lParam) {
 #endif
 	loadContactList();
 
+	// add new skin sound
+	SkinAddNewSound("IncomingSecureMessage","Incoming Secure Message","Sounds\\iSecureMessage.wav");
+	SkinAddNewSound("OutgoingSecureMessage","Outgoing Secure Message","Sounds\\oSecureMessage.wav");
+
 #if defined(_DEBUG) || defined(NETLIB_LOG)
 	Sent_NetLog("init extra icons");
 #endif
@@ -503,15 +507,24 @@ int onModulesLoaded(WPARAM wParam,LPARAM lParam) {
 	}
 
 	// build extra imagelist
-	onExtraImageListRebuilding(0,0);
-
-	// add new skin sound
-	SkinAddNewSound("IncomingSecureMessage","Incoming Secure Message","Sounds\\iSecureMessage.wav");
-	SkinAddNewSound("OutgoingSecureMessage","Outgoing Secure Message","Sounds\\oSecureMessage.wav");
+	//onExtraImageListRebuilding(0,0);
 
 #if defined(_DEBUG) || defined(NETLIB_LOG)
-	Sent_NetLog("hook1");
+	Sent_NetLog("hook events");
 #endif
+	g_hHook[iHook++] = HookEvent(ME_CLIST_PREBUILDCONTACTMENU, onRebuildContactMenu);
+//	g_hMC = HookEvent(ME_MC_SUBCONTACTSCHANGED, onMC);
+
+	if( ServiceExists(MS_EXTRAICON_REGISTER) ) {
+		g_hCLIcon = ExtraIcon_Register(szModuleName, Translate("SecureIM status"), "sim_cm_est",
+						(MIRANDAHOOK)onExtraImageListRebuilding,
+						(MIRANDAHOOK)onExtraImageApplying);
+	}
+	else {
+		g_hHook[iHook++] = HookEvent(ME_CLIST_EXTRA_LIST_REBUILD, onExtraImageListRebuilding);
+		g_hHook[iHook++] = HookEvent(ME_CLIST_EXTRA_IMAGE_APPLY, onExtraImageApplying);
+	}
+
 	// hook init options
 	g_hHook[iHook++] = HookEvent(ME_OPT_INITIALISE, onRegisterOptions);
 	if(bPopupExists)
@@ -564,16 +577,6 @@ int onModulesLoaded(WPARAM wParam,LPARAM lParam) {
 		icon=mode2icon(MODE_GPG,2);
 		g_hMenu[9] = AddMenuItem(sim309,110009,icon,MODULENAME"/SIM_GPG_DEL",0);
     	}
-
-#if defined(_DEBUG) || defined(NETLIB_LOG)
-	Sent_NetLog("hook2");
-#endif
-	// hook events
-	g_hHook[iHook++] = HookEvent(ME_CLIST_PREBUILDCONTACTMENU, onRebuildContactMenu);
-	g_hHook[iHook++] = HookEvent(ME_CLIST_EXTRA_LIST_REBUILD, onExtraImageListRebuilding);
-	g_hHook[iHook++] = HookEvent(ME_CLIST_EXTRA_IMAGE_APPLY, onExtraImageApplying);
-
-//	g_hMC = HookEvent(ME_MC_SUBCONTACTSCHANGED, onMC);
 
 
     	// updater plugin support

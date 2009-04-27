@@ -960,6 +960,9 @@ void RefreshGeneralDlg(HWND hDlg, BOOL iInit) {
 */
 	// Advanced
 	SendMessage(GetDlgItem(hDlg, IDC_ADVICON), CB_SETCURSEL, bADV, 0);
+	if( g_hCLIcon ) {
+		EnableWindow(GetDlgItem(hDlg, IDC_ADVICON), false);
+	}
 
 	// Select {OFF,PGP,GPG}
 	SendMessage(GetDlgItem(hDlg,IDC_PGP),BM_SETCHECK,bPGP?BST_CHECKED:BST_UNCHECKED,0L);
