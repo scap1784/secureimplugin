@@ -1068,7 +1068,12 @@ long __cdecl onSendFile(WPARAM wParam, LPARAM lParam) {
 			sprintf(buf,"%s\n%s",Translate(sim011),file[i]);
 			showPopUp(buf,NULL,g_hPOP[POP_PU_MSS],2);
 
-			cpp_encrypt_file(ptr->cntx,file[i],file_out);
+			if( ptr->mode & MODE_RSA ) {
+				exp->rsa_encrypt_file(ptr->cntx,file[i],file_out);
+			}
+			else {
+				cpp_encrypt_file(ptr->cntx,file[i],file_out);
+			}
 
 			mir_free(file[i]);
 			file[i]=file_out;
@@ -1153,7 +1158,12 @@ int __cdecl onProtoAck(WPARAM wParam,LPARAM lParam) {
 					sprintf(buf,"%s\n%s",Translate(sim012),file_out);
 					showPopUp(buf,NULL,g_hPOP[POP_PU_MSR],2);
 
-					cpp_decrypt_file(ptr->cntx,ptr->lastFileRecv,file_out);
+					if( ptr->mode & MODE_RSA ) {
+						exp->rsa_decrypt_file(ptr->cntx,ptr->lastFileRecv,file_out);
+					}
+					else {
+						cpp_decrypt_file(ptr->cntx,ptr->lastFileRecv,file_out);
+					}
 					mir_free(file_out);
 					mir_unlink(ptr->lastFileRecv);
 				}

@@ -40,6 +40,8 @@ int __cdecl rsa_connect(int);
 int __cdecl rsa_disconnect(int);
 LPSTR __cdecl rsa_recv(int,LPCSTR);
 int __cdecl rsa_send(int,LPCSTR);
+int __cdecl rsa_encrypt_file(int,LPCSTR,LPCSTR);
+int __cdecl rsa_decrypt_file(int,LPCSTR,LPCSTR);
 
 void inject_msg(int,int,const string&);
 string encode_msg(short,pRSADATA,string&);
@@ -63,6 +65,8 @@ RSA_EXPORT exp = {
     rsa_disconnect,
     rsa_recv,
     rsa_send,
+	rsa_encrypt_file,
+	rsa_decrypt_file,
     utf8encode,
     utf8decode,
     is_7bit_string,
@@ -637,6 +641,40 @@ void rsa_timeout(int context, pRSADATA p) {
 	p->state=0; p->time=0;
 //	null_msg(context,0x00,-7);
 	imp->rsa_notify(context,-7); // сессия разорвана по таймауту
+}
+
+
+int __cdecl rsa_encrypt_file(int context,LPCSTR file_in,LPCSTR file_out) {
+
+	pCNTX ptr = get_context_on_id(context);	if(!ptr) return 0;
+	pRSADATA p = (pRSADATA) cpp_alloc_pdata(ptr); if(p->state!=7) return 0;
+
+	try {
+		CBC_Mode<AES>::Encryption enc((PBYTE)p->aes_k.data(),p->aes_k.length(),(PBYTE)p->aes_v.data());
+		FileSource *f = new FileSource(file_in,true,new StreamTransformationFilter (enc,new FileSink(file_out)));
+		delete f;
+	}
+	catch (...) {
+		return 0;
+	}
+	return 1;
+}
+
+
+int __cdecl rsa_decrypt_file(int context,LPCSTR file_in,LPCSTR file_out) {
+
+	pCNTX ptr = get_context_on_id(context);	if(!ptr) return 0;
+	pRSADATA p = (pRSADATA) cpp_alloc_pdata(ptr); if(p->state!=7) return 0;
+
+	try {
+		CBC_Mode<AES>::Decryption dec((PBYTE)p->aes_k.data(),p->aes_k.length(),(PBYTE)p->aes_v.data());
+		FileSource *f = new FileSource(file_in,true,new StreamTransformationFilter (dec,new FileSink(file_out)));
+		delete f;
+	}
+	catch (...) {
+		return 0;
+	}
+	return 1;
 }
 
 

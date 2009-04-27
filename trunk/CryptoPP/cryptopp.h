@@ -148,6 +148,8 @@ typedef struct {
     int (__cdecl *rsa_disconnect)(int);					// разрывает соединение
     LPSTR (__cdecl *rsa_recv)(int,LPCSTR);				// необходимо передавать сюда все входящие протокольные сообщения
     int   (__cdecl *rsa_send)(int,LPCSTR);				// вызываем для отправки сообщения клиенту
+    int (__cdecl *rsa_encrypt_file)(int,LPCSTR,LPCSTR);
+    int (__cdecl *rsa_decrypt_file)(int,LPCSTR,LPCSTR);
     LPSTR  (__cdecl *utf8encode)(LPCWSTR);
     LPWSTR (__cdecl *utf8decode)(LPCSTR);
     int (__cdecl *is_7bit_string)(LPCSTR);
