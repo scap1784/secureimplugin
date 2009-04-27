@@ -1,11 +1,29 @@
 #include "commonheaders.h"
 
 
-// преобразует mode в HICON который нужно разрушить в конце
+typedef struct {
+	HICON icon;
+	SHORT mode;
+} ICON_CACHE;
+
+
+ICON_CACHE *ICONS_CACHE = NULL;
+int icons_cache = 0;
+
+
+// преобразует mode в HICON который НЕ НУЖНО разрушать в конце
 HICON mode2icon(int mode,int type) {
 
-	int m=mode&0x0f,s=(mode&SECURED)>>4,i; // разобрали на части - режим и сосотояние
+	int m=mode&0x0f,s=(mode&SECURED)>>4,i; // разобрали на части - режим и состояние
 	HICON icon;
+
+	if( icons_cache ) {
+		for( int i=0;i<icons_cache;i++) {
+			if( ICONS_CACHE[i].mode == ((type<<8) | mode) ) {
+				return ICONS_CACHE[i].icon;
+			}
+		}
+	}
 
 	switch(type) {
 	case 1: i=IEC_CL_DIS+s; break;
@@ -14,29 +32,31 @@ HICON mode2icon(int mode,int type) {
 	}
 
 	if( type==1 ) {
-/*	    if( m==MODE_NATIVE ) { // просто отдаем копию иконки
-		icon = CopyIcon(g_hIEC[i]);
-	    }
-	    else { // надо наложить овелейные изображения*/
 		icon = BindOverlayIcon(g_hIEC[i],g_hICO[ICO_OV_NAT+m]);
-/*	    }*/
 	}
 	else {
-/*	    if( m==MODE_NATIVE ) { // просто отдаем копию иконки
-		icon = CopyIcon(g_hICO[i]);
-	    }
-	    else { // надо наложить овелейные изображения*/
 		icon = BindOverlayIcon(g_hICO[i],g_hICO[ICO_OV_NAT+m]);
-/*	    }*/
 	}
+
+	ICONS_CACHE = (ICON_CACHE*) mir_realloc(ICONS_CACHE,sizeof(ICON_CACHE)*(icons_cache+1));
+	ICONS_CACHE[icons_cache].icon = icon;
+	ICONS_CACHE[icons_cache].mode = (type<<8) | mode;
+	icons_cache++;
+
 	return icon;
+}
+
+
+// преобразует mode в HICON который НУЖНО разрушить в конце
+HICON mode2icon2(int mode,int type) {
+	return CopyIcon(mode2icon(mode,type));
 }
 
 
 // преобразует mode в IconExtraColumn который НЕ нужно разрушать в конце
 IconExtraColumn mode2iec(int mode) {
 
-	int m=mode&0x0f,s=(mode&SECURED)>>4; // разобрали на части - режим и сосотояние
+	int m=mode&0x0f,s=(mode&SECURED)>>4; // разобрали на части - режим и состояние
 
 	if( mode==-1 || (!s && !bASI && m!=MODE_PGP && m!=MODE_GPG) ) {
 		return g_IEC[0]; // вернем пустое место
@@ -48,7 +68,6 @@ IconExtraColumn mode2iec(int mode) {
 		g_IEC[i].hImage = (HANDLE) CallService(MS_CLIST_EXTRA_ADD_ICON, (WPARAM)g_hIEC[i], (LPARAM)0);*/
 		HICON icon = mode2icon(mode,1);
 		g_IEC[i].hImage = (HANDLE) CallService(MS_CLIST_EXTRA_ADD_ICON, (WPARAM)icon, (LPARAM)0);
-		DestroyIcon(icon);
 	}
 	return g_IEC[i];
 }

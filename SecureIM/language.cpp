@@ -74,7 +74,6 @@ LPCSTR sim310 = "Delete RSA Key";
 LPCSTR sim401 = "SecureIM: Sorry, unable to decrypt this message due you have no PGP/GPG installed. Visit www.pgp.com or www.gnupg.org for more info.";
 LPCSTR sim402 = "SecureIM received unencryped message:\n";
 LPCSTR sim403 = "SecureIM received encryped message:\n";
-LPCSTR sim404 = "SecureIM received RSA Public Key from \"%s\"\n\nSHA1: %s\n\nDo you Accept this Key ?";
 
 //RSA messages
 LPCSTR sim501 = "Session closed by receiving incorrect message type";
@@ -84,7 +83,8 @@ LPCSTR sim506 = "Error while decoding RSA message";
 LPCSTR sim507 = "Session closed on timeout (10 seconds)";
 LPCSTR sim508 = "Session closed by other side when status \"disabled\"";
 LPCSTR sim510 = "Session closed on error: %02x";
-LPCSTR sim520 = "RSA key auto accepted";
+LPCSTR sim520 = "SecureIM received RSA Public Key from \"%s\"\n\nSHA1: %s\n\nDo you Accept this Key ?";
+LPCSTR sim521 = "SecureIM auto accepted RSA Public key from: %s uin: %s";
 
 
 // EOF

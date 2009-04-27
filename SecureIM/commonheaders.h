@@ -112,6 +112,7 @@
 #include "rtfconv.h"
 #include "cryptopp.h"
 #include "images.h"
+#include "dbevent.h"
 
 extern LPCSTR szModuleName;
 extern LPCSTR szVersionStr;

@@ -32,18 +32,23 @@ int __cdecl rsa_inject(int context, LPCSTR msg) {
 }
 
 
+#define MSGSIZE 1024
+
 int __cdecl rsa_check_pub(int context, PBYTE pub, int pubLen, PBYTE sig, int sigLen) {
 	int v=0;
 	pUinKey ptr = getUinCtx(context); if(!ptr) return 0;
+	LPSTR cnm = (LPSTR) alloca(NAMSIZE); getContactNameA(ptr->hContact,cnm);
+	LPSTR uin = (LPSTR) alloca(KEYSIZE); getContactUinA(ptr->hContact,uin);
+	LPSTR msg = (LPSTR) alloca(MSGSIZE);
 	if( bAAK ) {
-		showPopUpKRmsg(ptr->hContact,sim520);
-		// записать в системный лог
+		mir_snprintf(msg,MSGSIZE,Translate(sim521),cnm,uin);
+		showPopUpKRmsg(ptr->hContact,msg);
+		HistoryLog(ptr->hContact,msg);
 		v=1;
 	}
 	else {
 		LPSTR sha = mir_strdup(to_hex(sig,sigLen));
-		LPSTR cnm = (LPSTR) alloca(NAMSIZE); getContactNameA(ptr->hContact,cnm);
-		LPSTR msg = (LPSTR) alloca(512); sprintf(msg,Translate(sim404),cnm,sha);
+		mir_snprintf(msg,MSGSIZE,Translate(sim520),cnm,sha);
 		v=(msgbox(0,msg,szModuleName,MB_YESNO|MB_ICONQUESTION)==IDYES);
 		mir_free(sha);
 	}

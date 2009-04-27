@@ -554,19 +554,15 @@ int onModulesLoaded(WPARAM wParam,LPARAM lParam) {
 	if( bPGPloaded ) {
 		icon=mode2icon(MODE_PGP|SECURED,2);
 		g_hMenu[6] = AddMenuItem(sim306,110006,icon,MODULENAME"/SIM_PGP_SET",0);
-		DestroyIcon(icon);
 		icon=mode2icon(MODE_PGP,2);
 		g_hMenu[7] = AddMenuItem(sim307,110007,icon,MODULENAME"/SIM_PGP_DEL",0);
-		DestroyIcon(icon);
 	}
 
     	if(bGPGloaded) {
 		icon=mode2icon(MODE_GPG|SECURED,2);
 		g_hMenu[8] = AddMenuItem(sim308,110008,icon,MODULENAME"/SIM_GPG_SET",0);
-		DestroyIcon(icon);
 		icon=mode2icon(MODE_GPG,2);
 		g_hMenu[9] = AddMenuItem(sim309,110009,icon,MODULENAME"/SIM_GPG_DEL",0);
-		DestroyIcon(icon);
     	}
 
 #if defined(_DEBUG) || defined(NETLIB_LOG)

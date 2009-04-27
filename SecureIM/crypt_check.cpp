@@ -1,56 +1,6 @@
 #include "commonheaders.h"
 
 
-void getContactName(HANDLE hContact, LPSTR szName) {
-	if( bCoreUnicode )	wcscpy((LPWSTR)szName,(LPWSTR)CallService(MS_CLIST_GETCONTACTDISPLAYNAME,(WPARAM)hContact,GCMDF_UNICODE));
-	else			getContactNameA(hContact, szName);
-}
-
-
-void getContactNameA(HANDLE hContact, LPSTR szName) {
-	strcpy(szName,(LPCSTR)CallService(MS_CLIST_GETCONTACTDISPLAYNAME,(WPARAM)hContact,0));
-}
-
-
-void getContactUin(HANDLE hContact, LPSTR szUIN) {
-	getContactUinA(hContact, szUIN);
-	if( bCoreUnicode && *szUIN ) {
-		LPWSTR tmp = mir_a2u(szUIN);
-		wcscpy((LPWSTR)szUIN, tmp);
-		mir_free(tmp);
-	}
-}
-
-
-void getContactUinA(HANDLE hContact, LPSTR szUIN) {
-
-	*szUIN = 0;
-
-	pSupPro ptr = getSupPro(hContact);
-	if(!ptr) return;
-
-	DBVARIANT dbv_uniqueid;
-	LPSTR uID = (LPSTR) CallProtoService(ptr->name, PS_GETCAPS, PFLAG_UNIQUEIDSETTING, 0);
-	if( uID==(LPSTR)CALLSERVICE_NOTFOUND ) uID = 0; // Billy_Bons
-	if( uID && DBGetContactSetting(hContact, ptr->name, uID, &dbv_uniqueid)==0 ) {
-		if (dbv_uniqueid.type == DBVT_WORD)
-			sprintf(szUIN, "%u [%s]", dbv_uniqueid.wVal, ptr->name);
-		else
-		if (dbv_uniqueid.type == DBVT_DWORD)
-			sprintf(szUIN, "%u [%s]", (UINT)dbv_uniqueid.dVal, ptr->name);
-		else
-		if (dbv_uniqueid.type == DBVT_BLOB)
-			sprintf(szUIN, "%s [%s]", dbv_uniqueid.pbVal, ptr->name);
-		else
-			sprintf(szUIN, "%s [%s]", dbv_uniqueid.pszVal, ptr->name);
-	}
-	else {
-		strcpy(szUIN, "===  unknown  ===");
-	}
-	DBFreeVariant(&dbv_uniqueid);
-}
-
-
 int getContactStatus(HANDLE hContact) {
 
 	pSupPro ptr = getSupPro(hContact);

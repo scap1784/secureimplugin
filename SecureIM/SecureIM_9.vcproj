@@ -246,6 +246,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\dbevent.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\forkthread.cpp"
 				>
 			</File>
