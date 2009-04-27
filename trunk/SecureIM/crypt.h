@@ -100,11 +100,12 @@ pUinKey getUinKey(HANDLE);
 pUinKey getUinCtx(int);
 void addMsg2Queue(pUinKey,WPARAM,LPSTR);
 
-// crypt_check.cpp
 void getContactName(HANDLE hContact, LPSTR szName);
 void getContactNameA(HANDLE hContact, LPSTR szName);
 void getContactUin(HANDLE hContact, LPSTR szUIN);
 void getContactUinA(HANDLE hContact, LPSTR szUIN);
+
+// crypt_check.cpp
 int getContactStatus(HANDLE);
 
 BOOL isSecureProtocol(HANDLE);
@@ -124,6 +125,7 @@ BOOL isSecureIM(HANDLE);
 
 // crypt_icons.cpp
 HICON mode2icon(int,int);
+HICON mode2icon2(int,int); // создает КОПИЮ иконки, которую надо разрушить
 IconExtraColumn mode2iec(int);
 void RefreshContactListIcons(void);
 void ShowStatusIcon(HANDLE,UINT);

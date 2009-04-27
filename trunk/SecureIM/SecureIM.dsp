@@ -43,7 +43,7 @@ RSC=rc.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MT /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "SECUREIM_EXPORTS" /YX /FD /c
-# ADD CPP /nologo /MD /W3 /GX /O1 /Ob1 /I "\source\include" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "SECUREIM_EXPORTS" /Yu"commonheaders.h" /FD /c
+# ADD CPP /nologo /MD /W3 /GX /O1 /I "\source\include" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "SECUREIM_EXPORTS" /Yu"commonheaders.h" /FD /c
 # SUBTRACT CPP /Fr
 # ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "NDEBUG" /mktyplib203 /win32
@@ -133,6 +133,10 @@ SOURCE=.\crypt_rsa.cpp
 # Begin Source File
 
 SOURCE=.\crypt_svcs.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\dbevent.cpp
 # End Source File
 # Begin Source File
 

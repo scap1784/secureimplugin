@@ -1,7 +1,6 @@
 #ifndef __LANGUAGE_H__
 #define __LANGUAGE_H__
 
-#pragma once
 #include <windows.h>
 
 //Popup Messages
@@ -78,7 +77,6 @@ extern LPCSTR sim310;
 extern LPCSTR sim401;
 extern LPCSTR sim402;
 extern LPCSTR sim403;
-extern LPCSTR sim404;
 
 //RSA messages
 extern LPCSTR sim501;
@@ -89,5 +87,6 @@ extern LPCSTR sim507;
 extern LPCSTR sim508;
 extern LPCSTR sim510;
 extern LPCSTR sim520;
+extern LPCSTR sim521;
 
 #endif

@@ -1281,14 +1281,16 @@ int __cdecl onRebuildContactMenu(WPARAM wParam,LPARAM lParam) {
 	}
 
 	if ( isSecureProto && !isChat && (ptr->mode==MODE_NATIVE || ptr->mode==MODE_RSAAES) && isClientMiranda(hContact) /*&& !getMetaContact(hContact)*/ ) {
-		// Native
-		mi.flags = CMIM_FLAGS | CMIF_NOTOFFLINE;
+		// Native/RSAAES
+		mi.flags = CMIM_FLAGS | CMIF_NOTOFFLINE | CMIM_ICON;
 		if( !isSecured ) {
 			// create secureim connection
+			mi.hIcon = mode2icon(ptr->mode|SECURED,2);
 			CallService(MS_CLIST_MODIFYMENUITEM,(WPARAM)g_hMenu[0],(LPARAM)&mi);
 		}
 		else {
 			// disable secureim connection
+			mi.hIcon = mode2icon(ptr->mode,2);
 			CallService(MS_CLIST_MODIFYMENUITEM,(WPARAM)g_hMenu[1],(LPARAM)&mi);
 		}
 		// set status menu
