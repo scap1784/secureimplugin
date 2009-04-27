@@ -78,21 +78,22 @@
 #include "m_protomod.h"
 #include "m_protosvc.h"
 #include "m_langpack.h"
-#include "m_clist.h"
 #include "m_options.h"
-#include "m_clui.h"
+#include "m_clist.h"
 #include "m_clc.h"
+#include "m_clui.h"
+#include "m_cluiframes.h"
 #include "m_utils.h"
 #include "m_skin.h"
 #include "m_popup.h"
-#include "m_cluiframes.h"
-#include "m_metacontacts.h"
-#include "m_updater.h"
 #include "m_genmenu.h"
 #include "m_icolib.h"
 #include "m_message.h"
 #include "m_netlib.h"
-
+#include "sdk\m_metacontacts.h"
+#include "sdk\m_updater.h"
+#include "sdk\m_extraicons.h"
+ 
 #endif
 
 // my libs
@@ -144,7 +145,7 @@ extern "C" {
 
 }
 
-extern HANDLE g_hEvent[2], g_hMenu[10], g_hService[14], g_hHook[17];
+extern HANDLE g_hEvent[2], g_hMenu[10], g_hService[14], g_hHook[17], g_hCLIcon;
 extern int iService, iHook;
 extern HICON g_hICO[ICO_CNT], g_hIEC[1+IEC_CNT*MODE_CNT], g_hPOP[POP_CNT];
 extern IconExtraColumn g_IEC[1+IEC_CNT*MODE_CNT];

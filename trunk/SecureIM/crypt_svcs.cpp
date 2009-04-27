@@ -1238,7 +1238,7 @@ static LPCSTR states[] = {sim303,sim304,sim305};
 int __cdecl onRebuildContactMenu(WPARAM wParam,LPARAM lParam) {
 
 #if defined(_DEBUG) || defined(NETLIB_LOG)
-	Sent_NetLog("onRebuildContactMenu start");
+	Sent_NetLog("onRebuildContactMenu");
 #endif
 	HANDLE hContact = (HANDLE)wParam;
 	BOOL bMC = isProtoMetaContacts(hContact);
@@ -1348,7 +1348,12 @@ int __cdecl onExtraImageListRebuilding(WPARAM, LPARAM) {
 int __cdecl onExtraImageApplying(WPARAM wParam, LPARAM) {
 	if( bADV && ServiceExists(MS_CLIST_EXTRA_SET_ICON) && isSecureProtocol((HANDLE)wParam) ) {
 		IconExtraColumn iec = mode2iec(isContactSecured((HANDLE)wParam));
-		CallService(MS_CLIST_EXTRA_SET_ICON, wParam, (LPARAM)&iec);
+		if( g_hCLIcon ) {
+			ExtraIcon_SetIcon(g_hCLIcon, (HANDLE)wParam, iec.hImage);
+		}
+		else {
+			CallService(MS_CLIST_EXTRA_SET_ICON, wParam, (LPARAM)&iec);
+		}
 	}
 	return 0;
 }

@@ -82,9 +82,16 @@ void ShowStatusIcon(HANDLE hContact,int mode) {
 	if( bADV ) { // обновить иконки в clist
 		if( mode!= -1 ) {
 			IconExtraColumn iec=mode2iec(mode);
-			CallService(MS_CLIST_EXTRA_SET_ICON, (WPARAM)hContact, (LPARAM)&iec);
-			if( hMC )
-			CallService(MS_CLIST_EXTRA_SET_ICON, (WPARAM)hMC, (LPARAM)&iec);
+			if( g_hCLIcon ) {
+				ExtraIcon_SetIcon(g_hCLIcon, hContact, iec.hImage);
+				if( hMC )
+				ExtraIcon_SetIcon(g_hCLIcon, hMC, iec.hImage);
+			}
+			else {
+				CallService(MS_CLIST_EXTRA_SET_ICON, (WPARAM)hContact, (LPARAM)&iec);
+				if( hMC )
+				CallService(MS_CLIST_EXTRA_SET_ICON, (WPARAM)hMC, (LPARAM)&iec);
+			}
 		}
 	}
 	if( ServiceExists(MS_MSG_MODIFYICON) ) {  // обновить иконки в messagew
@@ -118,15 +125,18 @@ void ShowStatusIconNotify(HANDLE hContact) {
 
 void RefreshContactListIcons(void) {
 
+	HANDLE hContact;
 //	CallService(MS_CLUI_LISTBEGINREBUILD,0,0);
-	HANDLE hContact = (HANDLE)CallService(MS_DB_CONTACT_FINDFIRST, 0, 0);
-	while (hContact) { // сначала все выключаем
+	if( !g_hCLIcon ) {
+	    hContact = (HANDLE)CallService(MS_DB_CONTACT_FINDFIRST, 0, 0);
+	    while (hContact) { // сначала все выключаем
 		ShowStatusIcon(hContact,-1);
 		hContact = (HANDLE)CallService(MS_DB_CONTACT_FINDNEXT, (WPARAM)hContact, 0);
-	}
-	// менем местоположение иконки
-	for(int i=0;i<1+MODE_CNT*IEC_CNT;i++){
+	    }
+	    // менем местоположение иконки
+	    for(int i=0;i<1+MODE_CNT*IEC_CNT;i++){
 		g_IEC[i].ColumnType = bADV;
+	    }
 	}
 	hContact = (HANDLE)CallService(MS_DB_CONTACT_FINDFIRST, 0, 0);
 	while (hContact) { // и снова зажигаем иконку
