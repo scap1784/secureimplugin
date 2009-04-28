@@ -61,14 +61,19 @@ LPCSTR sim232[] = { "Disabled", "Enabled", "Always try" };
 //Context Menu
 LPCSTR sim301 = "Create SecureIM connection";
 LPCSTR sim302 = "Disable SecureIM connection";
-LPCSTR sim303 = "SecureIM status (disabled)";
-LPCSTR sim304 = "SecureIM status (enabled)";
-LPCSTR sim305 = "SecureIM status (always try)";
 LPCSTR sim306 = "Load PGP Key";
 LPCSTR sim307 = "Unload PGP Key";
 LPCSTR sim308 = "Load GPG Key";
 LPCSTR sim309 = "Unload GPG Key";
 LPCSTR sim310 = "Delete RSA Key";
+LPCSTR sim311[] = { "SecureIM mode (Native)",
+                    "SecureIM mode (PGP)",
+                    "SecureIM mode (GPG)",
+                    "SecureIM mode (RSA/AES)",
+                    "SecureIM mode (RSA)" };
+LPCSTR sim312[] = { "SecureIM status (disabled)",
+		    "SecureIM status (enabled)",
+		    "SecureIM status (always try)" };
 
 //System messages
 LPCSTR sim401 = "SecureIM: Sorry, unable to decrypt this message due you have no PGP/GPG installed. Visit www.pgp.com or www.gnupg.org for more info.";

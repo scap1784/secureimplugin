@@ -64,14 +64,13 @@ extern LPCSTR sim232[];
 //Context Menu
 extern LPCSTR sim301;
 extern LPCSTR sim302;
-extern LPCSTR sim303;
-extern LPCSTR sim304;
-extern LPCSTR sim305;
 extern LPCSTR sim306;
 extern LPCSTR sim307;
 extern LPCSTR sim308;
 extern LPCSTR sim309;
 extern LPCSTR sim310;
+extern LPCSTR sim311[];
+extern LPCSTR sim312[];
 
 //System messages
 extern LPCSTR sim401;

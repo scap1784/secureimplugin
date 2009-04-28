@@ -10,8 +10,11 @@ LPCSTR szVersionStr = MODULENAME" DLL ("__VERSION_STRING")";
 char TEMP[MAX_PATH];
 int  TEMP_SIZE = 0;
 
-HANDLE g_hEvent[2], g_hMenu[10], g_hService[14], g_hHook[17], g_hCLIcon = 0;
-int iService=0, iHook=0;
+HANDLE g_hEvent[2], g_hMenu[15], g_hCLIcon=0;
+HANDLE *g_hService=NULL;
+HANDLE *g_hHook=NULL;
+int iService=0;
+int iHook=0;
 
 HICON g_hICO[ICO_CNT], g_hPOP[POP_CNT], g_hIEC[1+IEC_CNT*MODE_CNT] = {0};
 IconExtraColumn g_IEC[1+IEC_CNT*MODE_CNT];
@@ -20,7 +23,7 @@ int iBmpDepth;
 BOOL bCoreUnicode = false, bMetaContacts = false, bPopupExists = false, bPopupUnicode = false;
 BOOL bPGPloaded = false, bPGPkeyrings = false, bUseKeyrings = false, bPGPprivkey = false;
 BOOL bGPGloaded = false, bGPGkeyrings = false, bSavePass = false;
-BOOL bSFT, bSOM, bASI, bMCD, bSCM, bDGP, bAIP, bNOL, bAAK;
+BOOL bSFT, bSOM, bASI, bMCD, bSCM, bDGP, bAIP, bNOL, bAAK, bMCM;
 BYTE bADV, bPGP, bGPG;
 DWORD iCoreVersion = 0;
 CRITICAL_SECTION localQueueMutex;
@@ -121,6 +124,7 @@ void GetFlags() {
     bADV = DBGetContactSettingByte(0,szModuleName,"adv",0);
     bNOL = DBGetContactSettingByte(0,szModuleName,"nol",0);
     bAAK = DBGetContactSettingByte(0,szModuleName,"aak",0);
+    bMCM = DBGetContactSettingByte(0,szModuleName,"mcm",0);
 }
 
 
@@ -135,6 +139,7 @@ void SetFlags() {
     DBWriteContactSettingByte(0,szModuleName,"adv",bADV);
     DBWriteContactSettingByte(0,szModuleName,"nol",bNOL);
     DBWriteContactSettingByte(0,szModuleName,"aak",bAAK);
+    DBWriteContactSettingByte(0,szModuleName,"mcm",bMCM);
 }
 
 

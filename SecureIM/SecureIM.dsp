@@ -168,6 +168,10 @@ SOURCE=.\main.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\menu_svcs.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\mmi.cpp
 # End Source File
 # Begin Source File

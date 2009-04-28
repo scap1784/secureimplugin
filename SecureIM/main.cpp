@@ -27,213 +27,60 @@ MUUID* MirandaPluginInterfaces(void) {
 }
 
 
-long __cdecl Service_CreateIM(WPARAM wParam,LPARAM lParam){
-
-	if (!CallService(MS_PROTO_ISPROTOONCONTACT, (WPARAM)wParam, (LPARAM)szModuleName))
-		CallService(MS_PROTO_ADDTOCONTACT, (WPARAM)wParam, (LPARAM)szModuleName);
-
-//	WPARAM flags = 0;
-//	HANDLE hMetaContact = getMetaContact((HANDLE)wParam);
-//	if( hMetaContact ) {
-//		wParam = (WPARAM)hMetaContact;
-//		flags = PREF_METANODB;
-//	}
-
-	CallContactService((HANDLE)wParam,PSS_MESSAGE,PREF_METANODB,(LPARAM)SIG_INIT);
-	return 1;
+void AddServiceFunction(LPCSTR serviceName, MIRANDASERVICE serviceFunction) {
+	
+	g_hService = (HANDLE*) mir_realloc(g_hService,sizeof(HANDLE)*(iService+1));
+	g_hService[iService] = CreateServiceFunction(serviceName, serviceFunction);
+	iService++;
 }
 
 
-long __cdecl Service_DisableIM(WPARAM wParam,LPARAM lParam) {
-
-//	WPARAM flags = 0;
-//	HANDLE hMetaContact = getMetaContact((HANDLE)wParam);
-//	if( hMetaContact ) {
-//		wParam = (WPARAM)hMetaContact;
-//		flags = PREF_METANODB;
-//	}
-
-	CallContactService((HANDLE)wParam,PSS_MESSAGE,PREF_METANODB,(LPARAM)SIG_DEIN);
-	return 1;
+void AddProtoServiceFunction(LPCSTR serviceName, MIRANDASERVICE serviceFunction) {
+	
+	g_hService = (HANDLE*) mir_realloc(g_hService,sizeof(HANDLE)*(iService+1));
+ 	g_hService[iService] = CreateProtoServiceFunction(szModuleName, serviceName, serviceFunction);
+	iService++;
 }
 
 
-long __cdecl Service_IsContactSecured(WPARAM wParam, LPARAM lParam) {
-
-	return isContactSecured((HANDLE)wParam) || isContactPGP((HANDLE)wParam) || isContactGPG((HANDLE)wParam);
+void AddHookFunction(LPCSTR eventName, MIRANDAHOOK hookFunction) {
+	
+	g_hHook = (HANDLE*) mir_realloc(g_hHook,sizeof(HANDLE)*(iHook+1));
+	g_hHook[iHook] = HookEvent(eventName, hookFunction);
+	iHook++;
 }
 
 
-long __cdecl Service_Status(WPARAM wParam, LPARAM lParam) {
+HANDLE AddMenuItem(LPCSTR name,int pos,HICON hicon,LPCSTR service,int flags=0,WPARAM wParam=0) {
 
-    switch(--lParam) {
-    case 0:
-    case 1:
-    case 2:
-		pUinKey ptr = getUinKey((HANDLE)wParam);
-		if(ptr) {
-			ptr->status=(BYTE)lParam;
-			DBWriteContactSettingByte((HANDLE)wParam, szModuleName, "StatusID", (BYTE)lParam);
-		}
-		break;
-    }
-
-	return 1;
+	CLISTMENUITEM mi={0};
+	mi.cbSize=sizeof(mi);
+	mi.flags=flags | CMIF_HIDDEN;
+	mi.position=pos;
+	mi.hIcon=hicon;
+	mi.pszName=Translate(name);
+	mi.pszPopupName=(char*)-1;
+	mi.pszService=(char*)service;
+	return((HANDLE)CallService(MS_CLIST_ADDCONTACTMENUITEM,wParam,(LPARAM)&mi));
 }
 
 
-long __cdecl Service_Status0(WPARAM wParam, LPARAM lParam) {
+HANDLE AddSubItem(HANDLE rootid,LPCSTR name,int pos,int poppos,LPCSTR service,WPARAM wParam=0) {
 
-	return Service_Status(wParam,1);
+    CLISTMENUITEM mi={0};
+    mi.cbSize=sizeof(mi);
+    mi.flags=CMIF_CHILDPOPUP | CMIF_HIDDEN;
+    mi.position=pos;
+    mi.popupPosition=poppos;
+    mi.hIcon=NULL;
+    mi.pszName=Translate(name);
+    mi.pszPopupName=(char*)rootid;
+    mi.pszService=(char*)service;
+    return((HANDLE)CallService(MS_CLIST_ADDCONTACTMENUITEM,wParam,(LPARAM)&mi));
 }
 
 
-long __cdecl Service_Status1(WPARAM wParam, LPARAM lParam) {
-
-	return Service_Status(wParam,2);
-}
-
-
-long __cdecl Service_Status2(WPARAM wParam, LPARAM lParam) {
-
-	return Service_Status(wParam,3);
-}
-
-
-long __cdecl Service_PGPdelKey(WPARAM wParam, LPARAM lParam) {
-
-	if(bPGPloaded) {
-    	    DBDeleteContactSetting((HANDLE)wParam, szModuleName, "pgp");
-    	    DBDeleteContactSetting((HANDLE)wParam, szModuleName, "pgp_mode");
-    	    DBDeleteContactSetting((HANDLE)wParam, szModuleName, "pgp_abbr");
-	}
-	{
-	    pUinKey ptr = getUinKey((HANDLE)wParam);
-	    cpp_delete_context(ptr->cntx); ptr->cntx=0;
-	}
-	ShowStatusIconNotify((HANDLE)wParam);
-	return 1;
-}
-
-
-long __cdecl Service_GPGdelKey(WPARAM wParam, LPARAM lParam) {
-
-	if(bGPGloaded) {
-    	    DBDeleteContactSetting((HANDLE)wParam, szModuleName, "gpg");
-	}
-	{
-	    pUinKey ptr = getUinKey((HANDLE)wParam);
-	    cpp_delete_context(ptr->cntx); ptr->cntx=0;
-	}
-	ShowStatusIconNotify((HANDLE)wParam);
-	return 1;
-}
-
-
-long __cdecl Service_PGPsetKey(WPARAM wParam, LPARAM lParam) {
-
-	BOOL del = true;
-	if(bPGPloaded) {
-    	if(bPGPkeyrings) {
-	    char szKeyID[128] = {0};
-    	    PVOID KeyID = pgp_select_keyid(GetForegroundWindow(),szKeyID);
-	    if(szKeyID[0]) {
-    		DBDeleteContactSetting((HANDLE)wParam,szModuleName,"pgp");
-    		DBCONTACTWRITESETTING cws;
-    		cws.szModule = szModuleName;
-    		cws.szSetting = "pgp";
-    		cws.value.type = DBVT_BLOB;
-    		cws.value.pbVal = (LPBYTE)KeyID;
-    		cws.value.cpbVal = pgp_size_keyid();
-    		CallService(MS_DB_CONTACT_WRITESETTING,wParam,(LPARAM)&cws);
-    		DBWriteContactSettingByte((HANDLE)wParam,szModuleName,"pgp_mode",0);
-    		DBWriteContactSettingString((HANDLE)wParam,szModuleName,"pgp_abbr",szKeyID);
-    	  	del = false;
-	    }
-    	}
-    	else
-    	if(bPGPprivkey) {
-    		char KeyPath[MAX_PATH] = {0};
-    	  	if(ShowSelectKeyDlg(0,KeyPath)){
-    	  		char *publ = LoadKeys(KeyPath,false);
-    	  		if(publ) {
-    				DBDeleteContactSetting((HANDLE)wParam,szModuleName,"pgp");
-    		  		DBWriteStringEncode((HANDLE)wParam,szModuleName,"pgp",publ);
-    				DBWriteContactSettingByte((HANDLE)wParam,szModuleName,"pgp_mode",1);
-    				DBWriteContactSettingString((HANDLE)wParam,szModuleName,"pgp_abbr","(binary)");
-    		  		mir_free(publ);
-    		  		del = false;
-    	  		}
-    		}
-    	}
-	}
-
-	if(del) Service_PGPdelKey(wParam,lParam);
-	else {
-		pUinKey ptr = getUinKey((HANDLE)wParam);
-		cpp_delete_context(ptr->cntx); ptr->cntx=0;
-	}
-	ShowStatusIconNotify((HANDLE)wParam);
-	return 1;
-}
-
-
-long __cdecl Service_GPGsetKey(WPARAM wParam, LPARAM lParam) {
-
-	BOOL del = true;
-	if(bGPGloaded && bGPGkeyrings) {
-   		char szKeyID[128] = {0};
-   	    gpg_select_keyid(GetForegroundWindow(),szKeyID);
-   		if(szKeyID[0]) {
-   		    DBWriteContactSettingString((HANDLE)wParam,szModuleName,"gpg",szKeyID);
-   	  		del = false;
-   		}
-	}
-
-	if(del) Service_GPGdelKey(wParam,lParam);
-	else {
-		pUinKey ptr = getUinKey((HANDLE)wParam);
-		cpp_delete_context(ptr->cntx); ptr->cntx=0;
-	}
-	ShowStatusIconNotify((HANDLE)wParam);
-	return 1;
-}
-
-
-int onWindowEvent(WPARAM wParam, LPARAM lParam) {
-
-	MessageWindowEventData *mwd = (MessageWindowEventData *)lParam;
-	if(mwd->uType == MSG_WINDOW_EVT_OPEN || mwd->uType == MSG_WINDOW_EVT_OPENING) {
-		ShowStatusIcon(mwd->hContact);
-	}
-	return 0;
-}
-
-
-int onIconPressed(WPARAM wParam, LPARAM lParam) {
-	HANDLE hContact = (HANDLE)wParam;
-	if( isProtoMetaContacts(hContact) )
-		hContact = getMostOnline(hContact); // возьмем тот, через который пойдет сообщение
-
-	StatusIconClickData *sicd = (StatusIconClickData *)lParam;
-	if( strcmp(sicd->szModule, szModuleName) != 0 ||
-		!isSecureProtocol(hContact) ) return 0; // not our event
-
-	BOOL isPGP = isContactPGP(hContact);
-	BOOL isGPG = isContactGPG(hContact);
-	BOOL isSecured = isContactSecured(hContact)&SECURED;
-	BOOL isChat = isChatRoom(hContact);
-
-	if( !isPGP && !isGPG && !isChat ) {
-		if(isSecured)	Service_DisableIM(wParam,0);
-		else		Service_CreateIM(wParam,0);
-	}
-
-	return 0;
-}
-
-
-int Load(PLUGINLINK *link) {
+int __cdecl Load(PLUGINLINK *link) {
 
 	pluginLink = link;
 	DisableThreadLibraryCalls(g_hInst);
@@ -295,67 +142,47 @@ int Load(PLUGINLINK *link) {
 	CallService(MS_PROTO_REGISTERMODULE, 0, (LPARAM)&pd);
 
 	// hook events
-	g_hHook[iHook++] = HookEvent(ME_SYSTEM_MODULESLOADED,onModulesLoaded);
-	g_hHook[iHook++] = HookEvent(ME_SYSTEM_OKTOEXIT,onSystemOKToExit); 
+	AddHookFunction(ME_SYSTEM_MODULESLOADED, onModulesLoaded);
+	AddHookFunction(ME_SYSTEM_OKTOEXIT, onSystemOKToExit); 
 
-/*	g_hEvent[0] = CreateHookableEvent(MODULENAME"/Disabled");
-	g_hEvent[1] = CreateHookableEvent(MODULENAME"/Established");*/
+	g_hEvent[0] = CreateHookableEvent(MODULENAME"/Disabled");
+	g_hEvent[1] = CreateHookableEvent(MODULENAME"/Established");
 
-	g_hService[iService++] = CreateServiceFunction((LPCSTR)MODULENAME"/IsContactSecured",(MIRANDASERVICE)Service_IsContactSecured);
-	g_hService[iService++] = CreateServiceFunction((LPCSTR)MODULENAME"/SIM_EST",(MIRANDASERVICE)Service_CreateIM);
-	g_hService[iService++] = CreateServiceFunction((LPCSTR)MODULENAME"/SIM_DIS",(MIRANDASERVICE)Service_DisableIM);
-	g_hService[iService++] = CreateServiceFunction((LPCSTR)MODULENAME"/SIM_ST_DIS",(MIRANDASERVICE)Service_Status0);
-	g_hService[iService++] = CreateServiceFunction((LPCSTR)MODULENAME"/SIM_ST_ENA",(MIRANDASERVICE)Service_Status1);
-	g_hService[iService++] = CreateServiceFunction((LPCSTR)MODULENAME"/SIM_ST_TRY",(MIRANDASERVICE)Service_Status2);
-	g_hService[iService++] = CreateServiceFunction((LPCSTR)MODULENAME"/SIM_PGP_SET",(MIRANDASERVICE)Service_PGPsetKey);
-	g_hService[iService++] = CreateServiceFunction((LPCSTR)MODULENAME"/SIM_PGP_DEL",(MIRANDASERVICE)Service_PGPdelKey);
-	g_hService[iService++] = CreateServiceFunction((LPCSTR)MODULENAME"/SIM_GPG_SET",(MIRANDASERVICE)Service_GPGsetKey);
-	g_hService[iService++] = CreateServiceFunction((LPCSTR)MODULENAME"/SIM_GPG_DEL",(MIRANDASERVICE)Service_GPGdelKey);
+	AddServiceFunction((LPCSTR)MODULENAME"/IsContactSecured",(MIRANDASERVICE)Service_IsContactSecured);
+	AddServiceFunction((LPCSTR)MODULENAME"/SIM_EST",(MIRANDASERVICE)Service_CreateIM);
+	AddServiceFunction((LPCSTR)MODULENAME"/SIM_DIS",(MIRANDASERVICE)Service_DisableIM);
+	AddServiceFunction((LPCSTR)MODULENAME"/SIM_ST_DIS",(MIRANDASERVICE)Service_StatusDis);
+	AddServiceFunction((LPCSTR)MODULENAME"/SIM_ST_ENA",(MIRANDASERVICE)Service_StatusEna);
+	AddServiceFunction((LPCSTR)MODULENAME"/SIM_ST_TRY",(MIRANDASERVICE)Service_StatusTry);
+	AddServiceFunction((LPCSTR)MODULENAME"/PGP_SET",(MIRANDASERVICE)Service_PGPsetKey);
+	AddServiceFunction((LPCSTR)MODULENAME"/PGP_DEL",(MIRANDASERVICE)Service_PGPdelKey);
+	AddServiceFunction((LPCSTR)MODULENAME"/GPG_SET",(MIRANDASERVICE)Service_GPGsetKey);
+	AddServiceFunction((LPCSTR)MODULENAME"/GPG_DEL",(MIRANDASERVICE)Service_GPGdelKey);
+	AddServiceFunction((LPCSTR)MODULENAME"/MODE_NAT",(MIRANDASERVICE)Service_ModeNative);
+	AddServiceFunction((LPCSTR)MODULENAME"/MODE_PGP",(MIRANDASERVICE)Service_ModePGP);
+	AddServiceFunction((LPCSTR)MODULENAME"/MODE_GPG",(MIRANDASERVICE)Service_ModeGPG);
+	AddServiceFunction((LPCSTR)MODULENAME"/MODE_RSA",(MIRANDASERVICE)Service_ModeRSAAES);
 
 	return 0;
 }
 
 
-HANDLE AddMenuItem(LPCSTR name,int pos,HICON hicon,LPCSTR service,int flags=0,WPARAM wParam=0) {
-
-	CLISTMENUITEM mi={0};
-	mi.cbSize=sizeof(mi);
-	mi.flags=flags | CMIF_HIDDEN;
-	mi.position=pos;
-	mi.hIcon=hicon;
-	mi.pszName=Translate(name);
-	mi.pszPopupName=(char*)-1;
-	mi.pszService=(char*)service;
-	return((HANDLE)CallService(MS_CLIST_ADDCONTACTMENUITEM,wParam,(LPARAM)&mi));
+int __cdecl Unload() {
+	DeleteCriticalSection(&localQueueMutex);
+	return 0;
 }
 
 
-HANDLE AddSubItem(HANDLE rootid,LPCSTR name,int pos,int poppos,LPCSTR service,WPARAM wParam=0) {
+int __cdecl onModulesLoaded(WPARAM wParam,LPARAM lParam) {
 
-    CLISTMENUITEM mi={0};
-    mi.cbSize=sizeof(mi);
-    mi.flags=CMIF_CHILDPOPUP | CMIF_HIDDEN;
-    mi.position=pos;
-    mi.popupPosition=poppos;
-    mi.hIcon=NULL;
-    mi.pszName=Translate(name);
-    mi.pszPopupName=(char*)rootid;
-    mi.pszService=(char*)service;
-    return((HANDLE)CallService(MS_CLIST_ADDCONTACTMENUITEM,wParam,(LPARAM)&mi));
-}
-
-
-int onModulesLoaded(WPARAM wParam,LPARAM lParam) {
 #if defined(_DEBUG) || defined(NETLIB_LOG)
     InitNetlib();
+    Sent_NetLog("onModuleLoaded begin");
 #endif
+
     bMetaContacts = ServiceExists(MS_MC_GETMETACONTACT)!=0;
     bPopupExists = ServiceExists(MS_POPUP_ADDPOPUPEX)!=0;
     bPopupUnicode = ServiceExists(MS_POPUP_ADDPOPUPW)!=0;
-
-#if defined(_DEBUG) || defined(NETLIB_LOG)
-	Sent_NetLog("onModuleLoaded start");
-#endif
 
     InitIcons();
     GetFlags();
@@ -512,7 +339,7 @@ int onModulesLoaded(WPARAM wParam,LPARAM lParam) {
 #if defined(_DEBUG) || defined(NETLIB_LOG)
 	Sent_NetLog("hook events");
 #endif
-	g_hHook[iHook++] = HookEvent(ME_CLIST_PREBUILDCONTACTMENU, onRebuildContactMenu);
+	AddHookFunction(ME_CLIST_PREBUILDCONTACTMENU, onRebuildContactMenu);
 //	g_hMC = HookEvent(ME_MC_SUBCONTACTSCHANGED, onMC);
 
 	if( ServiceExists(MS_EXTRAICON_REGISTER) ) {
@@ -521,24 +348,24 @@ int onModulesLoaded(WPARAM wParam,LPARAM lParam) {
 						(MIRANDAHOOK)onExtraImageApplying);
 	}
 	else {
-		g_hHook[iHook++] = HookEvent(ME_CLIST_EXTRA_LIST_REBUILD, onExtraImageListRebuilding);
-		g_hHook[iHook++] = HookEvent(ME_CLIST_EXTRA_IMAGE_APPLY, onExtraImageApplying);
+		AddHookFunction(ME_CLIST_EXTRA_LIST_REBUILD, onExtraImageListRebuilding);
+		AddHookFunction(ME_CLIST_EXTRA_IMAGE_APPLY, onExtraImageApplying);
 	}
 
 	// hook init options
-	g_hHook[iHook++] = HookEvent(ME_OPT_INITIALISE, onRegisterOptions);
+	AddHookFunction(ME_OPT_INITIALISE, onRegisterOptions);
 	if(bPopupExists)
-	g_hHook[iHook++] = HookEvent(ME_OPT_INITIALISE, onRegisterPopOptions);
-	g_hHook[iHook++] = HookEvent(ME_PROTO_ACK, onProtoAck);
-	g_hHook[iHook++] = HookEvent(ME_DB_CONTACT_SETTINGCHANGED, onContactSettingChanged);
-	g_hHook[iHook++] = HookEvent(ME_DB_CONTACT_ADDED, onContactAdded);
-	g_hHook[iHook++] = HookEvent(ME_DB_CONTACT_DELETED, onContactDeleted);
+	AddHookFunction(ME_OPT_INITIALISE, onRegisterPopOptions);
+	AddHookFunction(ME_PROTO_ACK, onProtoAck);
+	AddHookFunction(ME_DB_CONTACT_SETTINGCHANGED, onContactSettingChanged);
+	AddHookFunction(ME_DB_CONTACT_ADDED, onContactAdded);
+	AddHookFunction(ME_DB_CONTACT_DELETED, onContactDeleted);
 
 	// hook message transport
-	g_hService[iService++] = CreateProtoServiceFunction(szModuleName, PSR_MESSAGE, (MIRANDASERVICE)onRecvMsg);
-	g_hService[iService++] = CreateProtoServiceFunction(szModuleName, PSS_MESSAGE, (MIRANDASERVICE)onSendMsg);
-	g_hService[iService++] = CreateProtoServiceFunction(szModuleName, PSS_MESSAGE"W", (MIRANDASERVICE)onSendMsgW);
-	g_hService[iService++] = CreateProtoServiceFunction(szModuleName, PSS_FILE, (MIRANDASERVICE)onSendFile);
+	AddProtoServiceFunction(PSR_MESSAGE, onRecvMsg);
+	AddProtoServiceFunction(PSS_MESSAGE, (MIRANDASERVICE)onSendMsg);
+	AddProtoServiceFunction(PSS_MESSAGE"W", (MIRANDASERVICE)onSendMsgW);
+	AddProtoServiceFunction(PSS_FILE, (MIRANDASERVICE)onSendFile);
 
 #if defined(_DEBUG) || defined(NETLIB_LOG)
 	Sent_NetLog("create Native/RSA menu");
@@ -548,7 +375,7 @@ int onModulesLoaded(WPARAM wParam,LPARAM lParam) {
 	g_hMenu[1] = AddMenuItem(sim302,110001,g_hICO[ICO_CM_DIS],MODULENAME"/SIM_DIS",CMIF_NOTOFFLINE);
 
 	if(ServiceExists(MS_CLIST_ADDSUBGROUPMENUITEM)) {
-	    g_hMenu[2] = AddMenuItem(sim303,110002,NULL,NULL,CMIF_ROOTPOPUP);
+	    g_hMenu[2] = AddMenuItem(sim312[0],110002,NULL,NULL,CMIF_ROOTPOPUP);
 	    g_hMenu[3] = AddSubItem(g_hMenu[2],sim232[0],110003,110002,MODULENAME"/SIM_ST_DIS");
 	    g_hMenu[4] = AddSubItem(g_hMenu[2],sim232[1],110004,110002,MODULENAME"/SIM_ST_ENA");
 	    g_hMenu[5] = AddSubItem(g_hMenu[2],sim232[2],110005,110002,MODULENAME"/SIM_ST_TRY");
@@ -566,19 +393,36 @@ int onModulesLoaded(WPARAM wParam,LPARAM lParam) {
 	HICON icon;
 	if( bPGPloaded ) {
 		icon=mode2icon(MODE_PGP|SECURED,2);
-		g_hMenu[6] = AddMenuItem(sim306,110006,icon,MODULENAME"/SIM_PGP_SET",0);
+		g_hMenu[6] = AddMenuItem(sim306,110006,icon,MODULENAME"/PGP_SET",0);
 		icon=mode2icon(MODE_PGP,2);
-		g_hMenu[7] = AddMenuItem(sim307,110007,icon,MODULENAME"/SIM_PGP_DEL",0);
+		g_hMenu[7] = AddMenuItem(sim307,110007,icon,MODULENAME"/PGP_DEL",0);
 	}
 
     	if(bGPGloaded) {
 		icon=mode2icon(MODE_GPG|SECURED,2);
-		g_hMenu[8] = AddMenuItem(sim308,110008,icon,MODULENAME"/SIM_GPG_SET",0);
+		g_hMenu[8] = AddMenuItem(sim308,110008,icon,MODULENAME"/GPG_SET",0);
 		icon=mode2icon(MODE_GPG,2);
-		g_hMenu[9] = AddMenuItem(sim309,110009,icon,MODULENAME"/SIM_GPG_DEL",0);
+		g_hMenu[9] = AddMenuItem(sim309,110009,icon,MODULENAME"/GPG_DEL",0);
     	}
 
-
+#if defined(_DEBUG) || defined(NETLIB_LOG)
+	Sent_NetLog("create Mode menu");
+#endif
+	if(ServiceExists(MS_CLIST_ADDSUBGROUPMENUITEM)) {
+	    g_hMenu[10] = AddMenuItem(sim311[0],110010,NULL,NULL,CMIF_ROOTPOPUP);
+	    g_hMenu[11] = AddSubItem(g_hMenu[10],sim231[0],110011,110010,MODULENAME"/MODE_NAT");
+	    g_hMenu[12] = AddSubItem(g_hMenu[10],sim231[1],110012,110010,MODULENAME"/MODE_PGP");
+	    g_hMenu[13] = AddSubItem(g_hMenu[10],sim231[2],110013,110010,MODULENAME"/MODE_GPG");
+	    g_hMenu[14] = AddSubItem(g_hMenu[10],sim231[3],110014,110010,MODULENAME"/MODE_RSA");
+	}
+	else {
+	    g_hMenu[10] = 0;
+	    g_hMenu[11] = AddMenuItem(sim231[0],110011,NULL,MODULENAME"/MODE_NAT");
+	    g_hMenu[12] = AddMenuItem(sim231[1],110012,NULL,MODULENAME"/MODE_PGP");
+	    g_hMenu[13] = AddMenuItem(sim231[2],110013,NULL,MODULENAME"/MODE_GPG");
+	    g_hMenu[14] = AddMenuItem(sim231[3],110014,NULL,MODULENAME"/MODE_RSA");
+	}
+	
     	// updater plugin support
         if(ServiceExists(MS_UPDATE_REGISTERFL)) {
 		CallService(MS_UPDATE_REGISTERFL, (WPARAM)2445, (LPARAM)&pluginInfo);
@@ -620,18 +464,18 @@ int onModulesLoaded(WPARAM wParam,LPARAM lParam) {
 		CallService(MS_MSG_ADDICON, 0, (LPARAM)&sid);
 
 		// hook the window events so that we can can change the status of the icon
-		g_hHook[iHook++] = HookEvent(ME_MSG_WINDOWEVENT, onWindowEvent);
-		g_hHook[iHook++] = HookEvent(ME_MSG_ICONPRESSED, onIconPressed);
+		AddHookFunction(ME_MSG_WINDOWEVENT, onWindowEvent);
+		AddHookFunction(ME_MSG_ICONPRESSED, onIconPressed);
 	}
 
 #if defined(_DEBUG) || defined(NETLIB_LOG)
-	Sent_NetLog("onModuleLoaded stop");
+	Sent_NetLog("onModuleLoaded end");
 #endif
 	return 0;
 }
 
 
-int onSystemOKToExit(WPARAM wParam,LPARAM lParam) {
+int __cdecl onSystemOKToExit(WPARAM wParam,LPARAM lParam) {
 
     if(bSavePass) {
 	LPSTR tmp = gpg_get_passphrases();
@@ -645,19 +489,16 @@ int onSystemOKToExit(WPARAM wParam,LPARAM lParam) {
 	if(bGPGloaded) gpg_done();
 	rsa_done();
 	while(iHook--) UnhookEvent(g_hHook[iHook]);
+	mir_free(g_hHook);
 	while(iService--) DestroyServiceFunction(g_hService[iService]);
-/*	DestroyHookableEvent(g_hEvent[0]);
-	DestroyHookableEvent(g_hEvent[1]);*/
+	mir_free(g_hService);
+	DestroyHookableEvent(g_hEvent[0]);
+	DestroyHookableEvent(g_hEvent[1]);
 	freeContactList();
 	free_rtfconv();
 #if defined(_DEBUG) || defined(NETLIB_LOG)
 	DeinitNetlib();
 #endif
-	return 0;
-}
-
-int Unload() {
-	DeleteCriticalSection(&localQueueMutex);
 	return 0;
 }
 

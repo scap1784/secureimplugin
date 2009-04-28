@@ -89,7 +89,7 @@ void InitIcons(void)
 	}
 
 	if(ServiceExists(MS_SKIN2_ADDICON)) {
-		g_hHook[iHook++] = HookEvent(ME_SKIN2_ICONSCHANGED, ReloadIcons);
+		AddHookFunction(ME_SKIN2_ICONSCHANGED, ReloadIcons);
 	}
 }
 
