@@ -118,7 +118,7 @@ void ShowStatusIcon(HANDLE hContact) {
 
 void ShowStatusIconNotify(HANDLE hContact) {
 	int mode = isContactSecured(hContact);
-//	NotifyEventHooks(g_hEvent[(mode&SECURED)!=0], (WPARAM)hContact, 0);
+	NotifyEventHooks(g_hEvent[(mode&SECURED)!=0], (WPARAM)hContact, 0);
 	ShowStatusIcon(hContact,mode);
 }
 

@@ -114,6 +114,7 @@
 #include "cryptopp.h"
 #include "images.h"
 #include "dbevent.h"
+#include "menu_svcs.h"
 
 extern LPCSTR szModuleName;
 extern LPCSTR szVersionStr;
@@ -145,7 +146,9 @@ extern "C" {
 
 }
 
-extern HANDLE g_hEvent[2], g_hMenu[10], g_hService[14], g_hHook[17], g_hCLIcon;
+extern HANDLE g_hEvent[2], g_hMenu[15], g_hCLIcon;
+extern HANDLE *g_hService;
+extern HANDLE *g_hHook;
 extern int iService, iHook;
 extern HICON g_hICO[ICO_CNT], g_hIEC[1+IEC_CNT*MODE_CNT], g_hPOP[POP_CNT];
 extern IconExtraColumn g_IEC[1+IEC_CNT*MODE_CNT];
@@ -153,13 +156,17 @@ extern int iBmpDepth;
 extern BOOL bCoreUnicode, bMetaContacts, bPopupExists, bPopupUnicode;
 extern BOOL bPGPloaded, bPGPkeyrings, bUseKeyrings, bPGPprivkey;
 extern BOOL bGPGloaded, bGPGkeyrings, bSavePass;
-extern BOOL bSFT, bSOM, bASI, bMCD, bSCM, bDGP, bAIP, bNOL, bAAK;
+extern BOOL bSFT, bSOM, bASI, bMCD, bSCM, bDGP, bAIP, bNOL, bAAK, bMCM;
 extern BYTE bADV, bPGP, bGPG;
 extern DWORD iCoreVersion;
 extern CRITICAL_SECTION localQueueMutex;
 
 int onModulesLoaded(WPARAM,LPARAM);
 int onSystemOKToExit(WPARAM,LPARAM);
+
+void AddServiceFunction(LPCSTR,MIRANDASERVICE);
+void AddProtoServiceFunction(LPCSTR,MIRANDASERVICE);
+void AddHookFunction(LPCSTR,MIRANDAHOOK);
 
 LPSTR simDBGetString(HANDLE,const char *,const char *);
 LPSTR DBGetStringDecode(HANDLE,const char *,const char *);

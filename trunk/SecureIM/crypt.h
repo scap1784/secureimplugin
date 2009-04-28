@@ -167,10 +167,10 @@ void __cdecl sttWaitForExchange(LPVOID);
 
 // crypt_svcs.cpp
 int sendSplitMessage(pUinKey,LPSTR);
-long __cdecl onRecvMsg(WPARAM,LPARAM);
-long __cdecl onSendMsgW(WPARAM,LPARAM);
-long __cdecl onSendMsg(WPARAM,LPARAM);
-long __cdecl onSendFile(WPARAM,LPARAM);
+INT_PTR __cdecl onRecvMsg(WPARAM,LPARAM);
+INT_PTR __cdecl onSendMsgW(WPARAM,LPARAM);
+INT_PTR __cdecl onSendMsg(WPARAM,LPARAM);
+INT_PTR __cdecl onSendFile(WPARAM,LPARAM);
 int __cdecl onProtoAck(WPARAM,LPARAM);
 int __cdecl onContactSettingChanged(WPARAM,LPARAM);
 int __cdecl onRebuildContactMenu(WPARAM,LPARAM);
@@ -178,6 +178,8 @@ int __cdecl onExtraImageListRebuilding(WPARAM,LPARAM);
 int __cdecl onExtraImageApplying(WPARAM,LPARAM);
 int __cdecl onContactAdded(WPARAM,LPARAM);
 int __cdecl onContactDeleted(WPARAM,LPARAM);
+int __cdecl onWindowEvent(WPARAM,LPARAM);
+int __cdecl onIconPressed(WPARAM,LPARAM);
 
 // crypt_rsa.cpp
 extern pRSA_EXPORT exp;
