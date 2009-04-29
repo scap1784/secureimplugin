@@ -1344,12 +1344,8 @@ int __cdecl onRebuildContactMenu(WPARAM wParam,LPARAM lParam) {
 			CallService(MS_CLIST_MODIFYMENUITEM,(WPARAM)g_hMenu[1],(LPARAM)&mi);
 		}
 		// set status menu
-		if(bSCM && !bMC) {
-/*			mi.flags = CMIM_FLAGS;
-			for(i=2;i<=(ptr->mode==MODE_RSAAES?4:5);i++) {
-				if(g_hMenu[i])
-					CallService(MS_CLIST_MODIFYMENUITEM,(WPARAM)g_hMenu[i],(LPARAM)&mi);
-			}*/
+		if( bSCM && !bMC &&
+		    ( !isSecured || ptr->mode==MODE_PGP || ptr->mode==MODE_GPG ) ) {
 
 			mi.flags = CMIM_FLAGS | CMIM_NAME | CMIM_ICON;
 			mi.hIcon = g_hICO[ICO_ST_DIS+ptr->status];
@@ -1381,14 +1377,8 @@ int __cdecl onRebuildContactMenu(WPARAM wParam,LPARAM lParam) {
 	}
 	if( isSecureProto && !isChat ) {
 		// set mode menu
-		if(bMCM && !bMC) {
-/*			mi.flags = CMIM_FLAGS;
-			for(i=10;i<=14;i++) {
-				if( i==12 && !bPGP ) continue;
-				if( i==13 && !bGPG ) continue;
-				if(g_hMenu[i])
-					CallService(MS_CLIST_MODIFYMENUITEM,(WPARAM)g_hMenu[i],(LPARAM)&mi);
-			}*/
+		if( bMCM && !bMC &&
+	            ( !isSecured || ptr->mode==MODE_PGP || ptr->mode==MODE_GPG ) ) {
 
 			mi.flags = CMIM_FLAGS | CMIM_NAME | CMIM_ICON;
 			mi.hIcon = g_hICO[ICO_OV_NAT+ptr->mode];
