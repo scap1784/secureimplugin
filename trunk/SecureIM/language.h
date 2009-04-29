@@ -29,6 +29,7 @@ extern LPCSTR sim107;
 extern LPCSTR sim108;
 extern LPCSTR sim109;
 extern LPCSTR sim110;
+extern LPCSTR sim111;
 
 //Options
 extern LPCSTR sim201;

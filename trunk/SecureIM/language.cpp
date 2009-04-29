@@ -26,6 +26,7 @@ LPCSTR sim107 = "SecureIM won't be loaded because cryptopp.dll is missing or wro
 LPCSTR sim108 = "SecureIM can't load PGP/GPG key! Check PGP/GPG settings!";
 LPCSTR sim109 = "SecureIM can't encrypt message! Check trust of PGP/GPG key!";
 LPCSTR sim110 = "Can't Send Encrypted Message !\nDo you want to send your message ?\nIt will be unencrypted !";
+LPCSTR sim111 = "Can't change mode! Secure connection established!";
 
 //Options
 LPCSTR sim201 = "General";

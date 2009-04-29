@@ -3,7 +3,7 @@
 
 INT_PTR __cdecl Service_IsContactSecured(WPARAM wParam, LPARAM lParam) {
 
-	return isContactSecured((HANDLE)wParam) || isContactPGP((HANDLE)wParam) || isContactGPG((HANDLE)wParam);
+	return (isContactSecured((HANDLE)wParam)&SECURED) || isContactPGP((HANDLE)wParam) || isContactGPG((HANDLE)wParam);
 }
 
 
@@ -178,9 +178,13 @@ INT_PTR __cdecl Service_Mode(WPARAM wParam, LPARAM lParam) {
 
     switch(--lParam) {
     case MODE_NATIVE:
+    case MODE_RSAAES:
+    		if( isContactSecured((HANDLE)wParam)&SECURED ) {
+    			msgbox(NULL, sim111, szModuleName, MB_OK);
+    			return 0;
+    		}
     case MODE_PGP:
     case MODE_GPG:
-    case MODE_RSAAES:
     		// нужно много проверок и отключение активного контекста если необходимо
 		pUinKey ptr = getUinKey((HANDLE)wParam);
 		if(ptr) {
