@@ -2,6 +2,8 @@
 Verison 1.0.12.1 [30-04-2009]
 
 [*] native mode fixes
+[+] add support for folders plugin
+[+] auto switch to RSA/AES mode, if possible
 
 
 Verison 1.0.12.0 [28-04-2009]

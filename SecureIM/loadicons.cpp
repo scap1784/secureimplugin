@@ -46,6 +46,13 @@ void InitIcons(void)
 {
 	HINSTANCE hNewIconInst = NULL;
 
+	if( g_hFolders ) {
+		LPSTR pathname = (LPSTR) alloca(MAX_PATH);
+		FoldersGetCustomPathEx(g_hFolders, pathname, MAX_PATH, "icons\\", "secureim_icons.dll");
+		if (hNewIconInst == NULL)
+			hNewIconInst = LoadIconsPack(pathname);
+	}
+
 	if (hNewIconInst == NULL)
 		hNewIconInst = LoadIconsPack("icons\\secureim_icons.dll");
 

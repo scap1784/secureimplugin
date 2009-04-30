@@ -184,6 +184,9 @@ int __cdecl onModulesLoaded(WPARAM wParam,LPARAM lParam) {
     bPopupExists = ServiceExists(MS_POPUP_ADDPOPUPEX)!=0;
     bPopupUnicode = ServiceExists(MS_POPUP_ADDPOPUPW)!=0;
 
+    g_hFolders = FoldersRegisterCustomPath(szModuleName, "icons", MIRANDA_PATH"\\icons");
+    if( g_hFolders==(HANDLE)CALLSERVICE_NOTFOUND ) g_hFolders = 0;
+
     InitIcons();
     GetFlags();
 

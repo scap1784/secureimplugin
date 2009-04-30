@@ -1,6 +1,7 @@
 Verison 1.0.4.1 [30-04-2009]
 
 [*] memory leak fixes
+[+] RSA/AES feature in Native mode
 
 
 Verison 1.0.4.0 [28-04-2009]

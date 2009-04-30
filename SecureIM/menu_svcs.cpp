@@ -188,6 +188,11 @@ INT_PTR __cdecl Service_Mode(WPARAM wParam, LPARAM lParam) {
     		// нужно много проверок и отключение активного контекста если необходимо
 		pUinKey ptr = getUinKey((HANDLE)wParam);
 		if(ptr) {
+			if( ptr->cntx ) {
+		    		cpp_delete_context(ptr->cntx);
+				ptr->cntx = 0;
+				ptr->keyLoaded = 0;
+			}
 			ptr->mode=(BYTE)lParam;
 			DBWriteContactSettingByte((HANDLE)wParam, szModuleName, "mode", (BYTE)lParam);
 		}
