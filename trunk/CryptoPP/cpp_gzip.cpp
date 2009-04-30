@@ -9,7 +9,7 @@ BYTE *cpp_gzip(BYTE *pData, int nLen, int& nCompressedLen) {
 	gzip.MessageEnd();
 
 	nCompressedLen = (int) zipped.length();
-	BYTE* pCompressed = (BYTE*) mir_alloc(nCompressedLen+1);
+	PBYTE pCompressed = (PBYTE) mir_alloc(nCompressedLen+1);
 	memcpy(pCompressed,zipped.data(),nCompressedLen);
 
 	return pCompressed;
@@ -20,12 +20,12 @@ BYTE *cpp_gunzip(BYTE *pCompressedData, int nCompressedLen, int& nLen) {
 
 	string unzipped;
 	Gunzip gunzip(new StringSink(unzipped));
-	gunzip.Put((BYTE*)pCompressedData,nCompressedLen);
+	gunzip.Put((PBYTE)pCompressedData,nCompressedLen);
 	gunzip.MessageEnd();
 
 	nLen = (int) unzipped.length();
-	BYTE* pData = (BYTE*) mir_alloc(nLen+1);
-	memcpy(pData,unzipped.c_str(),nLen+1);
+	PBYTE pData = (PBYTE) mir_alloc(nLen+1);
+	memcpy(pData,unzipped.data(),nLen);
 
 	return pData;
 }

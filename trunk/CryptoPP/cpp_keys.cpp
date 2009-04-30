@@ -25,18 +25,21 @@ LPSTR __cdecl cpp_init_keya(int context, int features) {
 		p->dh = new DH(p0,g0);
 	}
 
-	BYTE priv1[KEYSIZE] = {0};	// private key of 2048 bit
-	BYTE publ1[KEYSIZE+2] = {0};	// public key of 2048 bit + faetures field
+	BYTE priv1[KEYSIZE];	// private key of 2048 bit
+	BYTE publ1[KEYSIZE+2];	// public key of 2048 bit + faetures field
+
+	memset(priv1,0,sizeof(priv1));
+	memset(publ1,0,sizeof(publ1));
 
 	AutoSeededRandomPool autorng;
 	p->dh->GenerateKeyPair(autorng, priv1, publ1);
 
 	SAFE_FREE(p->PubA);
-	p->PubA = (BYTE*) mir_alloc(KEYSIZE);
+	p->PubA = (PBYTE) mir_alloc(KEYSIZE);
 	memcpy(p->PubA,publ1,KEYSIZE);
 
 	SAFE_FREE(p->KeyA);
-	p->KeyA = (BYTE*) mir_alloc(KEYSIZE);
+	p->KeyA = (PBYTE) mir_alloc(KEYSIZE);
 	memcpy(p->KeyA,priv1,KEYSIZE);
 
 	if(p->KeyP) {
@@ -45,24 +48,24 @@ LPSTR __cdecl cpp_init_keya(int context, int features) {
 		CFB_Mode<AES>::Encryption enc(p->KeyP,Tiger::DIGESTSIZE,IV);
 		StreamTransformationFilter cbcEncryptor(enc,new StringSink(ciphered));
 
-		cbcEncryptor.Put((BYTE*)publ1,KEYSIZE);
+		cbcEncryptor.Put(publ1,KEYSIZE);
 		cbcEncryptor.MessageEnd();
 		memcpy(publ1,ciphered.data(),ciphered.length());
-/*
-		char buf[128];
-		sprintf(buf,"%d",ciphered.length());
-		MessageBoxA(0,buf,"keyA",MB_OK | MB_ICONSTOP);*/
+#if defined(_DEBUG) || defined(NETLIB_LOG)
+		Sent_NetLog("cpp_init_keya: %d %d",KEYSIZE,ciphered.length());
+#endif
 	}
-	memcpy(publ1+KEYSIZE,(PVOID)&send_features,2);
+	memcpy((PVOID)&publ1[KEYSIZE],(PVOID)&send_features,2);
 
 	SAFE_FREE(ptr->tmp);
 	if(ptr->mode & MODE_BASE64 || features & FEATURES_NEWPG)
-		ptr->tmp = base64encode((char *)&publ1,KEYSIZE+2);
+		ptr->tmp = base64encode((LPSTR)&publ1,KEYSIZE+2);
 	else
-		ptr->tmp = base16encode((char *)&publ1,KEYSIZE+2);
+		ptr->tmp = base16encode((LPSTR)&publ1,KEYSIZE+2);
 
 	return ptr->tmp;
 }
+
 
 // store KeyB
 int __cdecl cpp_init_keyb(int context, LPCSTR key) {
@@ -80,6 +83,9 @@ int __cdecl cpp_init_keyb(int context, LPCSTR key) {
 		pub_binary = base64decode(key,&clen);
 
 	if(clen!=KEYSIZE && clen!=KEYSIZE+2) {
+#if defined(_DEBUG) || defined(NETLIB_LOG)
+		Sent_NetLog("cpp_init_keyb: error bad_keyb %d %d",KEYSIZE,clen);
+#endif
 		ptr->error = ERROR_BAD_KEYB;
 		SAFE_FREE(pub_binary);
 		return 0;
@@ -88,11 +94,11 @@ int __cdecl cpp_init_keyb(int context, LPCSTR key) {
 	if(clen==KEYSIZE+2)
 		memcpy((PVOID)&ptr->features,(PVOID)(pub_binary+KEYSIZE),2);
 
-	SAFE_FREE(p->KeyB);
-	p->KeyB = (BYTE*) pub_binary;
-
 	if(p->KeyP) {
-		if(!(ptr->features & FEATURES_PSK)) {
+		if(!(ptr->features & FEATURES_PSK)) { // if NO PSK on other side
+#if defined(_DEBUG) || defined(NETLIB_LOG)
+			Sent_NetLog("cpp_init_keyb: error no_psk");
+#endif
 			ptr->error = ERROR_NO_PSK;
 			return 0;
 		}
@@ -100,19 +106,28 @@ int __cdecl cpp_init_keyb(int context, LPCSTR key) {
 		try {
 			// decrypt PUBLIC use PSK
 			string unciphered;
-    		CFB_Mode<AES>::Decryption dec(p->KeyP,Tiger::DIGESTSIZE,IV);
+			CFB_Mode<AES>::Decryption dec(p->KeyP,Tiger::DIGESTSIZE,IV);
 			StreamTransformationFilter cbcDecryptor(dec,new StringSink(unciphered));
 
-			cbcDecryptor.Put((BYTE*)pub_binary,KEYSIZE);
+			cbcDecryptor.Put((PBYTE)pub_binary,KEYSIZE);
 			cbcDecryptor.MessageEnd();
 			memcpy(pub_binary,unciphered.data(),unciphered.length());
 		}
 		catch (...)	{
+#if defined(_DEBUG) || defined(NETLIB_LOG)
+			Sent_NetLog("cpp_init_keyb: error bad_psk");
+#endif
 			return 0;
 		}
 	}
 
+	SAFE_FREE(p->KeyB);
+	p->KeyB = (PBYTE) pub_binary;
+
 	if(p->PubA && memcmp(p->PubA,p->KeyB,KEYSIZE)==0) {
+#if defined(_DEBUG) || defined(NETLIB_LOG)
+		Sent_NetLog("cpp_init_keyb: error bad_keyb keya==keyb");
+#endif
 		SAFE_FREE(p->KeyB);
 		ptr->error = ERROR_BAD_KEYB;
 		return 0;
@@ -122,19 +137,21 @@ int __cdecl cpp_init_keyb(int context, LPCSTR key) {
 	return 1;
 }
 
+
 // calculate secret key, return true or false
 int __cdecl cpp_calc_keyx(int context) {
 
 	pCNTX ptr = get_context_on_id(context); if(!ptr) return 0;
 	pSIMDATA p = (pSIMDATA) cpp_alloc_pdata(ptr);
 
-    if(!p->KeyA) { ptr->error = ERROR_NO_KEYA; return 0; }
-    if(!p->KeyB) { ptr->error = ERROR_NO_KEYB; return 0; }
+	if(!p->KeyA) { ptr->error = ERROR_NO_KEYA; return 0; }
+	if(!p->KeyB) { ptr->error = ERROR_NO_KEYB; return 0; }
    	ptr->error = ERROR_NONE;
 
-	BYTE agreeVal[KEYSIZE]={0};
-	bool agr = p->dh->Agree(agreeVal, p->KeyA, p->KeyB, true); // calculate key
+	BYTE agreeVal[KEYSIZE];
+	memset(agreeVal,0,sizeof(agreeVal));
 
+	BYTE agr = p->dh->Agree(agreeVal, p->KeyA, p->KeyB, true); // calculate key
 	if (agr) {
 		// not needed anymore
 		SAFE_FREE(p->PubA);
@@ -142,18 +159,21 @@ int __cdecl cpp_calc_keyx(int context) {
 		SAFE_FREE(p->KeyB);
 //		SAFE_DELETE(p->dh);
 
+		BYTE buffer[Tiger::DIGESTSIZE]; // buffer for hash
+		memset(buffer,0,sizeof(buffer));
+
 		// do this only if key exchanged is ok
 		// we use a 192bit key (24*8)
-		BYTE buffer[Tiger::DIGESTSIZE]; // buffer for hash
 		Tiger().CalculateDigest(buffer, agreeVal, KEYSIZE); // calculate hash
 
 		// store key
 		SAFE_FREE(p->KeyX);
-		p->KeyX = (BYTE*) mir_alloc(Tiger::DIGESTSIZE);
+		p->KeyX = (PBYTE) mir_alloc(Tiger::DIGESTSIZE);
 		memcpy(p->KeyX,buffer,Tiger::DIGESTSIZE);
 	}
 	return (int)agr;
 }
+
 
 // create pre-shared key from password
 int __cdecl cpp_init_keyp(int context, LPCSTR password) {
@@ -161,14 +181,19 @@ int __cdecl cpp_init_keyp(int context, LPCSTR password) {
 	pSIMDATA p = (pSIMDATA) cpp_alloc_pdata(ptr);
 
 	BYTE buffer[Tiger::DIGESTSIZE]; // buffer for hash
-	Tiger().CalculateDigest(buffer,(BYTE*)password,strlen(password)); // calculate hash
+	memset(buffer,0,sizeof(buffer));
+
+	// calculate hash
+	Tiger().CalculateDigest(buffer,(PBYTE)password,strlen(password));
 
 	// store pre-shared key
 	SAFE_FREE(p->KeyP);
-	p->KeyP = (BYTE*) mir_alloc(Tiger::DIGESTSIZE);
+	p->KeyP = (PBYTE) mir_alloc(Tiger::DIGESTSIZE);
 	memcpy(p->KeyP,buffer,Tiger::DIGESTSIZE);
+
 	return 1;
 }
+
 
 // free memory from keys
 void cpp_free_keys(pCNTX ptr) {

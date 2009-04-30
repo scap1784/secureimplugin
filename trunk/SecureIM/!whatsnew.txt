@@ -1,4 +1,9 @@
 
+Verison 1.0.12.1 [30-04-2009]
+
+[*] native mode fixes
+
+
 Verison 1.0.12.0 [28-04-2009]
 
 [*] rewrite icons library

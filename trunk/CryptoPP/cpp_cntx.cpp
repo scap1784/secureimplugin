@@ -13,32 +13,33 @@ pCNTX get_context_on_id(int context) {
     if(	!thread_timeout ) {
 		thread_timeout = _beginthread(sttTimeoutThread, 0, 0);
     }
+
     if( context ) {
-		for(int i=0;i<cntx_cnt;i++) {
-			if(cntx[i].cntx == context)
-				return &(cntx[i]);
-		}
-		switch( context ) {
-		case -1:
-		{
-			// create context for private pgp keys
-			pCNTX tmp = get_context_on_id(cpp_create_context(0));
-			tmp->cntx = context; tmp->mode = MODE_PGP;
-			tmp->pdata = (PBYTE) mir_alloc(sizeof(PGPDATA));
-			memset(tmp->pdata,0,sizeof(PGPDATA));
-			return tmp;
-		}
-		case -2:
-		case -3:
-		{
-			// create context for private rsa keys
-			pCNTX tmp = get_context_on_id(cpp_create_context(0));
-			tmp->cntx = context; tmp->mode = (context==-3) ? MODE_RSA_4096 : MODE_RSA_2048;
-			pRSAPRIV p = new RSAPRIV;
-			tmp->pdata = (PBYTE) p;
-			return tmp;
-		}
-		} // switch
+	for(int i=0;i<cntx_cnt;i++) {
+		if(cntx[i].cntx == context)
+			return &(cntx[i]);
+	}
+	switch( context ) {
+	case -1:
+	{
+		// create context for private pgp keys
+		pCNTX tmp = get_context_on_id(cpp_create_context(0));
+		tmp->cntx = context; tmp->mode = MODE_PGP;
+		tmp->pdata = (PBYTE) mir_alloc(sizeof(PGPDATA));
+		memset(tmp->pdata,0,sizeof(PGPDATA));
+		return tmp;
+	}
+	case -2:
+	case -3:
+	{
+		// create context for private rsa keys
+		pCNTX tmp = get_context_on_id(cpp_create_context(0));
+		tmp->cntx = context; tmp->mode = (context==-3) ? MODE_RSA_4096 : MODE_RSA_2048;
+		pRSAPRIV p = new RSAPRIV;
+		tmp->pdata = (PBYTE) p;
+		return tmp;
+	}
+	} // switch
     }
     return NULL;
 }
@@ -53,10 +54,11 @@ int __cdecl cpp_create_context(int mode) {
 	if(i == cntx_cnt) { // надо добавить новый
 		cntx_cnt++; 
 		cntx = (pCNTX) mir_realloc(cntx,sizeof(CNTX)*cntx_cnt);
-		memset(&(cntx[i]),0,sizeof(CNTX));
 	}
+	memset(&(cntx[i]),0,sizeof(CNTX));
 	cntx[i].cntx = cntx_idx;
 	cntx[i].mode = mode;
+
 	return cntx_idx;
 }
 

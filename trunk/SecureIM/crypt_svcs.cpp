@@ -445,7 +445,7 @@ INT_PTR __cdecl onRecvMsg(WPARAM wParam, LPARAM lParam) {
 	} break;
 
 	case SiG_ENON: { // online message
-		if (cpp_keyx(ptr->cntx)) {
+		if( cpp_keyx(ptr->cntx) ) {
 			// decrypting message
 			szPlainMsg = decodeMsg(ptr,lParam,szEncMsg);
 			if(!ptr->decoded) {
@@ -529,11 +529,12 @@ INT_PTR __cdecl onRecvMsg(WPARAM wParam, LPARAM lParam) {
 	}
 	case SiG_DEIN: { // deinit message
 		// other user has disabled SecureIM with you
-		ptr->waitForExchange=false;
 		cpp_delete_context(ptr->cntx); ptr->cntx=0;
 
 		showPopUpDC(ptr->hContact);
 		ShowStatusIconNotify(ptr->hContact);
+
+		ptr->waitForExchange=false;
 		return 1;
 	} break;
 
@@ -559,14 +560,15 @@ INT_PTR __cdecl onRecvMsg(WPARAM wParam, LPARAM lParam) {
 			}
 			if( InitKeyB(ptr,szEncMsg)!=CPP_ERROR_NONE ) {
 				// tell to the other side that we have the plugin disabled with him
-				ptr->waitForExchange=false;
-
+/*
 				pccsd->lParam = (LPARAM) SIG_DISA;
 				pccsd->szProtoService = PSS_MESSAGE;
 				CallService(MS_PROTO_CHAINSEND, wParam, lParam);
-
+*/
 				showPopUp(sim013,ptr->hContact,g_hPOP[POP_PU_DIS],0);
 				ShowStatusIconNotify(ptr->hContact);
+
+				ptr->waitForExchange=false;
 				return 1;
 			}
 
@@ -610,14 +612,15 @@ INT_PTR __cdecl onRecvMsg(WPARAM wParam, LPARAM lParam) {
 			cpp_reset_context(ptr->cntx);
 			if(InitKeyB(ptr,szEncMsg)!=CPP_ERROR_NONE) {
 				// tell to the other side that we have the plugin disabled with him
-				ptr->waitForExchange=false;
-
+/*
 				pccsd->lParam = (LPARAM) SIG_DISA;
 				pccsd->szProtoService = PSS_MESSAGE;
 				CallService(MS_PROTO_CHAINSEND, wParam, lParam);
-
+*/
 				showPopUp(sim013,ptr->hContact,g_hPOP[POP_PU_DIS],0);
 				ShowStatusIconNotify(ptr->hContact);
+
+				ptr->waitForExchange=false;
 				return 1;
 			}
 
@@ -638,16 +641,16 @@ INT_PTR __cdecl onRecvMsg(WPARAM wParam, LPARAM lParam) {
 			// clear all and send DISA if received KeyB, and not exist KeyA or error on InitKeyB
 			if(!cpp_keya(ptr->cntx) || InitKeyB(ptr,szEncMsg)!=CPP_ERROR_NONE) {
 				// tell to the other side that we have the plugin disabled with him
-				ptr->waitForExchange=false;
-
+/*
 				pccsd->lParam = (LPARAM) SIG_DISA;
 				pccsd->szProtoService = PSS_MESSAGE;
 				CallService(MS_PROTO_CHAINSEND, wParam, lParam);
-
+*/
 				showPopUp(sim013,ptr->hContact,g_hPOP[POP_PU_DIS],0);
 				ShowStatusIconNotify(ptr->hContact);
 
 				cpp_reset_context(ptr->cntx);
+				ptr->waitForExchange=false;
 				return 1;
 			}
 		} break;
@@ -656,38 +659,15 @@ INT_PTR __cdecl onRecvMsg(WPARAM wParam, LPARAM lParam) {
 
 		/* common part (CalcKeyX & SendQueue) */
 		//  calculate KeyX
-		if (cpp_keya(ptr->cntx) && cpp_keyb(ptr->cntx) && !cpp_keyx(ptr->cntx)) CalculateKeyX(ptr,ptr->hContact);
+		if( cpp_keya(ptr->cntx) && cpp_keyb(ptr->cntx) && !cpp_keyx(ptr->cntx) )
+			CalculateKeyX(ptr,ptr->hContact);
+
 		ShowStatusIconNotify(ptr->hContact);
 #if defined(_DEBUG) || defined(NETLIB_LOG)
 		Sent_NetLog("Session established");
 #endif
 
 		ptr->waitForExchange = false; // дошлем сообщения из очереди
-/*		EnterCriticalSection(&localQueueMutex);
-		// we need to resend last send back message with new crypto Key
-		pWM ptrMessage = ptr->msgQueue;
-		while (ptrMessage) {
-			pccsd->wParam = ptrMessage->wParam;
-			pccsd->lParam = (LPARAM)ptrMessage->Message;
-#if defined(_DEBUG) || defined(NETLIB_LOG)
-			Sent_NetLog("Sent message from queue: %s",ptrMessage->Message);
-#endif
-			LPSTR RsMsg = encodeMsg(ptr,(LPARAM)pccsd);
-
-			pccsd->lParam = (LPARAM)RsMsg;
-			pccsd->szProtoService = PSS_MESSAGE;
-			CallService(MS_PROTO_CHAINSEND, wParam, lParam);
-
-			mir_free(RsMsg);
-			mir_free(ptrMessage->Message);
-
-			pWM tmp = ptrMessage;
-			ptrMessage = ptrMessage->nextMessage;
-			mir_free(tmp);
-		}
-		ptr->msgQueue = NULL;
-		LeaveCriticalSection(&localQueueMutex);
-		showPopUpSM(ptr->hContact); */
 		return 1;
 		/* common part (CalcKeyX & SendQueue) */
 	} break;
@@ -695,7 +675,7 @@ INT_PTR __cdecl onRecvMsg(WPARAM wParam, LPARAM lParam) {
 	} //switch
 
 	// receive message
-	if (cpp_keyx(ptr->cntx) && (ssig==SiG_ENON||ssig==SiG_ENOF)) {
+	if( cpp_keyx(ptr->cntx) && (ssig==SiG_ENON||ssig==SiG_ENOF) ) {
 		showPopUpRM(ptr->hContact);
 	}
    	pccsd->wParam |= PREF_SIMNOMETA;
@@ -826,11 +806,11 @@ INT_PTR __cdecl onSendMsg(WPARAM wParam, LPARAM lParam) {
 		}
 		// разорвать соединение
 		if( ssig==SiG_DEIN ) {
-			ptr->waitForExchange=false;
 			if( ptr->cntx ) {
 				exp->rsa_disconnect(ptr->cntx);
 				deleteRSAcntx(ptr);
 			}
+			ptr->waitForExchange=false;
 			return returnNoError(pccsd->hContact);
 		}
 		// соединение установлено
@@ -844,11 +824,11 @@ INT_PTR __cdecl onSendMsg(WPARAM wParam, LPARAM lParam) {
 		// просто сообщение (без тэгов, нет контекста и работают AIP & NOL)
 		if( ssig==SiG_NONE && isSecureIM(ptr->hContact) ) {
 			// добавим его в очередь
-		    addMsg2Queue(ptr, pccsd->wParam, (LPSTR)pccsd->lParam);
+			addMsg2Queue(ptr, pccsd->wParam, (LPSTR)pccsd->lParam);
 			// запускаем процесс установки соединения
-		    ssig=SiG_INIT;
+			ssig=SiG_INIT;
 			// запускаем трэд ожидания и досылки
-		    if (!ptr->waitForExchange) waitForExchange(ptr);
+		    	waitForExchange(ptr);
 		}
 		// установить соединение
 		if( ssig==SiG_INIT ) {
@@ -1013,14 +993,12 @@ INT_PTR __cdecl onSendMsg(WPARAM wParam, LPARAM lParam) {
 			if (ssig==SiG_NONE) {
 				addMsg2Queue(ptr, pccsd->wParam, (LPSTR)pccsd->lParam);
 			}
-			if (!ptr->waitForExchange) {
+			if( !ptr->waitForExchange ) {
 				// init || always_try || always_if_possible
 				LPSTR keyToSend = InitKeyA(ptr,0);	// calculate public and private key & fill KeyA
-
 #if defined(_DEBUG) || defined(NETLIB_LOG)
 				Sent_NetLog("Sending KEY3: %s", keyToSend);
 #endif
-
 				pccsd->wParam &= ~PREF_UNICODE; pccsd->wParam |= PREF_METANODB;
 				pccsd->lParam = (LPARAM) keyToSend;
 	  			pccsd->szProtoService = PSS_MESSAGE;
