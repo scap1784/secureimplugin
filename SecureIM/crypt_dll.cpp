@@ -4,7 +4,7 @@
 // generate KeyA pair and return public key
 LPSTR InitKeyA(pUinKey ptr,int features) {
 
-    if(!ptr->cntx)
+	if(!ptr->cntx)
 		ptr->cntx = cpp_create_context(isProtoSmallPackets(ptr->hContact)?CPP_MODE_BASE64:0);
 
 	char *tmp = DBGetString(ptr->hContact,szModuleName,"PSK");
@@ -42,7 +42,7 @@ LPSTR InitKeyA(pUinKey ptr,int features) {
 // store KeyB into context
 int InitKeyB(pUinKey ptr,LPCSTR key) {
 
-    if(!ptr->cntx)
+	if(!ptr->cntx)
 		ptr->cntx = cpp_create_context(isProtoSmallPackets(ptr->hContact)?CPP_MODE_BASE64:0);
 
 	if(!cpp_keyp(ptr->cntx)) {
@@ -62,7 +62,7 @@ int InitKeyB(pUinKey ptr,LPCSTR key) {
 // store KeyX into context
 void InitKeyX(pUinKey ptr,BYTE *key) {
 
-    if(!ptr->cntx)
+	if(!ptr->cntx)
 		ptr->cntx = cpp_create_context(isProtoSmallPackets(ptr->hContact)?CPP_MODE_BASE64:0);
 
 	cpp_set_keyx(ptr->cntx,key);
@@ -73,11 +73,11 @@ void InitKeyX(pUinKey ptr,BYTE *key) {
 BOOL CalculateKeyX(pUinKey ptr,HANDLE hContact) {
 
 	int agr = cpp_calc_keyx(ptr->cntx);
-	if (agr) {
+	if( agr ) {
 		// do this only if key exchanged is ok
 		// we use a 192bit key
 		int keysize = cpp_size_keyx();
-		BYTE *buffer = (BYTE*)mir_alloc(keysize); // buffer for hash
+		PBYTE buffer = (PBYTE) alloca(keysize); // buffer for hash
 
 		// store key
 		cpp_get_keyx(ptr->cntx,buffer);
@@ -98,7 +98,6 @@ BOOL CalculateKeyX(pUinKey ptr,HANDLE hContact) {
 		cws.value.dVal = gettime()+(60*60*24*DBGetContactSettingWord(0,szModuleName,"okt",2));
 		CallService(MS_DB_CONTACT_WRITESETTING, (WPARAM)hContact, (LPARAM)&cws);
 
-		mir_free(buffer);
 		// key exchange is finished released flag
 		ptr->waitForExchange = false;
 		showPopUpEC(hContact);

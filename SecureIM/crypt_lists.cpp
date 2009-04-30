@@ -14,7 +14,7 @@ void loadSupportedProtocols() {
 	LPSTR tmp = (LPSTR) mir_alloc(2048); int j=0;
 	for(int i=0; szNames[i]; i++) {
     		if( szNames[i] == ';' ) {
-    			memcpy((PVOID)&tmp[j],(PVOID)":1:0:0",6); j+=6;
+    			memcpy((PVOID)(tmp+j),(PVOID)":1:0:0",6); j+=6;
     		}
     		tmp[j++] = szNames[i];
 	}
@@ -30,7 +30,7 @@ void loadSupportedProtocols() {
 		if (protos[i]->type == PROTOTYPE_PROTOCOL && protos[i]->szName && CallProtoService(protos[i]->szName,PS_GETCAPS,PFLAGNUM_2,0)) {
 		    int j = proto_cnt; proto_cnt++;
 		    proto = (pSupPro) mir_realloc(proto,sizeof(SupPro)*proto_cnt);
-		    ZeroMemory(&proto[j],sizeof(SupPro));
+		    memset(&proto[j],0,sizeof(SupPro));
 		    proto[j].name = mir_strdup(protos[i]->szName);
 		    if( szNames ) {
        			if( proto[j].name ) {
@@ -94,19 +94,19 @@ pUinKey addContact(HANDLE hContact) {
 				clist_cnt++;
 				clist = (pUinKey) mir_realloc(clist,sizeof(UinKey)*clist_cnt);
 			}
-			ZeroMemory(&clist[j],sizeof(UinKey));
+			memset(&clist[j],0,sizeof(UinKey));
 			clist[j].hContact = hContact;
 			clist[j].proto = proto;
 			clist[j].mode = DBGetContactSettingByte(hContact, szModuleName, "mode", 99);
 			if( clist[j].mode == 99 ) {
-				if( isContactPGP(hContact) ) clist[j].mode = 1;
+				if( isContactPGP(hContact) ) clist[j].mode = MODE_PGP;
 				else
-				if( isContactGPG(hContact) ) clist[j].mode = 2;
+				if( isContactGPG(hContact) ) clist[j].mode = MODE_GPG;
 				else
-				clist[j].mode = 0;
+				clist[j].mode = MODE_RSAAES;
 				DBWriteContactSettingByte(hContact, szModuleName, "mode", clist[j].mode);
 			}
-			clist[j].status = DBGetContactSettingByte(hContact, szModuleName, "StatusID", 1);
+			clist[j].status = DBGetContactSettingByte(hContact, szModuleName, "StatusID", STATUS_ENABLED);
 			clist[j].gpgMode = DBGetContactSettingByte(hContact, szModuleName, "gpgANSI", 0);
 			return &clist[j];
 		}

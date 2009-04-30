@@ -34,6 +34,7 @@ USING_NAMESPACE(std)
 #define KEYSIZE 256
 #define DEFMSGS 4096
 
+
 typedef struct __SIMDATA {
 	DH	*dh;		// diffie-hellman
 	PBYTE	PubA;		// public keyA 2048 bit
@@ -44,19 +45,23 @@ typedef struct __SIMDATA {
 } SIMDATA;
 typedef SIMDATA* pSIMDATA;
 
+
 typedef struct __PGPDATA {
 	PBYTE	pgpKeyID; // PGP KeyID
 	PBYTE	pgpKey;   // PGP Key
 } PGPDATA;
 typedef PGPDATA* pPGPDATA;
 
+
 typedef struct __GPGDATA {
 	BYTE	*gpgKeyID; // GPG KeyID
 } GPGDATA;
 typedef GPGDATA* pGPGDATA;
 
+
 #define RSA_KEYSIZE		SHA1::DIGESTSIZE
 #define RSA_CalculateDigest	SHA1().CalculateDigest
+
 
 typedef struct __RSAPRIV {
 	string	priv_k;	// private key string
@@ -65,6 +70,7 @@ typedef struct __RSAPRIV {
 	string	pub_s;	// hash(pub_k)
 } RSAPRIV;
 typedef RSAPRIV* pRSAPRIV;
+
 
 typedef struct __RSADATA {
 	short			state;	// 0 - нифига нет, 1..6 - keyexchange, 7 - соединение установлено
@@ -77,6 +83,7 @@ typedef struct __RSADATA {
 } RSADATA;
 typedef RSADATA* pRSADATA;
 
+
 typedef struct __CNTX {
 	int	cntx;		// context id
 	PBYTE	pdata;		// data block, for key exchange
@@ -86,6 +93,7 @@ typedef struct __CNTX {
 	LPSTR	tmp;		// return string
 } CNTX;
 typedef CNTX* pCNTX;
+
 
 #define FEATURES_UTF8			0x01
 #define FEATURES_BASE64			0x02
