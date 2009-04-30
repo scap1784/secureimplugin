@@ -93,6 +93,7 @@
 #include "sdk\m_metacontacts.h"
 #include "sdk\m_updater.h"
 #include "sdk\m_extraicons.h"
+#include "sdk\m_folders.h"
  
 #endif
 
@@ -146,7 +147,7 @@ extern "C" {
 
 }
 
-extern HANDLE g_hEvent[2], g_hMenu[15], g_hCLIcon;
+extern HANDLE g_hEvent[2], g_hMenu[15], g_hCLIcon, g_hFolders;
 extern HANDLE *g_hService;
 extern HANDLE *g_hHook;
 extern int iService, iHook;

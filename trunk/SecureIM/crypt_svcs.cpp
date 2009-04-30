@@ -572,6 +572,23 @@ INT_PTR __cdecl onRecvMsg(WPARAM wParam, LPARAM lParam) {
 				return 1;
 			}
 
+			// other side support RSA mode ?
+			if( cpp_get_features(ptr->cntx) & CPP_FEATURES_RSA ) {
+				// switch to RSAAES mode
+		    		cpp_delete_context(ptr->cntx);
+		    		ptr->mode = MODE_RSAAES;
+		    		DBWriteContactSettingByte(ptr->hContact, szModuleName, "mode", ptr->mode);
+
+				ptr->cntx = cpp_create_context(CPP_MODE_RSA);
+				ptr->keyLoaded = 0;
+				loadRSAkey(ptr);
+				exp->rsa_connect(ptr->cntx);
+
+				showPopUpKS(pccsd->hContact);
+				ShowStatusIconNotify(pccsd->hContact);
+				return 1;
+			}
+
 			// other side support new key format ?
 			if( cpp_get_features(ptr->cntx) & CPP_FEATURES_NEWPG ) {
 				cpp_reset_context(ptr->cntx);
@@ -781,10 +798,17 @@ INT_PTR __cdecl onSendMsg(WPARAM wParam, LPARAM lParam) {
         			ptr->cntx = cpp_create_context(CPP_MODE_RSA);
         			ptr->keyLoaded = 0;
         		}
-			if( !loadRSAkey(ptr) || !bSOM ) {
-        			// просто шлем незашифрованное в оффлайн
-				return CallService(MS_PROTO_CHAINSEND, wParam, lParam);
+			if( !bSOM || !loadRSAkey(ptr) ) {
+				if( ssig==SiG_NONE ) {
+        				// просто шлем незашифрованное в оффлайн
+					return CallService(MS_PROTO_CHAINSEND, wParam, lParam);
+				}
+				else {
+					// ничего не шлем дальше - это служебное сообщение
+					return returnNoError(pccsd->hContact);
+				}
 			}
+			// шлем шифрованное в оффлайн
 			LPSTR szUtfMsg = miranda_to_utf8((LPCSTR)pccsd->lParam,pccsd->wParam);
 			exp->rsa_send(ptr->cntx,szUtfMsg);
 			mir_free(szUtfMsg);
@@ -798,7 +822,7 @@ INT_PTR __cdecl onSendMsg(WPARAM wParam, LPARAM lParam) {
 				deleteRSAcntx(ptr);
 			}
 			if( ssig==SiG_NONE ) {
-			    // просто шлем незашифрованное (не знаю даже когда такое случится)
+			    // просто шлем незашифрованное
 			    return CallService(MS_PROTO_CHAINSEND, wParam, lParam);
 			}
 			// ничего не шлем дальше - это служебное сообщение
@@ -828,7 +852,7 @@ INT_PTR __cdecl onSendMsg(WPARAM wParam, LPARAM lParam) {
 			// запускаем процесс установки соединения
 			ssig=SiG_INIT;
 			// запускаем трэд ожидания и досылки
-		    	waitForExchange(ptr);
+			waitForExchange(ptr);
 		}
 		// установить соединение
 		if( ssig==SiG_INIT ) {
@@ -1390,7 +1414,7 @@ int __cdecl onWindowEvent(WPARAM wParam, LPARAM lParam) {
 int __cdecl onIconPressed(WPARAM wParam, LPARAM lParam) {
 	HANDLE hContact = (HANDLE)wParam;
 	if( isProtoMetaContacts(hContact) )
-		hContact = getMostOnline(hContact); // ў®§м¬Ґ¬ в®в, зҐаҐ§ Є®в®ал© Ї®©¤Ґв б®®ЎйҐ­ЁҐ
+		hContact = getMostOnline(hContact); // возьмем тот, через который пойдет сообщение
 
 	StatusIconClickData *sicd = (StatusIconClickData *)lParam;
 	if( strcmp(sicd->szModule, szModuleName) != 0 ||
