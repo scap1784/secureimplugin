@@ -20,14 +20,15 @@ BOOL rsa_2048=0, rsa_4096=0;
 
 int __cdecl rsa_inject(int context, LPCSTR msg) {
 	pUinKey ptr = getUinCtx(context); if(!ptr) return 0;
-	LPSTR buf = (LPSTR) mir_alloc(strlen(msg)+LEN_SECU+1);
-	memcpy(buf,SIG_SECU,LEN_SECU); memcpy(buf+LEN_SECU,msg,strlen(msg)+1);
 #if defined(_DEBUG) || defined(NETLIB_LOG)
 	Sent_NetLog("rsa_inject: '%s'", msg);
 #endif
+	int len = strlen(msg)+1;
+	LPSTR buf = (LPSTR) alloca(LEN_SECU+len);
+	memcpy(buf,SIG_SECU,LEN_SECU);
+	memcpy(buf+LEN_SECU,msg,len);
 	// отправляем сообщение
 	sendSplitMessage(ptr,buf);
-	mir_free(buf);
 	return 1;
 }
 
