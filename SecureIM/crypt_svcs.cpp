@@ -1127,9 +1127,11 @@ int __cdecl onProtoAck(WPARAM wParam,LPARAM lParam) {
 			}
 			if (ptr->fileSend) {
 				char **file=ptr->fileSend;
-        		for(int i=0;file[i];i++) {
-					if (strstr(file[i],".AESHELL")) mir_unlink(file[i]);
-					mir_free(file[i]);
+        			for(int i=0;file[i];i++) {
+					if(file[i]) { // from SSS
+						if (strstr(file[i],".AESHELL")) mir_unlink(file[i]);
+						mir_free(file[i]);
+					}
 				}
 				SAFE_FREE(ptr->fileSend);
 			}

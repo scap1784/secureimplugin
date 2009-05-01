@@ -39,7 +39,6 @@ char *base16decode(const char *inBuffer, int *count) {
 			c0 = decode16(*inBuffer++);
 			c1 = decode16(*inBuffer++);
 		}
-		if( c0 == BEOF || c1 == BEOF ) break;
 		if((c0 | c1) == BERR) {
 			mir_free(outBuffer);
 			return(NULL);

@@ -46,8 +46,9 @@ INT_PTR __cdecl Service_Status(WPARAM wParam, LPARAM lParam) {
     case STATUS_ALWAYSTRY:
 		pUinKey ptr = getUinKey((HANDLE)wParam);
 		if(ptr) {
-			ptr->status=(BYTE)lParam;
-			DBWriteContactSettingByte((HANDLE)wParam, szModuleName, "StatusID", (BYTE)lParam);
+			ptr->status=ptr->tstatus=(BYTE)lParam;
+			if(ptr->status==STATUS_ENABLED)	DBDeleteContactSetting(ptr->hContact, szModuleName, "StatusID");
+			else 				DBWriteContactSettingByte(ptr->hContact, szModuleName, "StatusID", ptr->status);
 		}
 		break;
     }

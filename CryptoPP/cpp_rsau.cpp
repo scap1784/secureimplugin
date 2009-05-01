@@ -17,21 +17,28 @@ string tlv(int t, const char* v) {
 
 string tlv(int t, int v) {
 	string s;
-	int l=(v<=0xFF)?1:((v<=0xFFFF)?2:((v<=0xFFFFFF)?3:4));
+	u_int l=(v<=0xFF)?1:((v<=0xFFFF)?2:((v<=0xFFFFFF)?3:4));
 	s.assign((char*)&v,l);
 	return tlv(t,s);
 }
 
 
 string& un_tlv(string& b, int& t, string& v) {
-	if( b.length() ) {
+	string r = ""; v = r;
+	if( b.length() > 3 ) {
 		t = 0;
 		b.copy((char*)&t,3);
-		int l = t>>8;
+		u_int l = t>>8;
 		t &= 0xFF;
-		v = b.substr(3,l);
-		b = b.substr(3+l);
+		if( b.length() >= 3+l ) {
+		  v = b.substr(3,l);
+		  r = b.substr(3+l);
+		}
 	}
+	if( !v.length() ) {
+	  t = -1;
+	}
+	b = r;
 	return b;
 }
 
