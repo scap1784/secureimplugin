@@ -39,12 +39,12 @@ char *base64decode(const char *inBuffer, int *count) {
 	while(srcIndex < *count) {
 		BYTE c0, c1, c2 = 0, c3 = 0;
 		const int delta = *count - srcIndex;
-		c0 = decode64(inBuffer[srcIndex++]); if( c0 == BEOF ) break;
-		c1 = decode64(inBuffer[srcIndex++]); if( c1 == BEOF ) break;
+		c0 = decode64(inBuffer[srcIndex++]);
+		c1 = decode64(inBuffer[srcIndex++]);
 		if(delta > 2) {
-			c2 = decode64(inBuffer[srcIndex++]); if( c2 == BEOF ) break;
+			c2 = decode64(inBuffer[srcIndex++]);
 			if(delta > 3)
-				c3 = decode64(inBuffer[srcIndex++]); if( c3 == BEOF ) break;
+				c3 = decode64(inBuffer[srcIndex++]);
 		}
 		if((c0 | c1 | c2 | c3) == BERR) {
 			mir_free(outBuffer);

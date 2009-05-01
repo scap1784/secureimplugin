@@ -262,17 +262,34 @@ int __cdecl rsa_get_state(int context) {
 
 LPSTR __cdecl rsa_recv(int context, LPCSTR msg) {
 
+#if defined(_DEBUG) || defined(NETLIB_LOG)
+	Sent_NetLog("rsa_recv: '%s'", msg);
+#endif
 	pCNTX ptr = get_context_on_id(context);	if(!ptr) return 0;
 	pRSADATA p = (pRSADATA) cpp_alloc_pdata(ptr);
 	pRSAPRIV r = (pRSAPRIV) (get_context_on_id((ptr->mode&MODE_RSA_4096)?-3:-2))->pdata;
 
-	int len = rtrim(msg); PBYTE buf = (PBYTE)base64decode(msg,&len);
-	string data; int type; un_tlv(buf,len,type,data);
+	int len = rtrim(msg);
+	PBYTE buf = (PBYTE)base64decode(msg,&len);
+	if( !buf ) {
+		// шлем перерывание сессии
+		p->state=0; p->time=0;
+		null_msg(context,0x00,-1); // сессия разорвана по ошибке, неверный тип сообщения
+		return 0;
+	}
+	string data; int type;
+	un_tlv(buf,len,type,data);
+	if( type<0 ) {
+		// шлем перерывание сессии
+		p->state=0; p->time=0;
+		null_msg(context,0x00,-1); // сессия разорвана по ошибке, неверный тип сообщения
+		return 0;
+	}
 
 #if defined(_DEBUG) || defined(NETLIB_LOG)
-	Sent_NetLog("rsa_recv(%02x): [%d] '%s'", type, p->state, data.c_str());
+	Sent_NetLog("rsa_recv: %02x %d", type, p->state);
 #endif
-        if( type>0x10 && type<0xE0 ) 
+	if( type>0x10 && type<0xE0 ) 
 	    if( p->state==0 || p->state!=(type>>4) ) {
 		// шлем перерывание сессии
 		p->state=0; p->time=0;

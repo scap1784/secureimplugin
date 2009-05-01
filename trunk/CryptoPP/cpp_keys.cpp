@@ -82,9 +82,9 @@ int __cdecl cpp_init_keyb(int context, LPCSTR key) {
 	else 
 		pub_binary = base64decode(key,&clen);
 
-	if(clen!=KEYSIZE && clen!=KEYSIZE+2) {
+	if( !pub_binary || (clen!=KEYSIZE && clen!=KEYSIZE+2) ) {
 #if defined(_DEBUG) || defined(NETLIB_LOG)
-		Sent_NetLog("cpp_init_keyb: error bad_keyb %d %d",KEYSIZE,clen);
+		Sent_NetLog("cpp_init_keyb: error bad_keyb");
 #endif
 		ptr->error = ERROR_BAD_KEYB;
 		SAFE_FREE(pub_binary);
