@@ -42,9 +42,9 @@ char *base64decode(const char *inBuffer, int *count) {
 		c0 = decode64(inBuffer[srcIndex++]); if( c0 == BEOF ) break;
 		c1 = decode64(inBuffer[srcIndex++]); if( c1 == BEOF ) break;
 		if(delta > 2) {
-			c2 = decode64(inBuffer[srcIndex++]);
+			c2 = decode64(inBuffer[srcIndex++]); if( c2 == BEOF ) break;
 			if(delta > 3)
-				c3 = decode64(inBuffer[srcIndex++]);
+				c3 = decode64(inBuffer[srcIndex++]); if( c3 == BEOF ) break;
 		}
 		if((c0 | c1 | c2 | c3) == BERR) {
 			mir_free(outBuffer);
@@ -57,8 +57,8 @@ char *base64decode(const char *inBuffer, int *count) {
 				outBuffer[destIndex++] = (c2 << 6) | (c3);
 		}
 	}
-	outBuffer[destIndex] = '\0';
 	*count = destIndex;
+	outBuffer[destIndex] = '\0';
 
 	return outBuffer;
 }

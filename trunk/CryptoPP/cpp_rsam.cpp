@@ -266,7 +266,7 @@ LPSTR __cdecl rsa_recv(int context, LPCSTR msg) {
 	pRSADATA p = (pRSADATA) cpp_alloc_pdata(ptr);
 	pRSAPRIV r = (pRSAPRIV) (get_context_on_id((ptr->mode&MODE_RSA_4096)?-3:-2))->pdata;
 
-	int len = strlen(msg); PBYTE buf = (PBYTE)base64decode(msg,&len);
+	int len = rtrim(msg); PBYTE buf = (PBYTE)base64decode(msg,&len);
 	string data; int type; un_tlv(buf,len,type,data);
 
 #if defined(_DEBUG) || defined(NETLIB_LOG)

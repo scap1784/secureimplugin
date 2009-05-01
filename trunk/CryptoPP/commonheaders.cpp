@@ -66,6 +66,22 @@ void ExtractFile( char *FileName, int ResType, int ResId )
 }
 
 
+int rtrim(LPCSTR str) {
+	int len = strlen(str);
+	LPSTR ptr = (LPSTR)str+len-1;
+
+	while( len ) {
+		char c = *ptr;
+		if( c != '\x20' && c != '\x09' && c != '\x0A' && c != '\x0D' ) {
+			*(ptr+1) = '\0';
+			break;
+		}
+		len--; ptr--;
+	}
+	return len;
+}
+
+
 #if defined(_DEBUG) || defined(NETLIB_LOG)
 HANDLE hNetlibUser;
 

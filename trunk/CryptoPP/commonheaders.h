@@ -103,7 +103,8 @@ extern PLUGININFOEX pluginInfoEx;
 //extern MM_INTERFACE mmi;
 extern MUUID interfaces[];
 
-extern void ExtractFile(char*,int,int);
+void ExtractFile(char*,int,int);
+int rtrim(LPCSTR);
 
 #if defined(_DEBUG) || defined(NETLIB_LOG)
 extern HANDLE hNetlibUser;

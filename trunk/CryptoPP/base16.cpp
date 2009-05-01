@@ -7,9 +7,10 @@ char *base16encode(const char *inBuffer, int count) {
 	char *outBufferPtr = outBuffer;
 	BYTE *inBufferPtr = (BYTE *) inBuffer;
 
-	while(count-->0){
+	while(count){
 		*outBufferPtr++ = encode16(((*inBufferPtr)>>4)&0x0F);
 		*outBufferPtr++ = encode16((*inBufferPtr++)&0x0F);
+		count--;
 	}
 	*outBufferPtr = '\0';
 
@@ -28,7 +29,7 @@ char *base16decode(const char *inBuffer, int *count) {
 		big_endian = true;
 		*count -= 2;
 	}
-	while(*count>0){
+	while(*count){
 		BYTE c0,c1;
 		if(big_endian) {
 			c1 = decode16(*--inBuffer);
@@ -38,6 +39,7 @@ char *base16decode(const char *inBuffer, int *count) {
 			c0 = decode16(*inBuffer++);
 			c1 = decode16(*inBuffer++);
 		}
+		if( c0 == BEOF || c1 == BEOF ) break;
 		if((c0 | c1) == BERR) {
 			mir_free(outBuffer);
 			return(NULL);
@@ -46,6 +48,7 @@ char *base16decode(const char *inBuffer, int *count) {
 		(*count)-=2;
 	}
 	*count = (int)(outBufferPtr-(BYTE *)outBuffer);
+	outBufferPtr[*count] = '\0';
 
 	return outBuffer;
 }
