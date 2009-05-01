@@ -18,17 +18,18 @@ HICON mode2icon(int mode,int type) {
 	HICON icon;
 
 	if( icons_cache ) {
-		for( int i=0;i<icons_cache;i++) {
+		for(i=0;i<icons_cache;i++) {
 			if( ICONS_CACHE[i].mode == ((type<<8) | mode) ) {
 				return ICONS_CACHE[i].icon;
 			}
 		}
 	}
 
+	i=s;
 	switch(type) {
-	case 1: i=IEC_CL_DIS+s; break;
-	case 2: i=ICO_CM_DIS+s; break;
-	case 3: i=ICO_MW_DIS+s; break;
+	case 1: i+=IEC_CL_DIS; break;
+	case 2: i+=ICO_CM_DIS; break;
+	case 3: i+=ICO_MW_DIS; break;
 	}
 
 	if( type==1 ) {

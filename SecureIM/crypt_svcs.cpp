@@ -1319,7 +1319,7 @@ int __cdecl onRebuildContactMenu(WPARAM wParam,LPARAM lParam) {
 	BOOL isSecureProto = isSecureProtocol(hContact);
 	BOOL isPGP = isContactPGP(hContact);
 	BOOL isGPG = isContactGPG(hContact);
-	BOOL isRSAAES = isContactRSAAES(hContact);
+//	BOOL isRSAAES = isContactRSAAES(hContact);
 	BOOL isSecured = isContactSecured(hContact)&SECURED;
 	BOOL isChat = isChatRoom(hContact);
 

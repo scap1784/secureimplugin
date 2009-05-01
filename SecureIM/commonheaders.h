@@ -13,12 +13,22 @@
 #define mir_unlink _unlink
 #else
 // MSVC 6.0 and below
-#define mir_itoa itoa
-#define mir_unlink unlink
 #ifndef _DEBUG
 #pragma optimize("gsy", on)
 #endif 
 #endif 
+#endif
+
+#ifndef mir_itoa
+#define mir_itoa itoa
+#endif
+
+#ifndef mir_unlink
+#define mir_unlink unlink
+#endif
+
+#ifndef WINVER
+#define WINVER 0x0501
 #endif
 
 #ifndef _WIN32_WINNT
@@ -36,15 +46,8 @@
 #include <m_stdhdr.h>
 
 // Windows API
-#ifdef _MSC_VER
-#if _MSC_VER > 1000
 #include <windows.h>
-#else
-#include <afxwin.h>
-#endif
-#else
-#include <windows.h>
-#endif
+#include <wingdi.h>
 #include <winsock2.h>
 #include <commdlg.h>
 #include <commctrl.h>

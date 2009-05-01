@@ -39,8 +39,8 @@ char *base64decode(const char *inBuffer, int *count) {
 	while(srcIndex < *count) {
 		BYTE c0, c1, c2 = 0, c3 = 0;
 		const int delta = *count - srcIndex;
-		c0 = decode64(inBuffer[srcIndex++]);
-		c1 = decode64(inBuffer[srcIndex++]);
+		c0 = decode64(inBuffer[srcIndex++]); if( c0 == BEOF ) break;
+		c1 = decode64(inBuffer[srcIndex++]); if( c1 == BEOF ) break;
 		if(delta > 2) {
 			c2 = decode64(inBuffer[srcIndex++]);
 			if(delta > 3)
@@ -57,6 +57,7 @@ char *base64decode(const char *inBuffer, int *count) {
 				outBuffer[destIndex++] = (c2 << 6) | (c3);
 		}
 	}
+	outBuffer[destIndex] = '\0';
 	*count = destIndex;
 
 	return outBuffer;
