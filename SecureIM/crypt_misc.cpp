@@ -42,11 +42,14 @@ void __cdecl sttWaitForExchange( LPVOID param ) {
 
 	for(int i=0;i<DBGetContactSettingWord(0,szModuleName,"ket",10)*10; i++) {
 		Sleep( 100 );
-	   	if( !ptr->waitForExchange ) break;
+	   	if( ptr->waitForExchange != 1 ) break;
 	} // for
 
+#if defined(_DEBUG) || defined(NETLIB_LOG)
+	Sent_NetLog("sttWaitForExchange: %d",ptr->waitForExchange);
+#endif
    	// if keyexchange failed or timeout
-   	if( ptr->waitForExchange ) {
+   	if( ptr->waitForExchange==1 || ptr->waitForExchange==3 ) { // протухло - отправляем незашифрованно, если надо
    		if( ptr->msgQueue && msgbox1(0,sim104,szModuleName,MB_YESNO|MB_ICONQUESTION)==IDYES ) {
 	   		EnterCriticalSection(&localQueueMutex);
 	   		ptr->sendQueue = true;
@@ -66,11 +69,11 @@ void __cdecl sttWaitForExchange( LPVOID param ) {
 	   		ptr->sendQueue = false;
 	   		LeaveCriticalSection(&localQueueMutex);
    		}
-		ptr->waitForExchange = false;
+		ptr->waitForExchange = 0;
    		ShowStatusIconNotify(ptr->hContact);
    	}
-   	else {
-   		// дошлем через установленное соединение
+   	else
+   	if( ptr->waitForExchange==2 ) { // дослать очередь через установленное соединение
 		EnterCriticalSection(&localQueueMutex);
 		// we need to resend last send back message with new crypto Key
 		pWM ptrMessage = ptr->msgQueue;
@@ -80,6 +83,21 @@ void __cdecl sttWaitForExchange( LPVOID param ) {
 #endif
 			// send unencrypted messages
 			CallContactService(ptr->hContact,PSS_MESSAGE,(WPARAM)ptrMessage->wParam|PREF_METANODB,(LPARAM)ptrMessage->Message);
+			mir_free(ptrMessage->Message);
+			pWM tmp = ptrMessage;
+			ptrMessage = ptrMessage->nextMessage;
+			mir_free(tmp);
+		}
+		ptr->msgQueue = NULL;
+		ptr->waitForExchange = 0;
+		LeaveCriticalSection(&localQueueMutex);
+   	}
+   	else
+   	if( ptr->waitForExchange==0 ) { // очистить очередь
+		EnterCriticalSection(&localQueueMutex);
+		// we need to resend last send back message with new crypto Key
+		pWM ptrMessage = ptr->msgQueue;
+		while (ptrMessage) {
 			mir_free(ptrMessage->Message);
 			pWM tmp = ptrMessage;
 			ptrMessage = ptrMessage->nextMessage;

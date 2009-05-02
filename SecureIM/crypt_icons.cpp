@@ -76,9 +76,7 @@ IconExtraColumn mode2iec(int mode) {
 
 // обновляет иконки в clist и в messagew
 void ShowStatusIcon(HANDLE hContact,int mode) {
-#if defined(_DEBUG) || defined(NETLIB_LOG)
-	Sent_NetLog("ShowStatusIcon(%02X)",mode);
-#endif
+
 	HANDLE hMC = getMetaContact(hContact);
 	if( bADV ) { // обновить иконки в clist
 		if( mode!= -1 ) {

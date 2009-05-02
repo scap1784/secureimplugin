@@ -1,7 +1,7 @@
 // Windows API
 
 #define WIN32_LEAN_AND_MEAN
-//#define NETLIB_LOG
+#define NETLIB_LOG
 
 #ifdef _MSC_VER
 #pragma once

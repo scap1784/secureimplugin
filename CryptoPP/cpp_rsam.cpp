@@ -872,11 +872,11 @@ int __cdecl rsa_recv_thread(int context, string& msg) {
 			inject_msg(context,0x21,gen_aes_key_iv(ptr->mode,p,r));
 			p->state=5;
 		} break;
-		case 0x10: { // совпал удаленный паблик
+		case 0x10: { // совпал удаленный паблик, нужен локальный
 			inject_msg(context,0x22,tlv(0,features)+tlv(1,r->pub_k)+tlv(2,r->pub_s));
 			p->state=3;
 		} break;
-		case 0x01: { // совпал локальный паблик
+		case 0x01: { // совпал локальный паблик, нужен удаленный
 			inject_msg(context,0x23,tlv(0,features));
 			p->state=3;
 		} break;

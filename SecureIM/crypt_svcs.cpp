@@ -24,13 +24,24 @@ int getSecureSig(LPCSTR szMsg, LPSTR *szPlainMsg=NULL) {
 
 
 // set wait flag and run thread
-void waitForExchange(pUinKey ptr) {
-	if(ptr->waitForExchange) return;
-	ptr->waitForExchange = true;
-	HANDLE hEvent = CreateEvent( NULL, TRUE, FALSE, NULL );
-//	CloseHandle( (HANDLE) _beginthread(sttWaitForExchange, 0, new TWaitForExchange(hEvent,ptr->hContact)) );
-	_beginthread(sttWaitForExchange, 0, new TWaitForExchange(hEvent,ptr->hContact));
-	SetEvent( hEvent );
+void waitForExchange(pUinKey ptr, char flag) {
+	switch( flag ) {
+	case 0: // сбросить
+	case 2: // дослать шифровано
+	case 3: // дослать нешифровано
+		if( ptr->waitForExchange ) 
+			ptr->waitForExchange = flag;
+		break;
+	case 1: // запустить
+		if( ptr->waitForExchange ) 
+			break;
+		ptr->waitForExchange = 1;
+		// запускаем трэд
+		HANDLE hEvent = CreateEvent( NULL, TRUE, FALSE, NULL );
+		_beginthread(sttWaitForExchange, 0, new TWaitForExchange(hEvent,ptr->hContact));
+		SetEvent( hEvent );
+		break;
+	}
 }
 
 
@@ -542,8 +553,11 @@ INT_PTR __cdecl onRecvMsg(WPARAM wParam, LPARAM lParam) {
 	} break;
 
 	case SiG_DISA: { // disabled message
-		ptr->status=ptr->tstatus=STATUS_DISABLED;
-		DBWriteContactSettingByte(ptr->hContact, szModuleName, "StatusID", ptr->status);
+#if defined(_DEBUG) || defined(NETLIB_LOG)
+		Sent_NetLog("onRecv: SiG_DISA");
+#endif
+//		ptr->status=ptr->tstatus=STATUS_DISABLED;
+//		DBWriteContactSettingByte(ptr->hContact, szModuleName, "StatusID", ptr->status);
 	}
 	case SiG_DEIN: { // deinit message
 		// other user has disabled SecureIM with you
@@ -552,7 +566,7 @@ INT_PTR __cdecl onRecvMsg(WPARAM wParam, LPARAM lParam) {
 		showPopUpDC(ptr->hContact);
 		ShowStatusIconNotify(ptr->hContact);
 
-		ptr->waitForExchange=false;
+		waitForExchange(ptr,3); // дослать нешифрованно
 		return 1;
 	} break;
 
@@ -577,6 +591,9 @@ INT_PTR __cdecl onRecvMsg(WPARAM wParam, LPARAM lParam) {
 				cpp_reset_context(ptr->cntx);
 			}
 			if( InitKeyB(ptr,szEncMsg)!=CPP_ERROR_NONE ) {
+#if defined(_DEBUG) || defined(NETLIB_LOG)
+				Sent_NetLog("SiG_KEYR: InitKeyB error");
+#endif
 				// tell to the other side that we have the plugin disabled with him
 /*
 				pccsd->lParam = (LPARAM) SIG_DISA;
@@ -586,14 +603,14 @@ INT_PTR __cdecl onRecvMsg(WPARAM wParam, LPARAM lParam) {
 				showPopUp(sim013,ptr->hContact,g_hPOP[POP_PU_DIS],0);
 				ShowStatusIconNotify(ptr->hContact);
 
-				ptr->waitForExchange=false;
+				waitForExchange(ptr,3); // дослать нешифрованно
 				return 1;
 			}
 
 			// other side support RSA mode ?
 			if( cpp_get_features(ptr->cntx) & CPP_FEATURES_RSA ) {
 				// switch to RSAAES mode
-		    		ptr->mode = MODE_RSAAES;
+				ptr->mode = MODE_RSAAES;
 		    		DBWriteContactSettingByte(ptr->hContact, szModuleName, "mode", ptr->mode);
 
 				resetRSAcntx(ptr);
@@ -618,8 +635,8 @@ INT_PTR __cdecl onRecvMsg(WPARAM wParam, LPARAM lParam) {
 				CallService(MS_PROTO_CHAINSEND, wParam, lParam);
 				mir_free(keyToSend);
 
-				waitForExchange(ptr);
 				showPopUpKS(ptr->hContact);
+				waitForExchange(ptr); // запустим ожидание
 				return 1;
 			}
 
@@ -644,6 +661,9 @@ INT_PTR __cdecl onRecvMsg(WPARAM wParam, LPARAM lParam) {
 
 			cpp_reset_context(ptr->cntx);
 			if(InitKeyB(ptr,szEncMsg)!=CPP_ERROR_NONE) {
+#if defined(_DEBUG) || defined(NETLIB_LOG)
+				Sent_NetLog("SiG_KEYA: InitKeyB error");
+#endif
 				// tell to the other side that we have the plugin disabled with him
 /*
 				pccsd->lParam = (LPARAM) SIG_DISA;
@@ -653,7 +673,7 @@ INT_PTR __cdecl onRecvMsg(WPARAM wParam, LPARAM lParam) {
 				showPopUp(sim013,ptr->hContact,g_hPOP[POP_PU_DIS],0);
 				ShowStatusIconNotify(ptr->hContact);
 
-				ptr->waitForExchange=false;
+				waitForExchange(ptr,3); // дослать нешифрованно
 				return 1;
 			}
 
@@ -673,6 +693,9 @@ INT_PTR __cdecl onRecvMsg(WPARAM wParam, LPARAM lParam) {
 
 			// clear all and send DISA if received KeyB, and not exist KeyA or error on InitKeyB
 			if(!cpp_keya(ptr->cntx) || InitKeyB(ptr,szEncMsg)!=CPP_ERROR_NONE) {
+#if defined(_DEBUG) || defined(NETLIB_LOG)
+				Sent_NetLog("SiG_KEYB: InitKeyB error");
+#endif
 				// tell to the other side that we have the plugin disabled with him
 /*
 				pccsd->lParam = (LPARAM) SIG_DISA;
@@ -683,7 +706,7 @@ INT_PTR __cdecl onRecvMsg(WPARAM wParam, LPARAM lParam) {
 				ShowStatusIconNotify(ptr->hContact);
 
 				cpp_reset_context(ptr->cntx);
-				ptr->waitForExchange=false;
+				waitForExchange(ptr,3); // дослать нешифрованно
 				return 1;
 			}
 		} break;
@@ -700,7 +723,7 @@ INT_PTR __cdecl onRecvMsg(WPARAM wParam, LPARAM lParam) {
 		Sent_NetLog("Session established");
 #endif
 
-		ptr->waitForExchange = false; // дошлем сообщения из очереди
+		waitForExchange(ptr,2); // дошлем через шифрованное соединение
 		return 1;
 		/* common part (CalcKeyX & SendQueue) */
 	} break;
@@ -850,7 +873,7 @@ INT_PTR __cdecl onSendMsg(WPARAM wParam, LPARAM lParam) {
 				exp->rsa_disconnect(ptr->cntx);
 				deleteRSAcntx(ptr);
 			}
-			ptr->waitForExchange=false;
+			waitForExchange(ptr,3); // дошлем нешифрованно
 			return returnNoError(pccsd->hContact);
 		}
 		// соединение установлено
@@ -1046,10 +1069,10 @@ INT_PTR __cdecl onSendMsg(WPARAM wParam, LPARAM lParam) {
 	  			CallService(MS_PROTO_CHAINSEND, wParam, lParam);
 	  			mir_free(keyToSend);
 
-				waitForExchange(ptr);
-
 	  			showPopUpKS(pccsd->hContact);
 	  			ShowStatusIconNotify(pccsd->hContact);
+
+				waitForExchange(ptr); // запускаем ожидание
 	  		}
 			return returnNoError(pccsd->hContact);
 	  	}

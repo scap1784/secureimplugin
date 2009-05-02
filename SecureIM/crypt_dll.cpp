@@ -99,7 +99,7 @@ BOOL CalculateKeyX(pUinKey ptr,HANDLE hContact) {
 		CallService(MS_DB_CONTACT_WRITESETTING, (WPARAM)hContact, (LPARAM)&cws);
 
 		// key exchange is finished released flag
-		ptr->waitForExchange = false;
+		ptr->waitForExchange = 2; // дослать через шифрованное соединение
 		showPopUpEC(hContact);
 	}
 	else {
