@@ -140,10 +140,6 @@ SOURCE=.\dbevent.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\forkthread.cpp
-# End Source File
-# Begin Source File
-
 SOURCE=.\gettime.cpp
 # End Source File
 # Begin Source File

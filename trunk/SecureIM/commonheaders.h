@@ -113,7 +113,6 @@
 #include "options.h"
 #include "popupoptions.h"
 #include "loadicons.h"
-#include "forkthread.h"
 #include "rtfconv.h"
 #include "cryptopp.h"
 #include "images.h"

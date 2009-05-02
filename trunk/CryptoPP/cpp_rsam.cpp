@@ -52,6 +52,11 @@ string gen_aes_key_iv(short,pRSADATA,pRSAPRIV);
 void init_pub(pRSADATA,string&);
 void null_msg(int,int,int);
 
+void rsa_free(pRSADATA);
+void clear_queue(pRSADATA);
+
+void __cdecl sttConnectThread(LPVOID);
+
 ///////////////////////////////////////////////////////////////////////////
 
 RSA_EXPORT exp = {
@@ -76,6 +81,7 @@ RSA_EXPORT exp = {
 pRSA_IMPORT imp;
 
 string null;
+int timeout = 10;
 
 ///////////////////////////////////////////////////////////////////////////
 
@@ -218,7 +224,7 @@ int __cdecl rsa_connect(int context) {
 		inject_msg(context,0x10,tlv(0,0)+tlv(1,r->pub_s)+tlv(2,p->pub_s));
 		p->state = 2;
 	}
-	p->time = gettime()+10;
+	p->time = gettime()+timeout;
 
 	return p->state;
 }
@@ -231,14 +237,15 @@ int __cdecl rsa_disconnect(int context) {
 #if defined(_DEBUG) || defined(NETLIB_LOG)
 	Sent_NetLog("rsa_disconnect: '%s'", p->pub_s.c_str());
 #endif
-        if( context<0 ) { // просто послать разрыв по причине "disabled"
+	rsa_free( p ); // удалим трэд и очередь сообщений
+	if( context<0 ) { // просто послать разрыв по причине "disabled"
 		p->state = 0;
 		inject_msg(-context,0xFF,null);
 //		imp->rsa_notify(-context,-8); // соединение разорвано по причине "disabled"
 		return 1;
-        }
+	}
 
-	if(!p->state) return 1;
+	if( !p->state ) return 1;
 
 	PBYTE buffer=(PBYTE) alloca(RAND_SIZE);
 	GlobalRNG().GenerateBlock(buffer,RAND_SIZE);
@@ -259,7 +266,7 @@ int __cdecl rsa_get_state(int context) {
 	return p->state;
 }
 
-
+/*
 LPSTR __cdecl rsa_recv(int context, LPCSTR msg) {
 
 #if defined(_DEBUG) || defined(NETLIB_LOG)
@@ -271,20 +278,11 @@ LPSTR __cdecl rsa_recv(int context, LPCSTR msg) {
 
 	int len = rtrim(msg);
 	PBYTE buf = (PBYTE)base64decode(msg,&len);
-	if( !buf ) {
-		// шлем перерывание сессии
-		p->state=0; p->time=0;
-		null_msg(context,0x00,-1); // сессия разорвана по ошибке, неверный тип сообщения
-		return 0;
-	}
+	if( !buf ) return 0;
+
 	string data; int type;
 	un_tlv(buf,len,type,data);
-	if( type<0 ) {
-		// шлем перерывание сессии
-		p->state=0; p->time=0;
-		null_msg(context,0x00,-1); // сессия разорвана по ошибке, неверный тип сообщения
-		return 0;
-	}
+	if( type<0 ) return 0;
 
 #if defined(_DEBUG) || defined(NETLIB_LOG)
 	Sent_NetLog("rsa_recv: %02x %d", type, p->state);
@@ -510,10 +508,158 @@ LPSTR __cdecl rsa_recv(int context, LPCSTR msg) {
 		imp->rsa_notify(context,-8); // соединение разорвано по причине "disabled"
 	} break;
 	}
-	if( p->state != 0 && p->state != 7 ) p->time = gettime()+10;
+	if( p->state != 0 && p->state != 7 ) p->time = gettime()+timeout;
 	return 0;
 }
+*/
+LPSTR __cdecl rsa_recv(int context, LPCSTR msg) {
 
+#if defined(_DEBUG) || defined(NETLIB_LOG)
+	Sent_NetLog("rsa_recv: '%s'", msg);
+#endif
+	pCNTX ptr = get_context_on_id(context);	if(!ptr) return 0;
+	pRSADATA p = (pRSADATA) cpp_alloc_pdata(ptr);
+	pRSAPRIV r = (pRSAPRIV) (get_context_on_id((ptr->mode&MODE_RSA_4096)?-3:-2))->pdata;
+
+	int len = rtrim(msg);
+	PBYTE buf = (PBYTE)base64decode(msg,&len);
+	if( !buf ) return 0;
+
+	string data; int type;
+	un_tlv(buf,len,type,data);
+	if( type<0 ) return 0;
+
+#if defined(_DEBUG) || defined(NETLIB_LOG)
+	Sent_NetLog("rsa_recv: %02x %d", type, p->state);
+#endif
+	if( type>0x10 && type<0xE0 )  // проверим тип сообщения (когда соединение еще не установлено)
+	    if( p->state==0 || p->state!=(type>>4) ) { // неверное состояние
+		// шлем перерывание сессии
+		rsa_free( p ); // удалим трэд и очередь сообщений
+		p->state=0; p->time=0;
+		null_msg(context,0x00,-1); // сессия разорвана по ошибке, неверный тип сообщения
+		return 0;
+	    }
+
+	switch( type ) {
+
+	case 0x00: // прерывание сессии по ошибке другой стороной
+	{
+	        // если соединение установлено - ничего не делаем
+		if( p->state == 0 || p->state == 7 ) return 0;
+		// иначе сбрасываем текущее состояние
+		p->state=0; p->time=0;
+		imp->rsa_notify(context,-2); // сессия разорвана по ошибке другой стороной
+	} break;
+
+	// это все будем обрабатывать в отдельном потоке, чтобы избежать таймаутов
+	case 0x10: // запрос на установку соединения
+	case 0x22: // получили удаленный паблик, отправляем уже криптоключ
+	case 0x23: // отправляем локальный паблик
+	case 0x24: // получили удаленный паблик, отправим локальный паблик
+	case 0x33: // получили удаленный паблик, отправляем криптоключ
+	case 0x34:
+	case 0x21: // получили криптоключ, отправляем криптотест
+	case 0x32:
+	case 0x40:
+	case 0x0D: // запрос паблика
+	case 0xD0: // ответ пабликом
+	{
+		data.assign((LPSTR)buf,len);
+		if( !p->event ) {
+			p->event = CreateEvent(NULL,FALSE,FALSE,NULL);
+			p->thread = (HANDLE) _beginthread(sttConnectThread, 0, (PVOID)context);
+#if defined(_DEBUG) || defined(NETLIB_LOG)
+			Sent_NetLog("rsa_recv: _beginthread");
+#endif
+		}
+		EnterCriticalSection(&localQueueMutex);
+		p->queue->push(data);
+		LeaveCriticalSection(&localQueueMutex);
+		SetEvent(p->event); // сказали обрабатывать :)
+	} break;
+
+	case 0x50: // получили криптотест, отправляем свой криптотест
+	{
+		string msg = decode_msg(p,data);
+		if( msg.length() == 0 ) {
+			p->state=0; p->time=0;
+			null_msg(context,0x00,-type); // сессия разорвана по ошибке
+			return 0;
+		}
+		PBYTE buffer=(PBYTE) alloca(RAND_SIZE);
+		GlobalRNG().GenerateBlock(buffer,RAND_SIZE);
+        	inject_msg(context,0x60,encode_msg(0,p,sign(buffer,RAND_SIZE)));
+		p->state=7; p->time=0;
+		rsa_free( p );
+		imp->rsa_notify(context,1);	// заебися, криптосессия установлена
+	} break;
+
+	case 0x60: // получили криптотест, сессия установлена
+	{
+		string msg = decode_msg(p,data);
+		if( msg.length() == 0 ) {
+			p->state=0; p->time=0;
+			null_msg(context,0x00,-type); // сессия разорвана по ошибке
+			return 0;
+		}
+		p->state=7; p->time=0;
+		rsa_free( p );
+		imp->rsa_notify(context,1);	// заебися, криптосессия установлена
+	} break;
+
+	case 0x70: // получили AES сообщение, декодируем
+	{
+		SAFE_FREE(ptr->tmp);
+		string msg = decode_msg(p,data);
+		if( msg.length() ) {
+			ptr->tmp = (LPSTR) mir_alloc(msg.length()+1);
+			memcpy(ptr->tmp,msg.c_str(),msg.length()+1);
+		}
+		else {
+			imp->rsa_notify(context,-5); // ошибка декодирования AES сообщения
+		}
+		return ptr->tmp;
+	} break;
+
+	case 0xE0: // получили RSA сообщение, декодируем
+	{
+		SAFE_FREE(ptr->tmp);
+		string msg = decode_rsa(p,r,data);
+		if( msg.length() ) {
+			ptr->tmp = (LPSTR) mir_alloc(msg.length()+1);
+			memcpy(ptr->tmp,msg.c_str(),msg.length()+1);
+		}
+		else {
+			imp->rsa_notify(context,-6); // ошибка декодирования RSA сообщения
+		}
+		return ptr->tmp;
+	} break;
+
+	case 0xF0: // разрыв соединения вручную
+	{
+		rsa_free( p ); // удалим трэд и очередь сообщений
+		if( p->state != 7 ) return 0;
+		string msg = decode_msg(p,data);
+		if( msg.length() == 0 ) return 0;
+		p->state=0;
+		imp->rsa_notify(context,-4); // соединение разорвано вручную другой стороной
+	} break;
+
+	case 0xFF: // разрыв соединения по причине "disabled"
+	{
+		rsa_free( p ); // удалим трэд и очередь сообщений
+		p->state=0;
+		imp->rsa_notify(context,-8); // соединение разорвано по причине "disabled"
+	} break;
+
+	}
+
+	if( p->state != 0 && p->state != 7 )
+		p->time = gettime() + timeout;
+
+	return 0;
+}
 
 int __cdecl rsa_send(int context, LPCSTR msg) {
 
@@ -692,6 +838,215 @@ int __cdecl rsa_decrypt_file(int context,LPCSTR file_in,LPCSTR file_out) {
 		return 0;
 	}
 	return 1;
+}
+
+
+int __cdecl rsa_recv_thread(int context, string& msg) {
+
+#if defined(_DEBUG) || defined(NETLIB_LOG)
+	Sent_NetLog("rsa_recv_thread: '%s'", msg.c_str());
+#endif
+	pCNTX ptr = get_context_on_id(context);	if(!ptr) return 0;
+	pRSADATA p = (pRSADATA) cpp_alloc_pdata(ptr);
+	pRSAPRIV r = (pRSAPRIV) (get_context_on_id((ptr->mode&MODE_RSA_4096)?-3:-2))->pdata;
+
+	string data; int type;
+	un_tlv(msg,type,data);
+	if( type<0 ) return 0;
+
+#if defined(_DEBUG) || defined(NETLIB_LOG)
+	Sent_NetLog("rsa_recv_thread: %02x %d", type, p->state);
+#endif
+
+	int t[4];
+
+	switch( type ) {
+
+	case 0x10:
+	{
+		int features; string sha1,sha2;
+		un_tlv(un_tlv(un_tlv(data,t[0],features),t[1],sha1),t[2],sha2);
+		BOOL lr = (p->pub_s==sha1); BOOL ll = (r->pub_s==sha2);
+		switch( (lr<<4)|ll ){
+		case 0x11: { // оба паблика совпали
+			inject_msg(context,0x21,gen_aes_key_iv(ptr->mode,p,r));
+			p->state=5;
+		} break;
+		case 0x10: { // совпал удаленный паблик
+			inject_msg(context,0x22,tlv(0,features)+tlv(1,r->pub_k)+tlv(2,r->pub_s));
+			p->state=3;
+		} break;
+		case 0x01: { // совпал локальный паблик
+			inject_msg(context,0x23,tlv(0,features));
+			p->state=3;
+		} break;
+		case 0x00: { // не совпали оба паблика
+			inject_msg(context,0x24,tlv(0,features)+tlv(1,r->pub_k)+tlv(2,r->pub_s));
+			p->state=3;
+		} break;
+		}
+	} break;
+
+	case 0x22: // получили удаленный паблик, отправляем уже криптоключ
+	{
+		int features; string pub;
+		un_tlv(un_tlv(data,t[0],features),t[1],pub);
+		string sig = sign(pub);
+		if( !imp->rsa_check_pub(context,(PBYTE)pub.data(),pub.length(),(PBYTE)sig.data(),sig.length()) ) {
+			p->state=0; p->time=0;
+			null_msg(context,0x00,-type); // сессия разорвана по ошибке
+			return 0;
+		}
+		init_pub(p,pub);
+		if( p->state==0 ) { // timeout
+//			rsa_connect(context);
+			return -1;
+		}
+		inject_msg(context,0x32,gen_aes_key_iv(ptr->mode,p,r));
+		p->state=5;
+	} break;
+
+	case 0x23: // отправляем локальный паблик
+	{
+		int features;
+		un_tlv(data,t[0],features);
+		inject_msg(context,0x33,tlv(1,r->pub_k)+tlv(2,r->pub_s));
+		p->state=4;
+	} break;
+
+	case 0x24: // получили удаленный паблик, отправим локальный паблик
+	{
+		int features; string pub;
+		un_tlv(un_tlv(data,t[0],features),t[1],pub);
+		string sig = sign(pub);
+		if( !imp->rsa_check_pub(context,(PBYTE)pub.data(),pub.length(),(PBYTE)sig.data(),sig.length()) ) {
+			p->state=0; p->time=0;
+			null_msg(context,0x00,-type); // сессия разорвана по ошибке
+			return 0;
+		}
+		init_pub(p,pub);
+		if( p->state==0 ) { // timeout
+//			rsa_connect(context);
+			return -1;
+		}
+		inject_msg(context,0x34,tlv(1,r->pub_k)+tlv(2,r->pub_s));
+		p->state=4;
+	} break;
+
+	case 0x33: // получили удаленный паблик, отправляем криптоключ
+	case 0x34:
+	{
+		string pub;
+		un_tlv(data,t[0],pub);
+		string sig = sign(pub);
+		if( !imp->rsa_check_pub(context,(PBYTE)pub.data(),pub.length(),(PBYTE)sig.data(),sig.length()) ) {
+			p->state=0; p->time=0;
+			null_msg(context,0x00,-type); // сессия разорвана по ошибке
+			return 0;
+		}
+		init_pub(p,pub);
+		if( p->state==0 ) { // timeout
+//			rsa_connect(context);
+			return -1;
+		}
+		inject_msg(context,0x40,gen_aes_key_iv(ptr->mode,p,r));
+		p->state=5;
+	} break;
+
+	case 0x21: // получили криптоключ, отправляем криптотест
+	case 0x32:
+	case 0x40:
+	{
+		string key = decode_rsa(p,r,data);
+		if( !key.length() ) {
+			p->state=0; p->time=0;
+			null_msg(context,0x00,-type); // сессия разорвана по ошибке
+			return 0;
+		}
+		un_tlv(un_tlv(key,t[0],p->aes_k),t[1],p->aes_v);
+		PBYTE buffer=(PBYTE) alloca(RAND_SIZE);
+		GlobalRNG().GenerateBlock(buffer,RAND_SIZE);
+		inject_msg(context,0x50,encode_msg(0,p,sign(buffer,RAND_SIZE)));
+		p->state=6;
+	} break;
+
+	case 0x0D: // запрос паблика
+	case 0xD0: // ответ пабликом
+	{
+		int features; string pub,sha;
+		un_tlv(un_tlv(un_tlv(data,t[0],features),t[1],pub),t[2],sha);
+		if( p->pub_k!=pub ) { // пришел новый паблик
+			string sig = sign(pub);
+			if( !imp->rsa_check_pub(context,(PBYTE)pub.data(),pub.length(),(PBYTE)sig.data(),sig.length()) ) {
+				p->state=0; p->time=0;
+				null_msg(context,0x00,-type); // сессия разорвана по ошибке
+				return 0;
+			}
+			init_pub(p,pub);
+		}
+		if( type == 0x0D ) { // нужно отправить мой паблик
+			inject_msg(context,0xD0,tlv(0,features)+tlv(1,r->pub_k)+tlv(2,p->pub_s));
+		}
+		p->state=0; p->time=0;
+	} break;
+
+	}
+
+	if( p->state != 0 && p->state != 7 )
+		p->time = gettime() + timeout;
+
+	return 1;
+}
+
+
+void clear_queue( pRSADATA p ) {
+	EnterCriticalSection(&localQueueMutex);
+	while( p->queue && !p->queue->empty() ) {
+       		p->queue->pop();
+	}
+	LeaveCriticalSection(&localQueueMutex);
+}
+
+
+void rsa_free( pRSADATA p ) {
+	if( p->event ) {
+		p->thread_exit = 1;
+		SetEvent( p->event );
+		// ждем завершене потока
+		WaitForSingleObject(p->thread, INFINITE);
+//		CloseHandle( p->thread );
+		CloseHandle( p->event );
+		p->thread = p->event = 0;
+		p->thread_exit = 0;
+	}
+	p->time = 0;
+	clear_queue( p );
+}
+
+
+// establish RSA/AES thread
+void __cdecl sttConnectThread( LPVOID arg ) {
+
+        int context = (int) arg;
+
+	pCNTX ptr = get_context_on_id(context);	if(!ptr) return;
+	pRSADATA p = (pRSADATA) cpp_alloc_pdata(ptr);
+
+	while(1) {
+		WaitForSingleObject(p->event, INFINITE); // dwMsec rc==WAIT_TIMEOUT
+		if( p->thread_exit ) return;
+		// дождались сообщения в очереди
+		while( p->queue && !p->queue->empty() ) { // обработаем сообщения из очереди
+			if( rsa_recv_thread(context, p->queue->front()) == -1 ) {
+				// очистить очередь
+				clear_queue(p);
+				break;
+			}
+			EnterCriticalSection(&localQueueMutex);
+		        p->queue->pop();
+			LeaveCriticalSection(&localQueueMutex);
+		}
+	}
 }
 
 

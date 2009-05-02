@@ -27,23 +27,28 @@ int getSecureSig(LPCSTR szMsg, LPSTR *szPlainMsg=NULL) {
 void waitForExchange(pUinKey ptr) {
 	if(ptr->waitForExchange) return;
 	ptr->waitForExchange = true;
-	forkthread(sttWaitForExchange, 0, new TWaitForExchange( ptr->hContact ));
+	HANDLE hEvent = CreateEvent( NULL, TRUE, FALSE, NULL );
+//	CloseHandle( (HANDLE) _beginthread(sttWaitForExchange, 0, new TWaitForExchange(hEvent,ptr->hContact)) );
+	_beginthread(sttWaitForExchange, 0, new TWaitForExchange(hEvent,ptr->hContact));
+	SetEvent( hEvent );
 }
 
 
 int returnNoError(HANDLE hContact) {
 	HANDLE hEvent = CreateEvent( NULL, TRUE, FALSE, NULL );
-	CloseHandle( CreateThread( NULL, 0, sttFakeAck, new TFakeAckParams( hEvent, hContact, 666, 0 ), 0, NULL ));
+//	CloseHandle( (HANDLE) _beginthread(sttFakeAck, 0, new TFakeAckParams(hEvent,hContact,777,0)) );
+	_beginthread(sttFakeAck, 0, new TFakeAckParams(hEvent,hContact,777,0));
 	SetEvent( hEvent );
-	return 666;
+	return 777;
 }
 
 
 int returnError(HANDLE hContact, LPCSTR err) {
 	HANDLE hEvent = CreateEvent( NULL, TRUE, FALSE, NULL );
-	CloseHandle( CreateThread( NULL, 0, sttFakeAck, new TFakeAckParams( hEvent, hContact, 777, err ), 0, NULL ));
+//	CloseHandle( (HANDLE) _beginthread(sttFakeAck, 0, new TFakeAckParams(hEvent,hContact,666,err)) );
+	_beginthread(sttFakeAck, 0, new TFakeAckParams(hEvent,hContact,666,err));
 	SetEvent( hEvent );
-	return 777;
+	return 666;
 }
 
 
@@ -137,10 +142,10 @@ LPSTR combineMessage(pUinKey ptr, LPSTR szMsg) {
 	pPM ppm = NULL, pm = ptr->msgPart;
 	if( !ptr->msgPart ) {
 		pm = ptr->msgPart = new partitionMessage;
-		ZeroMemory(pm,sizeof(partitionMessage));
+		memset(pm,0,sizeof(partitionMessage));
 		pm->id = msg_id;
 		pm->message = new LPSTR[part_all];
-		ZeroMemory(pm->message,sizeof(LPSTR)*part_all);
+		memset(pm->message,0,sizeof(LPSTR)*part_all);
 	}
 	else
 	while(pm) {
@@ -149,10 +154,10 @@ LPSTR combineMessage(pUinKey ptr, LPSTR szMsg) {
 	}
 	if(!pm) { // nothing to found
 		pm = ppm->nextMessage = new partitionMessage;
-		ZeroMemory(pm,sizeof(partitionMessage));
+		memset(pm,0,sizeof(partitionMessage));
 		pm->id = msg_id;
 		pm->message = new LPSTR[part_all];
-		ZeroMemory(pm->message,sizeof(LPSTR)*part_all);
+		memset(pm->message,0,sizeof(LPSTR)*part_all);
 	}
 	pm->message[part_num] = new char[strlen(szMsg)];
 	strcpy(pm->message[part_num],szMsg+8);
@@ -200,7 +205,9 @@ int sendSplitMessage(pUinKey ptr, LPSTR szMsg) {
 		LPSTR buf = msg;
 		while( *buf ) {
 			len = strlen(buf);
-			ret = CallContactService(ptr->hContact,PSS_MESSAGE,(WPARAM)PREF_METANODB,(LPARAM)buf);
+			LPSTR tmp = mir_strdup(buf);
+			ret = CallContactService(ptr->hContact,PSS_MESSAGE,(WPARAM)PREF_METANODB,(LPARAM)tmp);
+			mir_free(tmp);
 			buf += len+1;
 		}
 		SAFE_FREE(msg);
@@ -227,6 +234,25 @@ BYTE loadRSAkey(pUinKey ptr) {
        	}
        	return ptr->keyLoaded;
 }
+
+// создает RSA контекст
+void createRSAcntx(pUinKey ptr) {
+	if( !ptr->cntx ) {
+		ptr->cntx = cpp_create_context(CPP_MODE_RSA);
+		ptr->keyLoaded = 0;
+	}
+}
+
+
+// пересоздает RSA контекст
+void resetRSAcntx(pUinKey ptr) {
+	if( ptr->cntx ) {
+		cpp_delete_context(ptr->cntx);
+		ptr->cntx = cpp_create_context(CPP_MODE_RSA);
+		ptr->keyLoaded = 0;
+	}			
+}
+
 
 // удаляет RSA контекст
 void deleteRSAcntx(pUinKey ptr) {
@@ -327,10 +353,7 @@ INT_PTR __cdecl onRecvMsg(WPARAM wParam, LPARAM lParam) {
 		showPopUp(sim003,pccsd->hContact,g_hPOP[POP_PU_DIS],0);
 	    }
 	    else {
-		if( !ptr->cntx ) {
-		    ptr->cntx = cpp_create_context(CPP_MODE_RSA);
-		    ptr->keyLoaded = 0;
-		}
+		createRSAcntx(ptr);
 		exp->rsa_disconnect(-ptr->cntx);
 		deleteRSAcntx(ptr);
 	    }
@@ -416,15 +439,10 @@ INT_PTR __cdecl onRecvMsg(WPARAM wParam, LPARAM lParam) {
 	case SiG_SECU: { // new secured msg, pass to rsa_recv
 		if( ptr->mode==MODE_NATIVE ) {
 		    ptr->mode = MODE_RSAAES;
-		    cpp_delete_context(ptr->cntx);
-		    ptr->cntx = 0;
-		    ptr->keyLoaded = 0;
+		    deleteRSAcntx(ptr);
 		    DBWriteContactSettingByte(ptr->hContact, szModuleName, "mode", ptr->mode);
 		}
-		if( !ptr->cntx ) {
-		    ptr->cntx = cpp_create_context(CPP_MODE_RSA);
-		    ptr->keyLoaded = 0;
-		}
+		createRSAcntx(ptr);
 		loadRSAkey(ptr);
 		if( exp->rsa_get_state(ptr->cntx)==0 )
 		    showPopUpKR(ptr->hContact);
@@ -575,12 +593,10 @@ INT_PTR __cdecl onRecvMsg(WPARAM wParam, LPARAM lParam) {
 			// other side support RSA mode ?
 			if( cpp_get_features(ptr->cntx) & CPP_FEATURES_RSA ) {
 				// switch to RSAAES mode
-		    		cpp_delete_context(ptr->cntx);
 		    		ptr->mode = MODE_RSAAES;
 		    		DBWriteContactSettingByte(ptr->hContact, szModuleName, "mode", ptr->mode);
 
-				ptr->cntx = cpp_create_context(CPP_MODE_RSA);
-				ptr->keyLoaded = 0;
+				resetRSAcntx(ptr);
 				loadRSAkey(ptr);
 				exp->rsa_connect(ptr->cntx);
 
@@ -784,19 +800,19 @@ INT_PTR __cdecl onSendMsg(WPARAM wParam, LPARAM lParam) {
 	// get contact SecureIM status
 	int stid = ptr->status;
 
-	// RSA/AES
+	//
+	// RSA/AES mode
+	//
 	if( ptr->mode==MODE_RSAAES ) {
 		// contact is offline
 		if ( stat==ID_STATUS_OFFLINE ) {
         		if( ptr->cntx ) {
         			if( exp->rsa_get_state(ptr->cntx)!=0 ) {
-					cpp_reset_context(ptr->cntx);
-					ptr->keyLoaded = 0;
+        				resetRSAcntx(ptr);
 				}
         		}
         		else {
-        			ptr->cntx = cpp_create_context(CPP_MODE_RSA);
-        			ptr->keyLoaded = 0;
+        			createRSAcntx(ptr);
         		}
 			if( !bSOM || !loadRSAkey(ptr) ) {
 				if( ssig==SiG_NONE ) {
@@ -856,10 +872,7 @@ INT_PTR __cdecl onSendMsg(WPARAM wParam, LPARAM lParam) {
 		}
 		// установить соединение
 		if( ssig==SiG_INIT ) {
-			if( !ptr->cntx ) {
-				ptr->cntx = cpp_create_context(CPP_MODE_RSA);
-				ptr->keyLoaded = 0;
-			}
+			createRSAcntx(ptr);
 			loadRSAkey(ptr);
 			exp->rsa_connect(ptr->cntx);
 			showPopUpKS(pccsd->hContact);
@@ -869,6 +882,10 @@ INT_PTR __cdecl onSendMsg(WPARAM wParam, LPARAM lParam) {
 		// просто шлем незашифрованное (не знаю даже когда такое случится)
 		return CallService(MS_PROTO_CHAINSEND, wParam, lParam);
 	}
+
+	//
+	// Native mode
+	//
 
 	// SecureIM connection with this contact is disabled
 	if( stid==STATUS_DISABLED ) {

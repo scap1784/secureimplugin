@@ -4,7 +4,7 @@
 char *base64encode(const char *inBuffer, const int count) {
 
 	int srcIndex = 0, destIndex = 0, remainder = count % 3;
-	char *outBuffer = (char *) mir_alloc(count*3/2);
+	char *outBuffer = (char *) mir_alloc(count*2+1);
 	BYTE *inBufferPtr = (BYTE *) inBuffer;
 
 	while(srcIndex < count) {

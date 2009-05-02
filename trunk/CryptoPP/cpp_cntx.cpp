@@ -1,23 +1,27 @@
 #include "commonheaders.h"
 
+
 pCNTX cntx = NULL;
 int cntx_idx = 0;
 int cntx_cnt = 0;
-unsigned long thread_timeout = 0;
+int cntx_step = 10; // выделять по 10 контекстов за раз
+HANDLE thread_timeout = 0;
 
-void __cdecl sttTimeoutThread( LPVOID );
+void __cdecl sttTimeoutThread(LPVOID);
+
 
 // get context data on context id
 pCNTX get_context_on_id(int context) {
 
     if(	!thread_timeout ) {
-		thread_timeout = _beginthread(sttTimeoutThread, 0, 0);
+	thread_timeout = (HANDLE) _beginthread(sttTimeoutThread,0,0); // -1 при ошибке
+	if( thread_timeout == (HANDLE)-1L ) thread_timeout = 0;
     }
 
     if( context ) {
-	for(int i=0;i<cntx_cnt;i++) {
-		if(cntx[i].cntx == context)
-			return &(cntx[i]);
+		for(int i=0;i<cntx_cnt;i++) {
+			if(cntx[i].cntx == context)
+				return &cntx[i];
 	}
 	switch( context ) {
 	case -1:
@@ -44,33 +48,40 @@ pCNTX get_context_on_id(int context) {
     return NULL;
 }
 
+
 // create context, return context id
 int __cdecl cpp_create_context(int mode) {
 
-	while(get_context_on_id(++cntx_idx));
-
 	int i;
+//	while(get_context_on_id(++cntx_idx));
+	cntx_idx++;
+
+    	EnterCriticalSection(&localContextMutex);
 	for(i=0; i<cntx_cnt && cntx[i].cntx; i++);
-	if(i == cntx_cnt) { // надо добавить новый
-		cntx_cnt++; 
+	if(i == cntx_cnt) { // надо добавить новый блок
+		cntx_cnt += cntx_step; 
 		cntx = (pCNTX) mir_realloc(cntx,sizeof(CNTX)*cntx_cnt);
+		memset(&(cntx[i]),0,sizeof(CNTX)*cntx_cnt); // очищаем выделенный блок
 	}
-	memset(&(cntx[i]),0,sizeof(CNTX));
+	else
+		memset(&(cntx[i]),0,sizeof(CNTX)); // очищаем конкретный контекст
 	cntx[i].cntx = cntx_idx;
 	cntx[i].mode = mode;
+	LeaveCriticalSection(&localContextMutex);
 
 	return cntx_idx;
 }
+
 
 // delete context
 void __cdecl cpp_delete_context(int context) {
 
 	pCNTX tmp = get_context_on_id(context);
-	if(tmp) {
-		cpp_free_keys(tmp);
-		tmp->cntx = 0;
+	if(tmp) { // помечаем на удаление
+		tmp->deleted = gettime()+10; // будет удален через 10 секунд
 	}
 }
+
 
 // reset context
 void __cdecl cpp_reset_context(int context) {
@@ -78,6 +89,7 @@ void __cdecl cpp_reset_context(int context) {
 	pCNTX tmp = get_context_on_id(context);
 	if(tmp)	cpp_free_keys(tmp);
 }
+
 
 // allocate pdata
 PBYTE cpp_alloc_pdata(pCNTX ptr) {
@@ -96,6 +108,9 @@ PBYTE cpp_alloc_pdata(pCNTX ptr) {
 			pRSADATA p = new RSADATA;
 			p->state = 0;
 			p->time = 0;
+			p->thread = p->event = 0;
+			p->thread_exit = 0;
+			p->queue = new STRINGQUEUE;
 /*			p->pub_k.assign("");
 			p->pub_s.assign("");
 			p->aes_k.assign("");
@@ -110,23 +125,32 @@ PBYTE cpp_alloc_pdata(pCNTX ptr) {
 	return ptr->pdata;
 }
 
-extern void rsa_timeout(int,pRSADATA);
 
-// search not established RSA/AES contexts
+// search not established RSA/AES contexts && clear deleted contexts
 void __cdecl sttTimeoutThread( LPVOID ) {
 
 	while(1) {
 	    Sleep( 1000 );
 	    DWORD time = gettime();
 	    for(int i=0;i<cntx_cnt;i++) {
-	    	if( cntx[i].cntx>0 && cntx[i].mode&MODE_RSA && cntx[i].pdata ) {
-				pRSADATA p = (pRSADATA) cntx[i].pdata;
-				if( p->time && p->time < time ) {
-					rsa_timeout(cntx[i].cntx,p);
-				}
+		EnterCriticalSection(&localContextMutex);
+	    	pCNTX tmp = &cntx[i];
+	    	if( tmp->cntx>0 && tmp->mode&MODE_RSA && tmp->pdata ) {
+			pRSADATA p = (pRSADATA) tmp->pdata;
+			if( p->time && p->time < time ) {
+				rsa_timeout(tmp->cntx,p);
+			}
 	    	}
+	    	if( tmp->cntx>0 && tmp->deleted && tmp->deleted < time ) {
+			// удалить помеченный для удаления контекст
+			cpp_free_keys(tmp);
+			tmp->cntx = 0;
+			tmp->deleted = 0;
+	    	}
+		LeaveCriticalSection(&localContextMutex);
 	    }
 	}
 }
 
-// EOF 
+
+// EOF

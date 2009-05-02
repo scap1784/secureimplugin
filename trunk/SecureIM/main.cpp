@@ -216,7 +216,7 @@ int __cdecl onModulesLoaded(WPARAM wParam,LPARAM lParam) {
 			DBFreeVariant(&dbv1);
 		}
 		if( !rsa_2048 || !rsa_4096 ) {
-			forkthread(sttGenerateRSA,0,0);
+			CloseHandle( (HANDLE) _beginthread(sttGenerateRSA,0,0) );
 		}
 	}
 

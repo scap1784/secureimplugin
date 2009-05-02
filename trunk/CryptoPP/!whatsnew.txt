@@ -1,4 +1,4 @@
-Verison 1.0.4.1 [01-05-2009]
+Verison 1.0.4.1 [02-05-2009]
 
 [*] memory leak fixes
 [*] base16 & base64 fixes

@@ -77,9 +77,12 @@ struct TFakeAckParams {
 };
 
 struct TWaitForExchange {
-	inline TWaitForExchange( HANDLE p1 ) :
-		hContact( p1 )
+	inline TWaitForExchange( HANDLE p1, HANDLE p2 ) :
+		hEvent( p1 ),
+		hContact( p2 )
 		{}
+
+	HANDLE	hEvent;
 	HANDLE	hContact;
 };
 
@@ -162,7 +165,7 @@ BOOL LoadKeyPGP(pUinKey);
 BOOL LoadKeyGPG(pUinKey);
 
 // crypt_misc.cpp
-DWORD CALLBACK sttFakeAck(LPVOID);
+void __cdecl sttFakeAck(LPVOID);
 void __cdecl sttWaitForExchange(LPVOID);
 
 // crypt_svcs.cpp

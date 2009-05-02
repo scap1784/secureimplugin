@@ -1,6 +1,9 @@
 #ifndef __CRYPTOPP_H__
 #define __CRYPTOPP_H__
 
+#include <queue>
+#include <deque>
+
 //#pragma warning(push)
 // 4231: nonstandard extension used : 'extern' before template explicit instantiation
 // 4250: dominance
@@ -72,6 +75,10 @@ typedef struct __RSAPRIV {
 typedef RSAPRIV* pRSAPRIV;
 
 
+typedef deque<string, allocator<string> > STRINGDEQUE;
+typedef queue<string,STRINGDEQUE> STRINGQUEUE;
+
+
 typedef struct __RSADATA {
 	short			state;	// 0 - нифига нет, 1..6 - keyexchange, 7 - соединение установлено
 	u_int			time;	// для прерывания keyexchange, если долго нет ответа
@@ -80,12 +87,17 @@ typedef struct __RSADATA {
 	RSA::PublicKey		pub;	// public key
 	string			aes_k;	// aes key
 	string			aes_v;	// aes iv
+	HANDLE	 		thread; // thread handle
+	BOOL			thread_exit;
+ 	HANDLE			event;	// thread event
+	STRINGQUEUE		*queue;  // thread queue
 } RSADATA;
 typedef RSADATA* pRSADATA;
 
 
 typedef struct __CNTX {
 	int	cntx;		// context id
+	u_int	deleted;	// delete time&flag to delete
 	PBYTE	pdata;		// data block, for key exchange
 	short	features;	// features of client
 	short	mode;		// mode of encoding
@@ -132,8 +144,8 @@ typedef CNTX* pCNTX;
 #define ERROR_NO_GPG_KEY		12
 #define ERROR_NO_GPG_PASS		13
 
-//#define FEATURES (FEATURES_UTF8 | FEATURES_BASE64 | FEATURES_GZIP | FEATURES_CRC32 | FEATURES_NEWPG)
-#define FEATURES (FEATURES_UTF8 | FEATURES_BASE64 | FEATURES_GZIP | FEATURES_CRC32 | FEATURES_NEWPG | FEATURES_RSA)
+#define FEATURES (FEATURES_UTF8 | FEATURES_BASE64 | FEATURES_GZIP | FEATURES_CRC32 | FEATURES_NEWPG)
+//#define FEATURES (FEATURES_UTF8 | FEATURES_BASE64 | FEATURES_GZIP | FEATURES_CRC32 | FEATURES_NEWPG | FEATURES_RSA)
 #define DLLEXPORT __declspec(dllexport)
 
 extern LPCSTR szModuleName;

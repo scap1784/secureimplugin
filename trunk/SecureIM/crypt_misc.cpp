@@ -1,7 +1,7 @@
 #include "commonheaders.h"
 
 
-int __stdcall SendBroadcast( HANDLE hContact, int type, int result, HANDLE hProcess, LPARAM lParam ) {
+int SendBroadcast( HANDLE hContact, int type, int result, HANDLE hProcess, LPARAM lParam ) {
 	ACKDATA ack = {0};
 	ack.cbSize = sizeof( ACKDATA );
 	ack.szModule = 	(char*)CallService(MS_PROTO_GETCONTACTBASEPROTO, (WPARAM)hContact, 0);
@@ -14,7 +14,8 @@ int __stdcall SendBroadcast( HANDLE hContact, int type, int result, HANDLE hProc
 }
 
 
-DWORD CALLBACK sttFakeAck( LPVOID param ) {
+void __cdecl sttFakeAck( LPVOID param ) {
+
 	TFakeAckParams* tParam = ( TFakeAckParams* )param;
 	WaitForSingleObject( tParam->hEvent, INFINITE );
 
@@ -26,16 +27,17 @@ DWORD CALLBACK sttFakeAck( LPVOID param ) {
 
 	CloseHandle( tParam->hEvent );
 	delete tParam;
-	return 0;
 }
 
 
 void __cdecl sttWaitForExchange( LPVOID param ) {
 
 	TWaitForExchange* tParam = ( TWaitForExchange* )param;
+	WaitForSingleObject( tParam->hEvent, INFINITE );
 
 	pUinKey ptr = getUinKey(tParam->hContact);
 	delete tParam;
+
 	if( !ptr ) return;
 
 	for(int i=0;i<DBGetContactSettingWord(0,szModuleName,"ket",10)*10; i++) {
