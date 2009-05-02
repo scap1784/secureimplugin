@@ -45,9 +45,12 @@ struct UinKey {
 	LPSTR msgSplitted;	// message to combine
 	pPM msgPart;		// parts of message
 	pWM msgQueue;		// last messages not sended or to resend;
-	BOOL sendQueue;
+	BOOL sendQueue;		// идет отсылка очереди - не обрабатываются сообщения
 	BOOL offlineKey;
-	BOOL waitForExchange;
+	char waitForExchange;	// 0 - сбросить очередь
+				// 1 - ожидаем
+				// 2 - дослать с шифрованием
+				// 3 - дослать без шифрования с вопросом
 	BOOL decoded;		// false on decode error
 	short features;
 	int cntx;		// crypto context
@@ -169,6 +172,7 @@ void __cdecl sttFakeAck(LPVOID);
 void __cdecl sttWaitForExchange(LPVOID);
 
 // crypt_svcs.cpp
+void waitForExchange(pUinKey ptr, char flag = 1);
 int sendSplitMessage(pUinKey,LPSTR);
 INT_PTR __cdecl onRecvMsg(WPARAM,LPARAM);
 INT_PTR __cdecl onSendMsgW(WPARAM,LPARAM);

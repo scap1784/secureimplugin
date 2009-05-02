@@ -73,9 +73,9 @@ void __cdecl rsa_notify(int context, int state) {
 	LPCSTR msg=NULL;
 	switch( state ) {
 	case 1: {
-		ptr->waitForExchange = false; // досылаем сообщения из очереди
 		showPopUpEC(ptr->hContact);
 		ShowStatusIconNotify(ptr->hContact);
+		waitForExchange(ptr,2); // досылаем сообщения из очереди
 		return;
 	}
 	case -1: // сессия разорвана по ошибке, неверный тип сообщения
@@ -109,6 +109,7 @@ void __cdecl rsa_notify(int context, int state) {
 		showPopUpDCmsg(ptr->hContact,buf);
 		ShowStatusIconNotify(ptr->hContact);
        		if(ptr->cntx) deleteRSAcntx(ptr);
+		waitForExchange(ptr,3); // досылаем нешифровано
         	return;
         }
 	case -3: // соединение разорвано вручную
@@ -116,6 +117,7 @@ void __cdecl rsa_notify(int context, int state) {
 		showPopUpDC(ptr->hContact);
 		ShowStatusIconNotify(ptr->hContact);
        		if(ptr->cntx) deleteRSAcntx(ptr);
+		waitForExchange(ptr,3); // досылаем нешифровано
 		return;
 	}
 	default:
@@ -124,6 +126,7 @@ void __cdecl rsa_notify(int context, int state) {
 	showPopUpDCmsg(ptr->hContact,msg);
 	ShowStatusIconNotify(ptr->hContact);
 	if(ptr->cntx) deleteRSAcntx(ptr);
+	waitForExchange(ptr,3); // досылаем нешифровано
 }
 
 
