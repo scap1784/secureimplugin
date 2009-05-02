@@ -7,6 +7,9 @@ PLUGINLINK *pluginLink;
 MM_INTERFACE mmi={0};
 MUUID interfaces[] = {MIID_CRYPTOPP, MIID_LAST};
 
+CRITICAL_SECTION localQueueMutex;
+CRITICAL_SECTION localContextMutex;
+
 char TEMP[MAX_PATH];
 int  TEMP_SIZE = 0;
 BOOL isVista = 0;

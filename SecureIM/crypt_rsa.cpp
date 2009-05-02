@@ -24,11 +24,12 @@ int __cdecl rsa_inject(int context, LPCSTR msg) {
 	Sent_NetLog("rsa_inject: '%s'", msg);
 #endif
 	int len = strlen(msg)+1;
-	LPSTR buf = (LPSTR) alloca(LEN_SECU+len);
+	LPSTR buf = (LPSTR) mir_alloc(LEN_SECU+len);
 	memcpy(buf,SIG_SECU,LEN_SECU);
 	memcpy(buf+LEN_SECU,msg,len);
 	// отправляем сообщение
 	sendSplitMessage(ptr,buf);
+	mir_free(buf);
 	return 1;
 }
 

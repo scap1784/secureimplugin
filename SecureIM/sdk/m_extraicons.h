@@ -20,6 +20,31 @@
 #ifndef __M_EXTRAICONS_H__
 #define __M_EXTRAICONS_H__
 
+
+/*
+
+There is 2 ways of registering with Extra Icons service:
+
+1. Using callbacks
+    This works similar to clist API. When you register you provide 2 callbacks, one to rebuild the icons
+and one to apply the icons for a contact. 
+    In the RebuildIcons callback, all icons that will be used have to be registered calling 
+MS_CLIST_EXTRA_ADD_ICON service. The value returned by this service has to be stored and used in the
+apply icons.
+    The ApplyIcons callback will be called for all the needed contacts. Inside it, you must call 
+MS_EXTRAICON_SET_ICON to set the icon for the contact, sending the value returned by MS_CLIST_EXTRA_ADD_ICON
+as the hImage.
+
+2. Using icolib
+    In this case no callback is needed and the plugin just need to call MS_EXTRAICON_SET_ICON passing the 
+icolib name in icoName when needed. If your plugin can have extra icons on startup, remember to do a loop 
+over all contacts to set the initial icon.
+
+
+To register a new extra icon, you have to call MS_EXTRAICON_REGISTER passing the needed atributes.
+
+*/
+
 #define MIID_EXTRAICONSSERVICE { 0x62d80749, 0xf169, 0x4592, { 0xb4, 0x4d, 0x3d, 0xd6, 0xde, 0x9d, 0x50, 0xc5 } }
 
 
@@ -33,7 +58,6 @@ typedef struct {
 	int type;						// One of EXTRAICON_TYPE_*
 	const char *name;				// Internal name. More than one plugin can register extra icons with the same name
 									// if both have the same type. In this case, both will be handled as one.
-									// This is usefull for ex for extra status, where icq and jabber can share the same slot.
 									// If the types are different the second one will be denied.
 	const char *description;		// [Translated by plugin] Description to be used in GUI
 	const char *descIcon;			// [Optional] Name of an icon registered with icolib to be used in GUI.
@@ -46,7 +70,7 @@ typedef struct {
 
 	// Callback to set the icon to clist, calling MS_CLIST_EXTRA_SET_ICON or MS_EXTRAICON_SET_ICON
 	// wParam = HANDLE hContact
-	// lParam = int slot
+	// lParam = 0
 	MIRANDAHOOK ApplyIcon;
 
 	// Other optional callbacks
@@ -92,7 +116,7 @@ typedef struct {
 static HANDLE ExtraIcon_Register(const char *name, const char *description, const char *descIcon,
 								 MIRANDAHOOK RebuildIcons,
 								 MIRANDAHOOK ApplyIcon,
-								 MIRANDAHOOKPARAM OnClick = NULL, LPARAM onClickParam = NULL)
+								 MIRANDAHOOKPARAM OnClick = NULL, LPARAM onClickParam = 0)
 {
 	if (!ServiceExists(MS_EXTRAICON_REGISTER))
 		return NULL;
@@ -112,7 +136,7 @@ static HANDLE ExtraIcon_Register(const char *name, const char *description, cons
 }
 
 static HANDLE ExtraIcon_Register(const char *name, const char *description, const char *descIcon = NULL,
-								 MIRANDAHOOKPARAM OnClick = NULL, LPARAM onClickParam = NULL)
+								 MIRANDAHOOKPARAM OnClick = NULL, LPARAM onClickParam = 0)
 {
 	if (!ServiceExists(MS_EXTRAICON_REGISTER))
 		return NULL;

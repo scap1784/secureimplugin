@@ -102,9 +102,13 @@ extern PLUGININFO pluginInfo;
 extern PLUGININFOEX pluginInfoEx;
 //extern MM_INTERFACE mmi;
 extern MUUID interfaces[];
+extern CRITICAL_SECTION localQueueMutex;
+extern CRITICAL_SECTION localContextMutex;
 
 void ExtractFile(char*,int,int);
 int rtrim(LPCSTR);
+void rsa_timeout(int,pRSADATA);
+void rsa_free(pRSADATA);
 
 #if defined(_DEBUG) || defined(NETLIB_LOG)
 extern HANDLE hNetlibUser;
@@ -186,3 +190,5 @@ extern "C" {
  DLLEXPORT int   __cdecl rsa_init(pRSA_EXPORT*,pRSA_IMPORT);
  DLLEXPORT int   __cdecl rsa_done(void);
 }
+
+// EOF

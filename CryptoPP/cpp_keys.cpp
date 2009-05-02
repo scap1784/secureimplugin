@@ -197,6 +197,7 @@ int __cdecl cpp_init_keyp(int context, LPCSTR password) {
 
 // free memory from keys
 void cpp_free_keys(pCNTX ptr) {
+
 	SAFE_FREE(ptr->tmp);
 	cpp_alloc_pdata(ptr);
 	if( ptr->mode & MODE_PGP ) {
@@ -214,6 +215,8 @@ void cpp_free_keys(pCNTX ptr) {
 	else
 	if( ptr->mode & MODE_RSA ) {
 		pRSADATA p = (pRSADATA) ptr->pdata;
+		rsa_free(p); // удалим трэд и очередь
+		SAFE_DELETE(p->queue);
 		SAFE_DELETE(ptr->pdata);
 	}
 	else {

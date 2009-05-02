@@ -14,6 +14,8 @@ BOOL WINAPI DllMain(HINSTANCE hInst, DWORD dwReason, LPVOID) {
 			TEMP[TEMP_SIZE]='\0';
 		}
 	}
+	InitializeCriticalSection(&localQueueMutex);
+	InitializeCriticalSection(&localContextMutex);
 #ifdef _DEBUG
 	isVista = 1;
 #else

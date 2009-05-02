@@ -252,10 +252,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\forkthread.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\gettime.cpp"
 				>
 			</File>
