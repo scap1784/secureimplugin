@@ -3,7 +3,6 @@
 
 #include <windows.h>
 
-//int gettime(struct timespec *ts);
 DWORD gettime(void);
 
 #endif

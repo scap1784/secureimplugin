@@ -170,9 +170,9 @@ BOOL LoadKeyGPG(pUinKey);
 // crypt_misc.cpp
 void __cdecl sttFakeAck(LPVOID);
 void __cdecl sttWaitForExchange(LPVOID);
+void waitForExchange(pUinKey ptr, int flag = 1);
 
 // crypt_svcs.cpp
-void waitForExchange(pUinKey ptr, char flag = 1);
 int sendSplitMessage(pUinKey,LPSTR);
 INT_PTR __cdecl onRecvMsg(WPARAM,LPARAM);
 INT_PTR __cdecl onSendMsgW(WPARAM,LPARAM);
@@ -180,18 +180,17 @@ INT_PTR __cdecl onSendMsg(WPARAM,LPARAM);
 INT_PTR __cdecl onSendFile(WPARAM,LPARAM);
 int __cdecl onProtoAck(WPARAM,LPARAM);
 int __cdecl onContactSettingChanged(WPARAM,LPARAM);
-int __cdecl onRebuildContactMenu(WPARAM,LPARAM);
-int __cdecl onExtraImageListRebuilding(WPARAM,LPARAM);
-int __cdecl onExtraImageApplying(WPARAM,LPARAM);
-int __cdecl onContactAdded(WPARAM,LPARAM);
-int __cdecl onContactDeleted(WPARAM,LPARAM);
-int __cdecl onWindowEvent(WPARAM,LPARAM);
-int __cdecl onIconPressed(WPARAM,LPARAM);
 
 // crypt_rsa.cpp
 extern pRSA_EXPORT exp;
 extern RSA_IMPORT imp;
 extern BOOL rsa_2048, rsa_4096;
+
 void __cdecl sttGenerateRSA(LPVOID);
+BYTE loadRSAkey(pUinKey);
+void createRSAcntx(pUinKey);
+void resetRSAcntx(pUinKey);
+void deleteRSAcntx(pUinKey);
+
 
 #endif

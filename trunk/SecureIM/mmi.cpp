@@ -79,7 +79,7 @@ LPSTR to_hex(PBYTE bin, int len) {
 	   if( i ) {
  		*m_ptr = ' '; m_ptr++;
  	   }
-	   sprintf(m_ptr,"%02X",bin[i]);
+	   mir_snprintf(m_ptr,4,"%02X",bin[i]);
 	   m_ptr += 2;
 	}
 	*m_ptr = 0;
@@ -102,6 +102,53 @@ void __fastcall safe_delete(void** p)
     delete(*p);
     *p = NULL;
   }
+}
+
+
+// преобразуем текст из чистого UTF8 в формат миранды
+LPSTR utf8_to_miranda(LPCSTR szUtfMsg, DWORD& flags) {
+	LPSTR szNewMsg;
+	if( iCoreVersion < 0x00060000 ) {
+		flags &= ~(PREF_UTF|PREF_UNICODE);
+		LPWSTR wszMsg = exp->utf8decode(szUtfMsg);
+		LPSTR szMsg = mir_u2a(wszMsg);
+		if( bCoreUnicode ) {
+		    flags |= PREF_UNICODE;
+		    int olen = wcslen((LPWSTR)wszMsg)+1;
+		    int nlen = olen*(sizeof(WCHAR)+1);
+		    szNewMsg = (LPSTR) mir_alloc(nlen);
+		    memcpy(szNewMsg,szMsg,olen);
+		    memcpy(szNewMsg+olen,wszMsg,olen*sizeof(WCHAR));
+		    mir_free(szMsg);
+		}
+		else {
+		    szNewMsg = szMsg;	
+                }
+	}
+	else {
+		flags &= ~PREF_UNICODE;	flags |= PREF_UTF;
+		szNewMsg = (LPSTR) mir_strdup(szUtfMsg);
+	}
+	return szNewMsg;
+}
+
+
+// преобразуем текст из формата миранды в чистый UTF8
+LPSTR miranda_to_utf8(LPCSTR szMirMsg, DWORD flags) {
+	LPSTR szNewMsg;
+	if(flags & PREF_UTF) {
+		szNewMsg = (LPSTR) szMirMsg;
+	}
+	else
+	if(flags & PREF_UNICODE) {
+		szNewMsg = exp->utf8encode((LPCWSTR)(szMirMsg+strlen(szMirMsg)+1));
+	}
+	else {
+		LPWSTR wszMirMsg = mir_a2u(szMirMsg);
+		szNewMsg = exp->utf8encode((LPCWSTR)wszMirMsg);
+		mir_free(wszMirMsg);
+	}
+	return mir_strdup(szNewMsg);
 }
 
 

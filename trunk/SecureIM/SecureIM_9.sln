@@ -1,8 +1,8 @@
 Microsoft Visual Studio Solution File, Format Version 10.00
 # Visual Studio 2008
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SecureIM", "SecureIM_9.vcproj", "{4ADADECA-99D7-410D-8127-CB27210DCC6A}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "secureim", "secureim_9.vcproj", "{4ADADECA-99D7-410D-8127-CB27210DCC6A}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SecureIM_icons", "SecureIM_icons_9.vcproj", "{3FAB6AC7-6B7F-4779-B519-34E8035074A4}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "secureim_icons", "secureim_icons_9.vcproj", "{3FAB6AC7-6B7F-4779-B519-34E8035074A4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

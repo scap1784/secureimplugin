@@ -42,7 +42,7 @@ void __cdecl sttWaitForExchange( LPVOID param ) {
 
 	for(int i=0;i<DBGetContactSettingWord(0,szModuleName,"ket",10)*10; i++) {
 		Sleep( 100 );
-	   	if( ptr->waitForExchange != 1 ) break;
+		if( ptr->waitForExchange != 1 ) break;
 	} // for
 
 #if defined(_DEBUG) || defined(NETLIB_LOG)
@@ -106,6 +106,28 @@ void __cdecl sttWaitForExchange( LPVOID param ) {
 		ptr->msgQueue = NULL;
 		LeaveCriticalSection(&localQueueMutex);
    	}
+}
+
+
+// set wait flag and run thread
+void waitForExchange(pUinKey ptr, int flag) {
+	switch( flag ) {
+	case 0: // сбросить
+	case 2: // дослать шифровано
+	case 3: // дослать нешифровано
+		if( ptr->waitForExchange ) 
+			ptr->waitForExchange = flag;
+		break;
+	case 1: // запустить
+		if( ptr->waitForExchange ) 
+			break;
+		ptr->waitForExchange = 1;
+		// запускаем трэд
+		HANDLE hEvent = CreateEvent( NULL, TRUE, FALSE, NULL );
+		CloseHandle( (HANDLE) _beginthread(sttWaitForExchange, 0, new TWaitForExchange(hEvent,ptr->hContact)) );
+		SetEvent( hEvent );
+		break;
+	}
 }
 
 

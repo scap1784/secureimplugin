@@ -77,8 +77,10 @@
 				AssemblyDebug="1"
 				GenerateMapFile="true"
 				MapExports="true"
+				SubSystem="2"
 				BaseAddress="0x45000000"
 				RandomizedBaseAddress="1"
+				TargetMachine="1"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -166,8 +168,10 @@
 				SuppressStartupBanner="true"
 				GenerateMapFile="true"
 				MapExports="true"
+				SubSystem="2"
 				BaseAddress="0x45000000"
 				RandomizedBaseAddress="1"
+				TargetMachine="1"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -195,6 +199,96 @@
 	<References>
 	</References>
 	<Files>
+		<Filter
+			Name="Resource Files"
+			Filter="ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"
+			>
+			<File
+				RelativePath="resource.rc"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="Header Files"
+			Filter="h;hpp;hxx;hm;inl"
+			>
+			<File
+				RelativePath=".\commonheaders.h"
+				>
+			</File>
+			<File
+				RelativePath=".\crypt.h"
+				>
+			</File>
+			<File
+				RelativePath=".\cryptopp.h"
+				>
+			</File>
+			<File
+				RelativePath=".\dbevent.h"
+				>
+			</File>
+			<File
+				RelativePath=".\gettime.h"
+				>
+			</File>
+			<File
+				RelativePath=".\images.h"
+				>
+			</File>
+			<File
+				RelativePath=".\language.h"
+				>
+			</File>
+			<File
+				RelativePath=".\loadicons.h"
+				>
+			</File>
+			<File
+				RelativePath=".\loadlib.h"
+				>
+			</File>
+			<File
+				RelativePath=".\mmi.h"
+				>
+			</File>
+			<File
+				RelativePath=".\options.h"
+				>
+			</File>
+			<File
+				RelativePath=".\popupOptions.h"
+				>
+			</File>
+			<File
+				RelativePath=".\resource.h"
+				>
+			</File>
+			<File
+				RelativePath=".\rtfconv.h"
+				>
+			</File>
+			<File
+				RelativePath=".\secureim.h"
+				>
+			</File>
+			<File
+				RelativePath=".\svcs_clist.h"
+				>
+			</File>
+			<File
+				RelativePath=".\svcs_cmenu.h"
+				>
+			</File>
+			<File
+				RelativePath=".\svcs_srmm.h"
+				>
+			</File>
+			<File
+				RelativePath=".\version.h"
+				>
+			</File>
+		</Filter>
 		<Filter
 			Name="Source Files"
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
@@ -295,10 +389,6 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\menu_svcs.cpp"
-				>
-			</File>
-			<File
 				RelativePath="mmi.cpp"
 				>
 				<FileConfiguration
@@ -371,70 +461,16 @@
 				RelativePath=".\rtfconv.cpp"
 				>
 			</File>
-		</Filter>
-		<Filter
-			Name="Resource Files"
-			Filter="ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"
-			>
 			<File
-				RelativePath="resource.rc"
-				>
-			</File>
-		</Filter>
-		<Filter
-			Name="Header Files"
-			Filter="h;hpp;hxx;hm;inl"
-			>
-			<File
-				RelativePath=".\commonheaders.h"
+				RelativePath=".\svcs_clist.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\crypt.h"
+				RelativePath=".\svcs_cmenu.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\forkthread.h"
-				>
-			</File>
-			<File
-				RelativePath=".\gettime.h"
-				>
-			</File>
-			<File
-				RelativePath=".\language.h"
-				>
-			</File>
-			<File
-				RelativePath=".\loadicons.h"
-				>
-			</File>
-			<File
-				RelativePath=".\loadlib.h"
-				>
-			</File>
-			<File
-				RelativePath=".\mmi.h"
-				>
-			</File>
-			<File
-				RelativePath=".\options.h"
-				>
-			</File>
-			<File
-				RelativePath=".\popupOptions.h"
-				>
-			</File>
-			<File
-				RelativePath=".\resource.h"
-				>
-			</File>
-			<File
-				RelativePath=".\secureim.h"
-				>
-			</File>
-			<File
-				RelativePath=".\version.h"
+				RelativePath=".\svcs_srmm.cpp"
 				>
 			</File>
 		</Filter>

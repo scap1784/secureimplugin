@@ -117,7 +117,9 @@
 #include "cryptopp.h"
 #include "images.h"
 #include "dbevent.h"
-#include "menu_svcs.h"
+#include "svcs_clist.h"
+#include "svcs_cmenu.h"
+#include "svcs_srmm.h"
 
 extern LPCSTR szModuleName;
 extern LPCSTR szVersionStr;

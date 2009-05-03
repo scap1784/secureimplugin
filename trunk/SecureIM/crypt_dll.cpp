@@ -98,9 +98,8 @@ BOOL CalculateKeyX(pUinKey ptr,HANDLE hContact) {
 		cws.value.dVal = gettime()+(60*60*24*DBGetContactSettingWord(0,szModuleName,"okt",2));
 		CallService(MS_DB_CONTACT_WRITESETTING, (WPARAM)hContact, (LPARAM)&cws);
 
-		// key exchange is finished released flag
-		ptr->waitForExchange = 2; // дослать через шифрованное соединение
-		showPopUpEC(hContact);
+		// key exchange is finished
+		showPopUpEC(ptr->hContact);
 	}
 	else {
 		// agree value problem
