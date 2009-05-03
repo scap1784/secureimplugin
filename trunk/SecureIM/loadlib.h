@@ -52,6 +52,7 @@ typedef int   (__cdecl * _gpg_done) (void);
 typedef int   (__cdecl * _gpg_open_keyrings) (LPSTR,LPSTR);
 typedef int   (__cdecl * _gpg_close_keyrings) (void);
 typedef void  (__cdecl * _gpg_set_log) (LPCSTR);
+typedef void  (__cdecl * _gpg_set_tmp) (LPCSTR);
 typedef LPSTR (__cdecl * _gpg_get_error) (void);
 typedef int   (__cdecl * _gpg_set_keyid) (int,LPCSTR);
 typedef int   (__cdecl * _gpg_size_keyid) (void);
@@ -110,6 +111,7 @@ typedef struct {
 	_gpg_open_keyrings	gpg_ok;
 	_gpg_close_keyrings	gpg_ck;
 	_gpg_set_log		gpg_sl;
+	_gpg_set_tmp		gpg_st;
 	_gpg_get_error		gpg_ge;
 	_gpg_set_keyid		gpg_ski;
 	_gpg_size_keyid		gpg_szki;
@@ -168,6 +170,7 @@ extern CRYPTOPP_INFO cpp;
 #define gpg_open_keyrings	cpp.gpg_ok
 #define gpg_close_keyrings	cpp.gpg_ck
 #define gpg_set_log			cpp.gpg_sl
+#define gpg_set_tmp			cpp.gpg_st
 #define gpg_get_error		cpp.gpg_ge
 #define gpg_set_keyid		cpp.gpg_ski
 #define gpg_size_keyid		cpp.gpg_szki

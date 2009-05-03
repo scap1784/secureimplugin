@@ -1,17 +1,17 @@
  GnuPGw
 
- Timestamp is 49ef18bf (Wed Apr 22 17:16:47 2009)
+ Timestamp is 49fda5b2 (Sun May 03 18:09:54 2009)
 
  Preferred load address is 46100000
 
  Start         Length     Name                   Class
- 0001:00000000 00001936H .text                   CODE
+ 0001:00000000 00001976H .text                   CODE
  0002:00000000 000000e0H .idata$5                DATA
  0002:000000e0 00000064H .idata$2                DATA
  0002:00000144 00000014H .idata$3                DATA
  0002:00000158 000000e0H .idata$4                DATA
  0002:00000238 00000314H .idata$6                DATA
- 0002:00000550 00000168H .edata                  DATA
+ 0002:00000550 0000017fH .edata                  DATA
  0003:00000000 000006c0H .data                   DATA
  0003:000006c0 00000e60H .bss                    DATA
  0004:00000000 00000088H .rsrc$01                DATA
@@ -37,43 +37,44 @@
  0001:0000096b       __gpg_close_keyrings       4610196b f   main.obj
  0001:0000096f       __gpg_get_error            4610196f f   main.obj
  0001:00000972       __gpg_set_log              46101972 f   main.obj
- 0001:00000992       __gpg_get_passphrases      46101992 f   main.obj
- 0001:00000a3a       __gpg_set_passphrases      46101a3a f   main.obj
- 0001:00000ad8       __gpg_encrypt              46101ad8 f   main.obj
- 0001:00000b58       __gpg_decrypt              46101b58 f   main.obj
- 0001:00000dc4       __gpg_size_keyid           46101dc4 f   main.obj
- 0001:00000dc8       __gpg_select_keyid         46101dc8 f   main.obj
- 0001:00000e15       _GetRegValue               46101e15 f   main.obj
- 0001:00000e7d       _GetEnvValue               46101e7d f   main.obj
- 0001:00000eba       _ShowSelectExecDlg         46101eba f   main.obj
- 0001:00000f79       _ShowSelectHomeDlg         46101f79 f   main.obj
- 0001:00001055       _dllmain@12                46102055 f   main.obj
- 0001:00001064       _PassphraseDialogProcedure@16 46102064 f   passdialog.obj
- 0001:000010d2       _initPassphrases           461020d2 f   passphrases.obj
- 0001:000010e1       _releasePassphrases        461020e1 f   passphrases.obj
- 0001:0000112a       _addPassphrase             4610212a f   passphrases.obj
- 0001:00001190       _getPassphrase             46102190 f   passphrases.obj
- 0001:000011d9       _isWindowsNT               461021d9 f   pipeexec.obj
- 0001:0000121d       _storeOutput               4610221d f   pipeexec.obj
- 0001:00001273       _pxExecute                 46102273 f   pipeexec.obj
- 0001:00001461       _replace                   46102461 f   tools.obj
- 0001:000014e0       _getNextPart               461024e0 f   tools.obj
- 0001:00001535       _appendText                46102535 f   tools.obj
- 0001:00001584       _existsFile                46102584 f   tools.obj
- 0001:000015ac       _existsPath                461025ac f   tools.obj
- 0001:000015d4       _writeToFile               461025d4 f   tools.obj
- 0001:0000165d       _readFromFile              4610265d f   tools.obj
- 0001:000016e5       _getTemporaryFileName      461026e5 f   tools.obj
- 0001:000016fc       _UserIdDialogProcedure@16  461026fc f   userdialog.obj
- 0001:00001837       _RefreshListView           46102837 f   userdialog.obj
- 0001:000018dc       _GetOpenFileNameA@4        461028dc f   comdlg32:comdlg32.dll
- 0001:000018e2       _strcat                    461028e2 f   msvcrt:MSVCRT.dll
- 0001:000018e8       _strcpy                    461028e8 f   msvcrt:MSVCRT.dll
- 0001:000018ee       _strcmp                    461028ee f   msvcrt:MSVCRT.dll
- 0001:000018f4       _strlen                    461028f4 f   msvcrt:MSVCRT.dll
- 0001:00001900       __chkstk                   46102900 f   msvcrt:chkstk.obj
- 0001:00001900       __alloca_probe             46102900 f   msvcrt:chkstk.obj
- 0001:00001930       _memset                    46102930 f   msvcrt:MSVCRT.dll
+ 0001:00000999       __gpg_set_tmp              46101999 f   main.obj
+ 0001:000009c9       __gpg_get_passphrases      461019c9 f   main.obj
+ 0001:00000a71       __gpg_set_passphrases      46101a71 f   main.obj
+ 0001:00000b0f       __gpg_encrypt              46101b0f f   main.obj
+ 0001:00000b8f       __gpg_decrypt              46101b8f f   main.obj
+ 0001:00000dfb       __gpg_size_keyid           46101dfb f   main.obj
+ 0001:00000dff       __gpg_select_keyid         46101dff f   main.obj
+ 0001:00000e4c       _GetRegValue               46101e4c f   main.obj
+ 0001:00000eb4       _GetEnvValue               46101eb4 f   main.obj
+ 0001:00000ef1       _ShowSelectExecDlg         46101ef1 f   main.obj
+ 0001:00000fb0       _ShowSelectHomeDlg         46101fb0 f   main.obj
+ 0001:0000108c       _dllmain@12                4610208c f   main.obj
+ 0001:0000109b       _PassphraseDialogProcedure@16 4610209b f   passdialog.obj
+ 0001:00001109       _initPassphrases           46102109 f   passphrases.obj
+ 0001:00001118       _releasePassphrases        46102118 f   passphrases.obj
+ 0001:00001161       _addPassphrase             46102161 f   passphrases.obj
+ 0001:000011c7       _getPassphrase             461021c7 f   passphrases.obj
+ 0001:00001210       _isWindowsNT               46102210 f   pipeexec.obj
+ 0001:00001254       _storeOutput               46102254 f   pipeexec.obj
+ 0001:000012aa       _pxExecute                 461022aa f   pipeexec.obj
+ 0001:00001498       _replace                   46102498 f   tools.obj
+ 0001:00001517       _getNextPart               46102517 f   tools.obj
+ 0001:0000156c       _appendText                4610256c f   tools.obj
+ 0001:000015bb       _existsFile                461025bb f   tools.obj
+ 0001:000015e3       _existsPath                461025e3 f   tools.obj
+ 0001:0000160b       _writeToFile               4610260b f   tools.obj
+ 0001:00001694       _readFromFile              46102694 f   tools.obj
+ 0001:0000171c       _getTemporaryFileName      4610271c f   tools.obj
+ 0001:00001733       _UserIdDialogProcedure@16  46102733 f   userdialog.obj
+ 0001:0000186e       _RefreshListView           4610286e f   userdialog.obj
+ 0001:00001914       _GetOpenFileNameA@4        46102914 f   comdlg32:comdlg32.dll
+ 0001:0000191a       _strcat                    4610291a f   msvcrt:MSVCRT.dll
+ 0001:00001920       _strcpy                    46102920 f   msvcrt:MSVCRT.dll
+ 0001:00001926       _strcmp                    46102926 f   msvcrt:MSVCRT.dll
+ 0001:0000192c       _strlen                    4610292c f   msvcrt:MSVCRT.dll
+ 0001:00001940       __alloca_probe             46102940 f   msvcrt:chkstk.obj
+ 0001:00001940       __chkstk                   46102940 f   msvcrt:chkstk.obj
+ 0001:00001970       _memset                    46102970 f   msvcrt:MSVCRT.dll
  0002:00000000       __imp__RegCloseKey@4       46103000     advapi32:ADVAPI32.dll
  0002:00000004       __imp__RegOpenKeyA@12      46103004     advapi32:ADVAPI32.dll
  0002:00000008       __imp__SetSecurityDescriptorDacl@16 46103008     advapi32:ADVAPI32.dll
@@ -102,10 +103,10 @@
  0002:00000064       __imp__ftell               46103064     msvcrt:MSVCRT.dll
  0002:00000068       __imp__fread               46103068     msvcrt:MSVCRT.dll
  0002:0000006c       __imp__fwrite              4610306c     msvcrt:MSVCRT.dll
- 0002:00000070       __imp__strncpy             46103070     msvcrt:MSVCRT.dll
- 0002:00000074       __imp__strncat             46103074     msvcrt:MSVCRT.dll
- 0002:00000078       __imp__memmove             46103078     msvcrt:MSVCRT.dll
- 0002:0000007c       __imp__strchr              4610307c     msvcrt:MSVCRT.dll
+ 0002:00000070       __imp__strncat             46103070     msvcrt:MSVCRT.dll
+ 0002:00000074       __imp__memmove             46103074     msvcrt:MSVCRT.dll
+ 0002:00000078       __imp__strchr              46103078     msvcrt:MSVCRT.dll
+ 0002:0000007c       __imp__strncpy             4610307c     msvcrt:MSVCRT.dll
  0002:00000080       __imp__memset              46103080     msvcrt:MSVCRT.dll
  0002:00000084       __imp__realloc             46103084     msvcrt:MSVCRT.dll
  0002:00000088       __imp__strcat              46103088     msvcrt:MSVCRT.dll
@@ -142,7 +143,7 @@
  0003:0000000c       _txtendpgpmessage          4610400c     commonheaders.obj
  0003:00000010       ??_C@_0BK@JOKF@?9?9?9?9?9END?5PGP?5MESSAGE?9?9?9?9?9?$AA@ 46104010     commonheaders.obj
  0003:0000002c       ??_C@_0BM@JJIG@?9?9?9?9?9BEGIN?5PGP?5MESSAGE?9?9?9?9?9?$AA@ 4610402c     commonheaders.obj
- 0003:00000048       ??_C@_0BE@GHGE@GnuPG?5DLL?5?$CI1?40?43?43?$CJ?$AA@ 46104048     commonheaders.obj
+ 0003:00000048       ??_C@_0BE@LAIP@GnuPG?5DLL?5?$CI1?40?44?41?$CJ?$AA@ 46104048     commonheaders.obj
  0003:0000005c       ??_C@_05KOGF@GnuPG?$AA@    4610405c     commonheaders.obj
  0003:00000064       ??_C@_01FCOA@?5?$AA@       46104064     commonheaders.obj
  0003:00000068       ??_C@_01FNLH@a?$AA@        46104068     commonheaders.obj

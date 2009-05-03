@@ -56,6 +56,7 @@ BOOL loadlib(void) {
 	cpp.gpg_ok   = (_gpg_open_keyrings	) GetProcAddress(h, "gpg_open_keyrings");
 	cpp.gpg_ck   = (_gpg_close_keyrings	) GetProcAddress(h, "gpg_close_keyrings");
 	cpp.gpg_sl   = (_gpg_set_log  		) GetProcAddress(h, "gpg_set_log");
+	cpp.gpg_st   = (_gpg_set_tmp  		) GetProcAddress(h, "gpg_set_tmp");
 	cpp.gpg_ge   = (_gpg_get_error		) GetProcAddress(h, "gpg_get_error");
 	cpp.gpg_ski  = (_gpg_set_keyid		) GetProcAddress(h, "gpg_set_keyid");
 	cpp.gpg_szki = (_gpg_size_keyid		) GetProcAddress(h, "gpg_size_keyid");
@@ -68,7 +69,7 @@ BOOL loadlib(void) {
 	cpp.rsa_i  = (_rsa_init) GetProcAddress(h, "rsa_init");
 	cpp.rsa_d  = (_rsa_done) GetProcAddress(h, "rsa_done");
 
-	return (cpp_get_version()>=0x01000400);
+	return (cpp_get_version()>=0x01000401);
 }
 
 // EOF

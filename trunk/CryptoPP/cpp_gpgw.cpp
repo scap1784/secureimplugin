@@ -10,6 +10,7 @@ extern DLLEXPORT int   __cdecl _gpg_done(void);
 extern DLLEXPORT int   __cdecl _gpg_open_keyrings(LPSTR,LPSTR);
 extern DLLEXPORT int   __cdecl _gpg_close_keyrings(void);
 extern DLLEXPORT void  __cdecl _gpg_set_log(LPCSTR);
+extern DLLEXPORT void  __cdecl _gpg_set_tmp(LPCSTR);
 extern DLLEXPORT LPSTR __cdecl _gpg_get_error(void);
 extern DLLEXPORT int   __cdecl _gpg_size_keyid(void);
 extern DLLEXPORT int   __cdecl _gpg_select_keyid(HWND,LPSTR);
@@ -23,6 +24,7 @@ int   __cdecl _gpg_done(void);
 int   __cdecl _gpg_open_keyrings(LPSTR,LPSTR);
 int   __cdecl _gpg_close_keyrings(void);
 void  __cdecl _gpg_set_log(LPCSTR);
+void  __cdecl _gpg_set_tmp(LPCSTR);
 LPSTR __cdecl _gpg_get_error(void);
 int   __cdecl _gpg_size_keyid(void);
 int   __cdecl _gpg_select_keyid(HWND,LPSTR);
@@ -36,6 +38,7 @@ int   (__cdecl *p_gpg_done)(void);
 int   (__cdecl *p_gpg_open_keyrings)(LPSTR,LPSTR);
 int   (__cdecl *p_gpg_close_keyrings)(void);
 void  (__cdecl *p_gpg_set_log)(LPCSTR);
+void  (__cdecl *p_gpg_set_tmp)(LPCSTR);
 LPSTR (__cdecl *p_gpg_get_error)(void);
 int   (__cdecl *p_gpg_size_keyid)(void);
 int   (__cdecl *p_gpg_select_keyid)(HWND,LPSTR);
@@ -60,6 +63,7 @@ int load_gpg_dll(HMODULE mod) {
 	GPA(_gpg_open_keyrings);
 	GPA(_gpg_close_keyrings);
 	GPA(_gpg_set_log);
+	GPA(_gpg_set_tmp);
 	GPA(_gpg_get_error);
 	GPA(_gpg_size_keyid);
 	GPA(_gpg_select_keyid);
@@ -89,6 +93,7 @@ int load_gpg_mem(HMODULE mod) {
 	GPA(_gpg_open_keyrings);
 	GPA(_gpg_close_keyrings);
 	GPA(_gpg_set_log);
+	GPA(_gpg_set_tmp);
 	GPA(_gpg_get_error);
 	GPA(_gpg_size_keyid);
 	GPA(_gpg_select_keyid);
@@ -173,6 +178,12 @@ int __cdecl gpg_close_keyrings()
 void __cdecl gpg_set_log(LPCSTR LogPath)
 {
 	p_gpg_set_log(LogPath);
+}
+
+
+void __cdecl gpg_set_tmp(LPCSTR TmpPath)
+{
+	p_gpg_set_tmp(TmpPath);
 }
 
 

@@ -177,6 +177,7 @@ extern "C" {
  DLLEXPORT int   __cdecl gpg_open_keyrings(LPSTR,LPSTR);
  DLLEXPORT int   __cdecl gpg_close_keyrings(void);
  DLLEXPORT void  __cdecl gpg_set_log(LPCSTR);
+ DLLEXPORT void  __cdecl gpg_set_tmp(LPCSTR);
  DLLEXPORT LPSTR __cdecl gpg_get_error(void);
  DLLEXPORT int   __cdecl gpg_set_key(int,LPCSTR);
  DLLEXPORT int   __cdecl gpg_set_keyid(int,LPCSTR);
