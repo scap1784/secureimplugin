@@ -216,8 +216,12 @@ INT_PTR __cdecl onRecvMsg(WPARAM wParam, LPARAM lParam) {
 		(isProtoMetaContacts(pccsd->hContact) && (pccsd->wParam & PREF_SIMNOMETA)) ||
 		isChatRoom(pccsd->hContact) ||
 		(ssig==SiG_NONE && !ptr->msgSplitted && !bSecured && !bPGP && !bGPG)
-	  )
+	  ) {
+#if defined(_DEBUG) || defined(NETLIB_LOG)
+		Sent_NetLog("onRecvMsg: pass unhandled");
+#endif
 		return CallService(MS_PROTO_CHAINRECV, wParam, lParam);
+	}
 
 	// drop message: fake, unsigned or from invisible contacts
 	if( isContactInvisible(pccsd->hContact) || ssig==SiG_FAKE )
@@ -240,6 +244,9 @@ INT_PTR __cdecl onRecvMsg(WPARAM wParam, LPARAM lParam) {
 
 	// received non-pgp secure message from disabled contact
 	if( ssig!=SiG_PGPM && !bPGP && !bGPG && ptr->status==STATUS_DISABLED ) {
+#if defined(_DEBUG) || defined(NETLIB_LOG)
+	    Sent_NetLog("onRecvMsg: message from disabled");
+#endif
 	    if( ptr->mode==MODE_NATIVE ) {
 		// tell to the other side that we have the plugin disabled with him
 	    	pccsd->wParam |= PREF_METANODB;
@@ -260,6 +267,9 @@ INT_PTR __cdecl onRecvMsg(WPARAM wParam, LPARAM lParam) {
 
 	// combine message splitted by protocol (no tags)
 	if( ssig==SiG_NONE && ptr->msgSplitted ) {
+#if defined(_DEBUG) || defined(NETLIB_LOG)
+		Sent_NetLog("onRecvMsg: combine untagged splitted message");
+#endif
 		LPSTR tmp = (LPSTR) mir_alloc(strlen(ptr->msgSplitted)+strlen(szEncMsg)+1);
 		strcpy(tmp,ptr->msgSplitted);
 		strcat(tmp,szEncMsg);
@@ -284,6 +294,9 @@ INT_PTR __cdecl onRecvMsg(WPARAM wParam, LPARAM lParam) {
 	   ((bPGPloaded && (bPGPkeyrings || bPGPprivkey))||
 	   (bGPGloaded && bGPGkeyrings))
 	  ) {
+#if defined(_DEBUG) || defined(NETLIB_LOG)
+		Sent_NetLog("onRecvMsg: PGP/GPG message");
+#endif
 		szEncMsg = ppre->szMessage;
 		if( !ptr->cntx ) {
 			ptr->cntx = cpp_create_context(((bGPGloaded && bGPGkeyrings)?CPP_MODE_GPG:CPP_MODE_PGP) | ((DBGetContactSettingByte(pccsd->hContact,szModuleName,"gpgANSI",0))?CPP_MODE_GPG_ANSI:0));
@@ -334,6 +347,9 @@ INT_PTR __cdecl onRecvMsg(WPARAM wParam, LPARAM lParam) {
 		return CallService(MS_PROTO_CHAINRECV, wParam, lParam);
 
 	case SiG_SECU: { // new secured msg, pass to rsa_recv
+#if defined(_DEBUG) || defined(NETLIB_LOG)
+		Sent_NetLog("onRecvMsg: RSA/AES message");
+#endif
 		if( ptr->mode==MODE_NATIVE ) {
 		    ptr->mode = MODE_RSAAES;
 		    deleteRSAcntx(ptr);
@@ -360,6 +376,9 @@ INT_PTR __cdecl onRecvMsg(WPARAM wParam, LPARAM lParam) {
 	} break;
 
 	case SiG_ENON: { // online message
+#if defined(_DEBUG) || defined(NETLIB_LOG)
+		Sent_NetLog("onRecvMsg: Native SiG_ENON message");
+#endif
 		if( cpp_keyx(ptr->cntx) ) {
 			// decrypting message
 			szPlainMsg = decodeMsg(ptr,lParam,szEncMsg);
@@ -399,6 +418,9 @@ INT_PTR __cdecl onRecvMsg(WPARAM wParam, LPARAM lParam) {
 	} break;
 
 	case SiG_ENOF: { // offline message
+#if defined(_DEBUG) || defined(NETLIB_LOG)
+		Sent_NetLog("onRecvMsg: Native SiG_ENOF message");
+#endif
 		// if offline key is set and we have not an offline message unset key
 		if (ptr->offlineKey && cpp_keyx(ptr->cntx)) {
 			cpp_reset_context(ptr->cntx);
@@ -408,7 +430,7 @@ INT_PTR __cdecl onRecvMsg(WPARAM wParam, LPARAM lParam) {
 		DBVARIANT dbv;
 		dbv.type = DBVT_BLOB;
 
-		if(	DBGetContactSetting(ptr->hContact,szModuleName,"offlineKey",&dbv) == 0 ) {
+		if( DBGetContactSetting(ptr->hContact,szModuleName,"offlineKey",&dbv) == 0 ) {
 			// if valid key is succefully retrieved
 			ptr->offlineKey = true;
 			InitKeyX(ptr,dbv.pbVal);
@@ -427,6 +449,9 @@ INT_PTR __cdecl onRecvMsg(WPARAM wParam, LPARAM lParam) {
 	} break;
 
 	case SiG_RSND: { // resend message
+#if defined(_DEBUG) || defined(NETLIB_LOG)
+		Sent_NetLog("onRecvMsg: Native SiG_RSND message");
+#endif
 		if (cpp_keyx(ptr->cntx)) {
 			// decrypt sended back message and save message for future sending with a new secret key
 			szPlainMsg = decodeMsg(ptr,(LPARAM)pccsd,szEncMsg);
@@ -441,7 +466,7 @@ INT_PTR __cdecl onRecvMsg(WPARAM wParam, LPARAM lParam) {
 
 	case SiG_DISA: { // disabled message
 #if defined(_DEBUG) || defined(NETLIB_LOG)
-		Sent_NetLog("onRecv: SiG_DISA");
+		Sent_NetLog("onRecvMsg: Native SiG_DISA message");
 #endif
 //		ptr->status=ptr->tstatus=STATUS_DISABLED;
 //		DBWriteContactSettingByte(ptr->hContact, szModuleName, "StatusID", ptr->status);
@@ -469,7 +494,9 @@ INT_PTR __cdecl onRecvMsg(WPARAM wParam, LPARAM lParam) {
 		}
 		switch(ssig) {
 		case SiG_KEYR: { // key3 message
-
+#if defined(_DEBUG) || defined(NETLIB_LOG)
+			Sent_NetLog("onRecvMsg: SiG_KEYR received");
+#endif
 			// receive KeyB from user;
 			showPopUpKR(ptr->hContact);
 
@@ -479,7 +506,7 @@ INT_PTR __cdecl onRecvMsg(WPARAM wParam, LPARAM lParam) {
 			}
 			if( InitKeyB(ptr,szEncMsg)!=CPP_ERROR_NONE ) {
 #if defined(_DEBUG) || defined(NETLIB_LOG)
-				Sent_NetLog("SiG_KEYR: InitKeyB error");
+				Sent_NetLog("onRecvMsg: SiG_KEYR InitKeyB error");
 #endif
 				// tell to the other side that we have the plugin disabled with him
 /*
@@ -516,7 +543,7 @@ INT_PTR __cdecl onRecvMsg(WPARAM wParam, LPARAM lParam) {
 
 				LPSTR keyToSend = InitKeyA(ptr,CPP_FEATURES_NEWPG|KEY_A_SIG); // calculate NEW public and private key
 #if defined(_DEBUG) || defined(NETLIB_LOG)
-				Sent_NetLog("Sending KEYA: %s", keyToSend);
+				Sent_NetLog("onRecvMsg: Sending KEYA %s", keyToSend);
 #endif
 	    			pccsd->wParam |= PREF_METANODB;
 				pccsd->lParam = (LPARAM)keyToSend;
@@ -533,7 +560,7 @@ INT_PTR __cdecl onRecvMsg(WPARAM wParam, LPARAM lParam) {
 			if( !cpp_keya(ptr->cntx) ) {
 				LPSTR keyToSend = InitKeyA(ptr,0); // calculate public and private key
 #if defined(_DEBUG) || defined(NETLIB_LOG)
-				Sent_NetLog("Sending KEYA: %s", keyToSend);
+				Sent_NetLog("onRecvMsg: Sending KEYA %s", keyToSend);
 #endif
 	    			pccsd->wParam |= PREF_METANODB;
 				pccsd->lParam = (LPARAM)keyToSend;
@@ -546,13 +573,16 @@ INT_PTR __cdecl onRecvMsg(WPARAM wParam, LPARAM lParam) {
 		} break;
 
 		case SiG_KEYA: { // keyA message
+#if defined(_DEBUG) || defined(NETLIB_LOG)
+			Sent_NetLog("onRecvMsg: SiG_KEYA received");
+#endif
 			// receive KeyA from user;
 			showPopUpKR(ptr->hContact);
 
 			cpp_reset_context(ptr->cntx);
 			if(InitKeyB(ptr,szEncMsg)!=CPP_ERROR_NONE) {
 #if defined(_DEBUG) || defined(NETLIB_LOG)
-				Sent_NetLog("SiG_KEYA: InitKeyB error");
+				Sent_NetLog("onRecvMsg: SiG_KEYA InitKeyB error");
 #endif
 				// tell to the other side that we have the plugin disabled with him
 /*
@@ -570,7 +600,7 @@ INT_PTR __cdecl onRecvMsg(WPARAM wParam, LPARAM lParam) {
 
 			LPSTR keyToSend = InitKeyA(ptr,CPP_FEATURES_NEWPG|KEY_B_SIG); // calculate NEW public and private key
 #if defined(_DEBUG) || defined(NETLIB_LOG)
-			Sent_NetLog("Sending KEYB: %s", keyToSend);
+			Sent_NetLog("onRecvMsg: Sending KEYB %s", keyToSend);
 #endif
 	    		pccsd->wParam |= PREF_METANODB;
 			pccsd->lParam = (LPARAM)keyToSend;
@@ -580,13 +610,16 @@ INT_PTR __cdecl onRecvMsg(WPARAM wParam, LPARAM lParam) {
 		} break;
 
 		case SiG_KEYB: { // keyB message
+#if defined(_DEBUG) || defined(NETLIB_LOG)
+			Sent_NetLog("onRecvMsg: SiG_KEYB received");
+#endif
 			// receive KeyB from user;
 			showPopUpKR(ptr->hContact);
 
 			// clear all and send DISA if received KeyB, and not exist KeyA or error on InitKeyB
 			if(!cpp_keya(ptr->cntx) || InitKeyB(ptr,szEncMsg)!=CPP_ERROR_NONE) {
 #if defined(_DEBUG) || defined(NETLIB_LOG)
-				Sent_NetLog("SiG_KEYB: InitKeyB error");
+				Sent_NetLog("onRecvMsg: SiG_KEYB InitKeyB error");
 #endif
 				// tell to the other side that we have the plugin disabled with him
 /*
@@ -625,6 +658,9 @@ INT_PTR __cdecl onRecvMsg(WPARAM wParam, LPARAM lParam) {
 
 	// receive message
 	if( cpp_keyx(ptr->cntx) && (ssig==SiG_ENON||ssig==SiG_ENOF) ) {
+#if defined(_DEBUG) || defined(NETLIB_LOG)
+		Sent_NetLog("onRecvMsg: message received");
+#endif
 		showPopUpRM(ptr->hContact);
 	}
 	pccsd->wParam |= PREF_SIMNOMETA;

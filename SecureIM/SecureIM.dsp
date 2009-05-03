@@ -176,6 +176,10 @@ SOURCE=.\popupOptions.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\rtfconv.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\svcs_clist.cpp
 # End Source File
 # Begin Source File
@@ -186,14 +190,82 @@ SOURCE=.\svcs_cmenu.cpp
 
 SOURCE=.\svcs_srmm.cpp
 # End Source File
-# Begin Source File
-
-SOURCE=.\rtfconv.cpp
-# End Source File
 # End Group
 # Begin Group "Header Files"
 
 # PROP Default_Filter "h;hpp;hxx;hm;inl"
+# Begin Source File
+
+SOURCE=.\commonheaders.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\crypt.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\cryptopp.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\dbevent.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\gettime.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\images.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\language.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\loadicons.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\loadlib.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\mmi.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\options.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\popupOptions.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\rtfconv.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\secureim.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\svcs_clist.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\svcs_cmenu.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\svcs_srmm.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\version.h
+# End Source File
 # End Group
 # Begin Group "Resource Files"
 
