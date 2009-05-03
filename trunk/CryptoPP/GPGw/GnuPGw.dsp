@@ -109,6 +109,42 @@ SOURCE=.\userdialog.c
 
 SOURCE=.\commonheaders.h
 # End Source File
+# Begin Source File
+
+SOURCE=.\gpg.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\keys.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\language.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\passdialog.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\passphrases.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\pipeexec.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\resource.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\size.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\userdialog.h
+# End Source File
 # End Group
 # Begin Group "Resource Files"
 

@@ -598,11 +598,19 @@
 				>
 			</File>
 			<File
+				RelativePath=".\gettime.h"
+				>
+			</File>
+			<File
 				RelativePath="mmi.h"
 				>
 			</File>
 			<File
 				RelativePath="resource.h"
+				>
+			</File>
+			<File
+				RelativePath=".\utf8.h"
 				>
 			</File>
 			<File

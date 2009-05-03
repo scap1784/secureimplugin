@@ -192,12 +192,15 @@ int DBWriteWord(HANDLE,const char *,const char *,WORD);
 */
 void GetFlags();
 void SetFlags();
-
+/*
 LPSTR u2a( LPCWSTR src );
 LPWSTR a2u( LPCSTR src );
+*/
 LPSTR TranslateU( LPCSTR lpText );
 int msgbox( HWND hWnd, LPCSTR lpText, LPCSTR lpCaption, UINT uType );
 #define msgbox0(a,b,c,d) msgbox(a,b,c,d)
 #define msgbox1(a,b,c,d) msgbox(a,b,c,d)
 
 #endif
+
+// EOF

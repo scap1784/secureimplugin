@@ -194,11 +194,19 @@ SOURCE=.\dllloader.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\gettime.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\mmi.h
 # End Source File
 # Begin Source File
 
 SOURCE=.\resource.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\utf8.h
 # End Source File
 # Begin Source File
 
