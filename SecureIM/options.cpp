@@ -1132,14 +1132,21 @@ void RefreshGPGDlg(HWND hDlg, BOOL iInit) {
 		SetDlgItemText(hDlg, IDC_GPGHOME_EDIT, path);
 		mir_free(path);
 	}
+	BOOL bGPGLogFlag = DBGetContactSettingByte(0, szModuleName, "gpgLogFlag",0);
+	SendMessage(GetDlgItem(hDlg,IDC_LOGGINGON_CBOX),BM_SETCHECK,(bGPGLogFlag)?BST_CHECKED:BST_UNCHECKED,0L);
 	path = DBGetString(0,szModuleName,"gpgLog");
 	if(path) {
 		SetDlgItemText(hDlg, IDC_GPGLOGFILE_EDIT, path);
 		mir_free(path);
 	}
-	// Log to file checkbox
-	SendMessage(GetDlgItem(hDlg,IDC_LOGGINGON_CBOX),BM_SETCHECK,(DBGetContactSettingByte(0, szModuleName, "gpgLogFlag",0))?BST_CHECKED:BST_UNCHECKED,0L);
 	SendMessage(GetDlgItem(hDlg,IDC_SAVEPASS_CBOX),BM_SETCHECK,(bSavePass)?BST_CHECKED:BST_UNCHECKED,0L);
+	BOOL bGPGTmpFlag = DBGetContactSettingByte(0, szModuleName, "gpgTmpFlag",0);
+	SendMessage(GetDlgItem(hDlg,IDC_TMPPATHON_CBOX),BM_SETCHECK,(bGPGTmpFlag)?BST_CHECKED:BST_UNCHECKED,0L);
+	path = DBGetString(0,szModuleName,"gpgTmp");
+	if(path) {
+		SetDlgItemText(hDlg, IDC_GPGTMPPATH_EDIT, path);
+		mir_free(path);
+	}
 
 	// rebuild list of contacts
 	HWND hLV = GetDlgItem(hDlg,IDC_GPG_USERLIST);
@@ -1374,9 +1381,6 @@ void ApplyGPGSettings(HWND hDlg) {
 
 	char tmp[256];
 
-	BOOL bgpgLogFlag = (SendMessage(GetDlgItem(hDlg, IDC_LOGGINGON_CBOX),BM_GETCHECK,0L,0L)==BST_CHECKED);
-	DBWriteContactSettingByte(0,szModuleName,"gpgLogFlag",bgpgLogFlag);
-
 	GetDlgItemText(hDlg, IDC_GPGEXECUTABLE_EDIT, tmp, sizeof(tmp));
 	DBWriteContactSettingString(0,szModuleName,"gpgExec",tmp);
 	GetDlgItemText(hDlg, IDC_GPGHOME_EDIT, tmp, sizeof(tmp));
@@ -1385,12 +1389,21 @@ void ApplyGPGSettings(HWND hDlg) {
 	bSavePass = (SendMessage(GetDlgItem(hDlg, IDC_SAVEPASS_CBOX),BM_GETCHECK,0L,0L)==BST_CHECKED);
 	DBWriteContactSettingByte(0,szModuleName,"gpgSaveFlag",bSavePass);
 
+	BOOL bgpgLogFlag = (SendMessage(GetDlgItem(hDlg, IDC_LOGGINGON_CBOX),BM_GETCHECK,0L,0L)==BST_CHECKED);
+	DBWriteContactSettingByte(0,szModuleName,"gpgLogFlag",bgpgLogFlag);
 	GetDlgItemText(hDlg, IDC_GPGLOGFILE_EDIT, tmp, sizeof(tmp));
 	DBWriteContactSettingString(0,szModuleName,"gpgLog",tmp);
 	if(bgpgLogFlag)	gpg_set_log(tmp);
 	else gpg_set_log(0);
 
-    HWND hLV = GetDlgItem(hDlg,IDC_GPG_USERLIST);
+	BOOL bgpgTmpFlag = (SendMessage(GetDlgItem(hDlg, IDC_TMPPATHON_CBOX),BM_GETCHECK,0L,0L)==BST_CHECKED);
+	DBWriteContactSettingByte(0,szModuleName,"gpgTmpFlag",bgpgTmpFlag);
+	GetDlgItemText(hDlg, IDC_GPGTMPPATH_EDIT, tmp, sizeof(tmp));
+	DBWriteContactSettingString(0,szModuleName,"gpgTmp",tmp);
+	if(bgpgTmpFlag)	gpg_set_tmp(tmp);
+	else gpg_set_tmp(0);
+
+	HWND hLV = GetDlgItem(hDlg,IDC_GPG_USERLIST);
 	int i = ListView_GetNextItem(hLV,(UINT)-1,LVNI_ALL);
 	while(i!=-1) {
 		pUinKey ptr = (pUinKey)getListViewParam(hLV,i);

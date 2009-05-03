@@ -125,8 +125,10 @@
 #define IDC_PUBLICKEY_DDOWN             1306
 #define IDC_PUBLICREFRESH_BTN           1307
 #define IDC_LOGGINGON_CBOX              1308
-#define IDC_GPGLOGFILE_EDIT				1309
+#define IDC_GPGLOGFILE_EDIT             1309
 #define IDC_SAVEPASS_CBOX               1310
+#define IDC_TMPPATHON_CBOX              1311
+#define IDC_GPGTMPPATH_EDIT             1312
 
 #define IDC_STATIC                      -1
 #define ID_ENCRYPTION                   40001

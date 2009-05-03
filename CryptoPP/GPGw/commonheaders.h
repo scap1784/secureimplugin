@@ -66,6 +66,7 @@ extern DLLEXPORT int   __cdecl _gpg_done(void);
 extern DLLEXPORT int   __cdecl _gpg_open_keyrings(LPSTR,LPSTR);
 extern DLLEXPORT int   __cdecl _gpg_close_keyrings(void);
 extern DLLEXPORT void  __cdecl _gpg_set_log(LPCSTR);
+extern DLLEXPORT void  __cdecl _gpg_set_tmp(LPCSTR);
 extern DLLEXPORT LPSTR __cdecl _gpg_get_error(void);
 extern DLLEXPORT int   __cdecl _gpg_size_keyid(void);
 extern DLLEXPORT int   __cdecl _gpg_select_keyid(HWND,LPSTR);

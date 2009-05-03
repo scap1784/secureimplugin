@@ -27,21 +27,21 @@ int __cdecl _gpg_done()
 
 int __cdecl _gpg_open_keyrings(LPSTR ExecPath, LPSTR HomePath)
 {
-    if ( !ExecPath || (!*ExecPath && !ShowSelectExecDlg(ExecPath))) {
-		return 0;
+    if( !ExecPath || (!*ExecPath && !ShowSelectExecDlg(ExecPath)) ) {
+	return 0;
     }
-    if ( !HomePath || (!*HomePath && !ShowSelectHomeDlg(HomePath))) {
-		return 0;
+    if( !HomePath || (!*HomePath && !ShowSelectHomeDlg(HomePath)) ) {
+	return 0;
     }
-	if(!existsFile(ExecPath)) {
-//		ErrorMessage(txtwarning, txtinvalidexecutable, txtverifyoptions);
-		return 0;
-	}
+    if( !existsFile(ExecPath) ) {
+//	ErrorMessage(txtwarning, txtinvalidexecutable, txtverifyoptions);
+	return 0;
+    }
     strcpy(gpgExecutable, ExecPath);
     strcpy(gpgHomeDirectory, HomePath);
-	updateKeyUserIDs(publickeyuserid);
-	updateKeyUserIDs(secretkeyuserid);
-	return 1;
+    updateKeyUserIDs(publickeyuserid);
+    updateKeyUserIDs(secretkeyuserid);
+    return 1;
 }
 
 
@@ -59,8 +59,15 @@ LPSTR __cdecl _gpg_get_error()
 
 void __cdecl _gpg_set_log(LPCSTR LogPath)
 {
-    if(LogPath)	strcpy(logfile,LogPath);
+    if(LogPath)	strncpy(logfile,LogPath,sizeof(logfile));
     else logfile[0]='\0';
+}
+
+
+void __cdecl _gpg_set_tmp(LPCSTR TmpPath)
+{
+    if(TmpPath)	strncpy(temporarydirectory,TmpPath,sizeof(temporarydirectory));
+    else GetTempPath(sizeof(temporarydirectory),temporarydirectory);
 }
 
 

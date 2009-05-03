@@ -297,6 +297,14 @@ int __cdecl onModulesLoaded(WPARAM wParam,LPARAM lParam) {
 			}
 		}
 
+		if(DBGetContactSettingByte(0, szModuleName, "gpgTmpFlag",0)) {
+			tmp = DBGetString(0,szModuleName,"gpgTmp");
+			if(tmp) {
+				gpg_set_tmp(tmp);
+				mir_free(tmp);
+			}
+		}
+
 		bGPGkeyrings = gpg_open_keyrings(gpgexec,gpghome);
 		if(bGPGkeyrings) {
 			DBWriteContactSettingString(0,szModuleName,"gpgExec",gpgexec);
