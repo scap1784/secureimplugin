@@ -51,7 +51,7 @@ void DeinitMetaContact(HANDLE hContact) {
 		for(int i=0;i<CallService(MS_MC_GETNUMCONTACTS,(WPARAM)hMetaContact,0);i++) {
 			HANDLE hSubContact = (HANDLE)CallService(MS_MC_GETSUBCONTACT,(WPARAM)hMetaContact,(LPARAM)i);
 			if( hSubContact && isContactSecured(hSubContact)&SECURED ) {
-				CallContactService(hSubContact,PSS_MESSAGE,0,(LPARAM)SIG_DEIN);
+				CallContactService(hSubContact,PSS_MESSAGE,(WPARAM)PREF_METANODB,(LPARAM)SIG_DEIN);
 			}
 		}
 	}

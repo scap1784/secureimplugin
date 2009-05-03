@@ -1,24 +1,24 @@
-# Microsoft Developer Studio Project File - Name="SecureIM" - Package Owner=<4>
+# Microsoft Developer Studio Project File - Name="secureim" - Package Owner=<4>
 # Microsoft Developer Studio Generated Build File, Format Version 6.00
 # ** DO NOT EDIT **
 
 # TARGTYPE "Win32 (x86) Dynamic-Link Library" 0x0102
 
-CFG=SecureIM - Win32 Release
+CFG=secureim - Win32 Release
 !MESSAGE This is not a valid makefile. To build this project using NMAKE,
 !MESSAGE use the Export Makefile command and run
 !MESSAGE 
-!MESSAGE NMAKE /f "SecureIM.mak".
+!MESSAGE NMAKE /f "secureim.mak".
 !MESSAGE 
 !MESSAGE You can specify a configuration when running NMAKE
 !MESSAGE by defining the macro CFG on the command line. For example:
 !MESSAGE 
-!MESSAGE NMAKE /f "SecureIM.mak" CFG="SecureIM - Win32 Release"
+!MESSAGE NMAKE /f "secureim.mak" CFG="secureim - Win32 Release"
 !MESSAGE 
 !MESSAGE Possible choices for configuration are:
 !MESSAGE 
-!MESSAGE "SecureIM - Win32 Release" (based on "Win32 (x86) Dynamic-Link Library")
-!MESSAGE "SecureIM - Win32 Debug" (based on "Win32 (x86) Dynamic-Link Library")
+!MESSAGE "secureim - Win32 Release" (based on "Win32 (x86) Dynamic-Link Library")
+!MESSAGE "secureim - Win32 Debug" (based on "Win32 (x86) Dynamic-Link Library")
 !MESSAGE 
 
 # Begin Project
@@ -29,7 +29,7 @@ CPP=cl.exe
 MTL=midl.exe
 RSC=rc.exe
 
-!IF  "$(CFG)" == "SecureIM - Win32 Release"
+!IF  "$(CFG)" == "secureim - Win32 Release"
 
 # PROP BASE Use_MFC 0
 # PROP BASE Use_Debug_Libraries 0
@@ -57,7 +57,7 @@ LINK32=link.exe
 # ADD LINK32 kernel32.lib user32.lib msimg32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib comctl32.lib /nologo /base:"0x45000000" /dll /map /machine:I386
 # SUBTRACT LINK32 /pdb:none
 
-!ELSEIF  "$(CFG)" == "SecureIM - Win32 Debug"
+!ELSEIF  "$(CFG)" == "secureim - Win32 Debug"
 
 # PROP BASE Use_MFC 0
 # PROP BASE Use_Debug_Libraries 1
@@ -88,8 +88,8 @@ LINK32=link.exe
 
 # Begin Target
 
-# Name "SecureIM - Win32 Release"
-# Name "SecureIM - Win32 Debug"
+# Name "secureim - Win32 Release"
+# Name "secureim - Win32 Debug"
 # Begin Group "Source Files"
 
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
@@ -164,10 +164,6 @@ SOURCE=.\main.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\menu_svcs.cpp
-# End Source File
-# Begin Source File
-
 SOURCE=.\mmi.cpp
 # End Source File
 # Begin Source File
@@ -180,64 +176,24 @@ SOURCE=.\popupOptions.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\svcs_clist.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\svcs_cmenu.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\svcs_srmm.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\rtfconv.cpp
 # End Source File
 # End Group
 # Begin Group "Header Files"
 
 # PROP Default_Filter "h;hpp;hxx;hm;inl"
-# Begin Source File
-
-SOURCE=.\commonheaders.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\crypt.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\forkthread.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\gettime.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\language.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\loadicons.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\loadlib.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\mmi.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\options.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\popupOptions.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\resource.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\secureim.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\version.h
-# End Source File
 # End Group
 # Begin Group "Resource Files"
 

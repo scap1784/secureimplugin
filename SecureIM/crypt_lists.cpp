@@ -4,6 +4,7 @@ pSupPro proto=NULL;
 pUinKey clist=NULL;
 int proto_cnt = 0;
 int clist_cnt = 0;
+int clist_inc = 10;
 
 
 void loadSupportedProtocols() {
@@ -78,6 +79,53 @@ pSupPro getSupPro(HANDLE hContact) {
 }
 
 
+void MoveToFirstInFilterList(HANDLE hContact) {
+	int i;
+	char str[10];
+	DBVARIANT dbv;
+
+	for(i=0;;i++) {
+		mir_itoa(i,str,10);
+		if( DBGetContactSettingString(hContact,"_Filter",str,&dbv) ) break;
+		if( !strcmp(szModuleName,dbv.pszVal) ) { // нашли мой модуль
+			if( i==0 ) return;
+			DBGetContactSettingString(hContact,"_Filter","0",&dbv);
+			DBWriteContactSettingString(hContact,"_Filter","0",szModuleName);
+			DBWriteContactSettingString(hContact,"_Filter",str,dbv.pszVal);
+			mir_free(dbv.pszVal);
+			return;
+		}
+		mir_free(dbv.pszVal);
+	}
+}
+
+
+void MoveToLastInFilterList(HANDLE hContact) {
+	int i,j;
+	char str[10];
+	char end[10];
+	DBVARIANT dbv;
+
+	for(i=0;;i++) {
+		mir_itoa(i,str,10);
+		if( DBGetContactSettingString(hContact,"_Filter",str,&dbv) ) break;
+		if( !strcmp(szModuleName,dbv.pszVal) ) { // нашли мой модуль
+		    j=i;
+		}
+		mir_free(dbv.pszVal);
+	}
+	i--;
+	if( j==i ) return;
+	mir_itoa(i,end,10);
+	mir_itoa(j,str,10);
+	DBGetContactSettingString(hContact,"_Filter",end,&dbv);
+	DBWriteContactSettingString(hContact,"_Filter",str,dbv.pszVal);
+	DBWriteContactSettingString(hContact,"_Filter",end,szModuleName);
+	mir_free(dbv.pszVal);
+	return;
+}
+
+
 // add contact in the list of secureIM users
 pUinKey addContact(HANDLE hContact) {
 	int j;
@@ -87,14 +135,17 @@ pUinKey addContact(HANDLE hContact) {
 		if ( proto ) {
 			if ( !CallService(MS_PROTO_ISPROTOONCONTACT, (WPARAM)hContact, (LPARAM)szModuleName) )
 				CallService(MS_PROTO_ADDTOCONTACT, (WPARAM)hContact, (LPARAM)szModuleName);
+			MoveToLastInFilterList(hContact);
 			for(j=0;j<clist_cnt;j++) {
 				if(!clist[j].hContact) break;
 			}
 			if(j==clist_cnt) {
-				clist_cnt++;
+				clist_cnt+=clist_inc;
 				clist = (pUinKey) mir_realloc(clist,sizeof(UinKey)*clist_cnt);
+				memset(&clist[j],0,sizeof(UinKey)*clist_inc);
 			}
-			memset(&clist[j],0,sizeof(UinKey));
+			else
+				memset(&clist[j],0,sizeof(UinKey));
 			clist[j].hContact = hContact;
 			clist[j].proto = proto;
 			clist[j].mode = DBGetContactSettingByte(hContact, szModuleName, "mode", 99);

@@ -3,7 +3,7 @@ Microsoft Developer Studio Workspace File, Format Version 6.00
 
 ###############################################################################
 
-Project: "SecureIM"=.\SecureIM.dsp - Package Owner=<4>
+Project: "secureim"=.\secureim.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -15,7 +15,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "SecureIM_icons"=.\SecureIM_icons.dsp - Package Owner=<4>
+Project: "secureim_icons"=.\secureim_icons.dsp - Package Owner=<4>
 
 Package=<5>
 {{{

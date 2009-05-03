@@ -1048,9 +1048,6 @@ void RefreshProtoDlg(HWND hDlg) {
 
 	BYTE sha[32]; int len; exp->rsa_get_keyhash(CPP_MODE_RSA,NULL,NULL,(PBYTE)&sha,&len);
 	LPSTR txt = mir_strdup(to_hex(sha,len));
-#if defined(_DEBUG) || defined(NETLIB_LOG)
-	Sent_NetLog("to_hex(%s)",txt);
-#endif
 	SetDlgItemText(hDlg, IDC_RSA_SHA, txt);
 	mir_free(txt);
 }

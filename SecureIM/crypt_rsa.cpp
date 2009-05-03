@@ -164,4 +164,48 @@ void __cdecl sttGenerateRSA( LPVOID param ) {
 	rsa_4096=1;
 }
 
+
+// загружает паблик-ключ в RSA контекст
+BYTE loadRSAkey(pUinKey ptr) {
+       	if( !ptr->keyLoaded ) {
+       	    DBVARIANT dbv;
+       	    dbv.type = DBVT_BLOB;
+       	    if(	DBGetContactSetting(ptr->hContact,szModuleName,"rsa_pub",&dbv) == 0 ) {
+       		ptr->keyLoaded = exp->rsa_set_pubkey(ptr->cntx,dbv.pbVal,dbv.cpbVal);
+#if defined(_DEBUG) || defined(NETLIB_LOG)
+		Sent_NetLog("loadRSAkey %d", ptr->keyLoaded);
+#endif
+       		DBFreeVariant(&dbv);
+       	    }
+       	}
+       	return ptr->keyLoaded;
+}
+
+// создает RSA контекст
+void createRSAcntx(pUinKey ptr) {
+	if( !ptr->cntx ) {
+		ptr->cntx = cpp_create_context(CPP_MODE_RSA);
+		ptr->keyLoaded = 0;
+	}
+}
+
+
+// пересоздает RSA контекст
+void resetRSAcntx(pUinKey ptr) {
+	if( ptr->cntx ) {
+		cpp_delete_context(ptr->cntx);
+		ptr->cntx = cpp_create_context(CPP_MODE_RSA);
+		ptr->keyLoaded = 0;
+	}			
+}
+
+
+// удаляет RSA контекст
+void deleteRSAcntx(pUinKey ptr) {
+	cpp_delete_context(ptr->cntx);
+	ptr->cntx = 0;
+	ptr->keyLoaded = 0;
+}
+
+
 // EOF

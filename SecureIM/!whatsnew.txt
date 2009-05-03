@@ -4,6 +4,7 @@ Verison 1.0.12.1 [02-05-2009]
 [*] native mode fixes
 [+] add support for folders plugin
 [+] auto switch to RSA/AES mode, if possible
+[+] _Filter sequence fixed (last in sent & first in recv)
 
 
 Verison 1.0.12.0 [28-04-2009]
