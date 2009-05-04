@@ -122,14 +122,14 @@ BOOL isProtoSmallPackets(HANDLE hContact) {
 
 
 BOOL isContactInvisible(HANDLE hContact) {
-	if(!DBGetContactSettingByte(hContact,"CList","Hidden",0)) {
-		if (!clist_cnt) return false;
+	if( !DBGetContactSettingByte(hContact,"CList","Hidden",0) ) {
+		if( !clist_cnt ) return false;
 		for(int j=0;j<clist_cnt;j++) {
-			if (clist[j].hContact == hContact && clist[j].proto->inspecting) {
-				if(clist[j].waitForExchange) return false;
-				switch(DBGetContactSettingWord(hContact,clist[j].proto->name,"ApparentMode",0)) {
+			if( clist[j].hContact == hContact && clist[j].proto->inspecting ) {
+				if( clist[j].waitForExchange ) return false;
+				switch( (int)DBGetContactSettingWord(hContact,clist[j].proto->name,"ApparentMode",0) ) {
 				case 0:
-					return (DBGetContactSettingDword(NULL,clist[j].proto->name,"Status",ID_STATUS_OFFLINE)==ID_STATUS_INVISIBLE);
+					return (CallProtoService(clist[j].proto->name,PS_GETSTATUS,0,0)==ID_STATUS_INVISIBLE);
 				case ID_STATUS_ONLINE:
 					return false;
 				case ID_STATUS_OFFLINE:

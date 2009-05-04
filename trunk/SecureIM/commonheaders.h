@@ -1,7 +1,7 @@
 // Windows API
 
 #define WIN32_LEAN_AND_MEAN
-#define NETLIB_LOG
+//#define NETLIB_LOG
 
 #ifdef _MSC_VER
 #pragma once
@@ -117,9 +117,12 @@
 #include "cryptopp.h"
 #include "images.h"
 #include "dbevent.h"
+#include "splitmsg.h"
+#include "svcs_proto.h"
 #include "svcs_clist.h"
-#include "svcs_cmenu.h"
+#include "svcs_menu.h"
 #include "svcs_srmm.h"
+#include "svcs_rsa.h"
 
 extern LPCSTR szModuleName;
 extern LPCSTR szVersionStr;

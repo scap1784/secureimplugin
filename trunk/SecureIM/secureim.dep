@@ -42,7 +42,9 @@
 	".\sdk\m_updater.h"\
 	".\secureim.h"\
 	".\svcs_clist.h"\
-	".\svcs_cmenu.h"\
+	".\svcs_menu.h"\
+	".\svcs_proto.h"\
+	".\svcs_rsa.h"\
 	".\svcs_srmm.h"\
 	".\version.h"\
 	"d:\program files\microsoft visual studio\vc98\include\basetsd.h"\

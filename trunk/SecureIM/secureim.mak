@@ -45,8 +45,6 @@ CLEAN :
 	-@erase "$(INTDIR)\crypt_metacontacts.obj"
 	-@erase "$(INTDIR)\crypt_misc.obj"
 	-@erase "$(INTDIR)\crypt_popups.obj"
-	-@erase "$(INTDIR)\crypt_rsa.obj"
-	-@erase "$(INTDIR)\crypt_svcs.obj"
 	-@erase "$(INTDIR)\dbevent.obj"
 	-@erase "$(INTDIR)\gettime.obj"
 	-@erase "$(INTDIR)\images.obj"
@@ -61,7 +59,9 @@ CLEAN :
 	-@erase "$(INTDIR)\rtfconv.obj"
 	-@erase "$(INTDIR)\secureim.pch"
 	-@erase "$(INTDIR)\svcs_clist.obj"
-	-@erase "$(INTDIR)\svcs_cmenu.obj"
+	-@erase "$(INTDIR)\svcs_menu.obj"
+	-@erase "$(INTDIR)\svcs_proto.obj"
+	-@erase "$(INTDIR)\svcs_rsa.obj"
 	-@erase "$(INTDIR)\svcs_srmm.obj"
 	-@erase "$(INTDIR)\vc60.idb"
 	-@erase "$(OUTDIR)\secureim.dll"
@@ -124,8 +124,6 @@ LINK32_OBJS= \
 	"$(INTDIR)\crypt_metacontacts.obj" \
 	"$(INTDIR)\crypt_misc.obj" \
 	"$(INTDIR)\crypt_popups.obj" \
-	"$(INTDIR)\crypt_rsa.obj" \
-	"$(INTDIR)\crypt_svcs.obj" \
 	"$(INTDIR)\dbevent.obj" \
 	"$(INTDIR)\gettime.obj" \
 	"$(INTDIR)\images.obj" \
@@ -138,7 +136,9 @@ LINK32_OBJS= \
 	"$(INTDIR)\popupOptions.obj" \
 	"$(INTDIR)\rtfconv.obj" \
 	"$(INTDIR)\svcs_clist.obj" \
-	"$(INTDIR)\svcs_cmenu.obj" \
+	"$(INTDIR)\svcs_menu.obj" \
+	"$(INTDIR)\svcs_proto.obj" \
+	"$(INTDIR)\svcs_rsa.obj" \
 	"$(INTDIR)\svcs_srmm.obj" \
 	"$(INTDIR)\resource.res"
 
@@ -167,8 +167,6 @@ CLEAN :
 	-@erase "$(INTDIR)\crypt_metacontacts.obj"
 	-@erase "$(INTDIR)\crypt_misc.obj"
 	-@erase "$(INTDIR)\crypt_popups.obj"
-	-@erase "$(INTDIR)\crypt_rsa.obj"
-	-@erase "$(INTDIR)\crypt_svcs.obj"
 	-@erase "$(INTDIR)\dbevent.obj"
 	-@erase "$(INTDIR)\gettime.obj"
 	-@erase "$(INTDIR)\images.obj"
@@ -183,7 +181,9 @@ CLEAN :
 	-@erase "$(INTDIR)\rtfconv.obj"
 	-@erase "$(INTDIR)\secureim.pch"
 	-@erase "$(INTDIR)\svcs_clist.obj"
-	-@erase "$(INTDIR)\svcs_cmenu.obj"
+	-@erase "$(INTDIR)\svcs_menu.obj"
+	-@erase "$(INTDIR)\svcs_proto.obj"
+	-@erase "$(INTDIR)\svcs_rsa.obj"
 	-@erase "$(INTDIR)\svcs_srmm.obj"
 	-@erase "$(INTDIR)\vc60.idb"
 	-@erase "$(INTDIR)\vc60.pdb"
@@ -248,8 +248,6 @@ LINK32_OBJS= \
 	"$(INTDIR)\crypt_metacontacts.obj" \
 	"$(INTDIR)\crypt_misc.obj" \
 	"$(INTDIR)\crypt_popups.obj" \
-	"$(INTDIR)\crypt_rsa.obj" \
-	"$(INTDIR)\crypt_svcs.obj" \
 	"$(INTDIR)\dbevent.obj" \
 	"$(INTDIR)\gettime.obj" \
 	"$(INTDIR)\images.obj" \
@@ -262,7 +260,9 @@ LINK32_OBJS= \
 	"$(INTDIR)\popupOptions.obj" \
 	"$(INTDIR)\rtfconv.obj" \
 	"$(INTDIR)\svcs_clist.obj" \
-	"$(INTDIR)\svcs_cmenu.obj" \
+	"$(INTDIR)\svcs_menu.obj" \
+	"$(INTDIR)\svcs_proto.obj" \
+	"$(INTDIR)\svcs_rsa.obj" \
 	"$(INTDIR)\svcs_srmm.obj" \
 	"$(INTDIR)\resource.res"
 
@@ -343,16 +343,6 @@ SOURCE=.\crypt_popups.cpp
 "$(INTDIR)\crypt_popups.obj" : $(SOURCE) "$(INTDIR)" "$(INTDIR)\secureim.pch"
 
 
-SOURCE=.\crypt_rsa.cpp
-
-"$(INTDIR)\crypt_rsa.obj" : $(SOURCE) "$(INTDIR)" "$(INTDIR)\secureim.pch"
-
-
-SOURCE=.\crypt_svcs.cpp
-
-"$(INTDIR)\crypt_svcs.obj" : $(SOURCE) "$(INTDIR)" "$(INTDIR)\secureim.pch"
-
-
 SOURCE=.\dbevent.cpp
 
 "$(INTDIR)\dbevent.obj" : $(SOURCE) "$(INTDIR)" "$(INTDIR)\secureim.pch"
@@ -413,9 +403,19 @@ SOURCE=.\svcs_clist.cpp
 "$(INTDIR)\svcs_clist.obj" : $(SOURCE) "$(INTDIR)" "$(INTDIR)\secureim.pch"
 
 
-SOURCE=.\svcs_cmenu.cpp
+SOURCE=.\svcs_menu.cpp
 
-"$(INTDIR)\svcs_cmenu.obj" : $(SOURCE) "$(INTDIR)" "$(INTDIR)\secureim.pch"
+"$(INTDIR)\svcs_menu.obj" : $(SOURCE) "$(INTDIR)" "$(INTDIR)\secureim.pch"
+
+
+SOURCE=.\svcs_proto.cpp
+
+"$(INTDIR)\svcs_proto.obj" : $(SOURCE) "$(INTDIR)" "$(INTDIR)\secureim.pch"
+
+
+SOURCE=.\svcs_rsa.cpp
+
+"$(INTDIR)\svcs_rsa.obj" : $(SOURCE) "$(INTDIR)" "$(INTDIR)\secureim.pch"
 
 
 SOURCE=.\svcs_srmm.cpp

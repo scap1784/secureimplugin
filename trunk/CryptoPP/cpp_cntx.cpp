@@ -4,7 +4,7 @@
 pCNTX cntx = NULL;
 int cntx_idx = 0;
 int cntx_cnt = 0;
-int cntx_step = 10; // выделять по 10 контекстов за раз
+int cntx_step = 20; // выделять по 20 контекстов за раз
 HANDLE thread_timeout = 0;
 
 void __cdecl sttTimeoutThread(LPVOID);
@@ -130,12 +130,13 @@ PBYTE cpp_alloc_pdata(pCNTX ptr) {
 void __cdecl sttTimeoutThread( LPVOID ) {
 
 	while(1) {
-	    Sleep( 1000 );
+	    Sleep( 1000 ); // раз в секунду
 	    DWORD time = gettime();
 	    for(int i=0;i<cntx_cnt;i++) {
 		EnterCriticalSection(&localContextMutex);
 	    	pCNTX tmp = &cntx[i];
 	    	if( tmp->cntx>0 && tmp->mode&MODE_RSA && tmp->pdata ) {
+	    		// проверяем не протухло ли соединение
 			pRSADATA p = (pRSADATA) tmp->pdata;
 			if( p->time && p->time < time ) {
 				rsa_timeout(tmp->cntx,p);

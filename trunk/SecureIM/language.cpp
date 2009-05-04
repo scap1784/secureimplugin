@@ -90,7 +90,7 @@ LPCSTR sim507 = "Session closed on timeout (10 seconds)";
 LPCSTR sim508 = "Session closed by other side when status \"disabled\"";
 LPCSTR sim510 = "Session closed on error: %02x";
 LPCSTR sim520 = "SecureIM received RSA Public Key from \"%s\"\n\nSHA1: %s\n\nDo you Accept this Key ?";
-LPCSTR sim521 = "SecureIM auto accepted RSA Public key from: %s uin: %s";
+LPCSTR sim521 = "SecureIM auto accepted RSA Public key from: %s uin: %s SHA1: %s";
 
 
 // EOF
