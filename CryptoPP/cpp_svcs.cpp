@@ -17,8 +17,8 @@ LPSTR __cdecl cpp_encrypt(pCNTX ptr, LPCSTR szPlainMsg) {
 	if(ptr->features & FEATURES_GZIP) {
 		szMsg = (LPSTR) cpp_gzip((BYTE*)szPlainMsg,slen,clen);
 		if(clen>=slen) {
-		    mir_free(szMsg);
-		    szMsg = mir_strdup(szPlainMsg);
+		    free(szMsg);
+		    szMsg = _strdup(szPlainMsg);
 		}
 		else {
 		    slen = clen;
@@ -26,7 +26,7 @@ LPSTR __cdecl cpp_encrypt(pCNTX ptr, LPCSTR szPlainMsg) {
 		}
 	}
 	else
-	    szMsg = mir_strdup(szPlainMsg);
+	    szMsg = _strdup(szPlainMsg);
 
 	string ciphered;
 
@@ -36,7 +36,7 @@ LPSTR __cdecl cpp_encrypt(pCNTX ptr, LPCSTR szPlainMsg) {
 	cbcEncryptor.Put((PBYTE)szMsg, slen);
 	cbcEncryptor.MessageEnd();
 
-	mir_free(szMsg);
+	free(szMsg);
 
 	clen = (int) ciphered.length();
 	if(ptr->features & FEATURES_CRC32) {
@@ -100,7 +100,7 @@ LPSTR __cdecl cpp_decrypt(pCNTX ptr, LPCSTR szEncMsg) {
 #if defined(_DEBUG) || defined(NETLIB_LOG)
 				Sent_NetLog("cpp_decrypt: error bad_len");
 #endif
-				mir_free(ciphered);
+				free(ciphered);
 				ptr->error = ERROR_BAD_LEN;
 				return NULL;
 			}
@@ -114,7 +114,7 @@ LPSTR __cdecl cpp_decrypt(pCNTX ptr, LPCSTR szEncMsg) {
 #if defined(_DEBUG) || defined(NETLIB_LOG)
 				Sent_NetLog("cpp_decrypt: error bad_crc");
 #endif
-				mir_free(ciphered);
+				free(ciphered);
 				ptr->error = ERROR_BAD_CRC;
 				return NULL;
 			}
@@ -130,7 +130,7 @@ LPSTR __cdecl cpp_decrypt(pCNTX ptr, LPCSTR szEncMsg) {
 		cbcDecryptor.Put((PBYTE)bciphered,clen);
 		cbcDecryptor.MessageEnd();
 
-		mir_free(ciphered);
+		free(ciphered);
 		SAFE_FREE(ptr->tmp);
 
 		if(dataflag & DATA_GZIP) {
@@ -138,7 +138,7 @@ LPSTR __cdecl cpp_decrypt(pCNTX ptr, LPCSTR szEncMsg) {
 			ptr->tmp[clen] = 0;
 		}
 		else {
-			ptr->tmp = (LPSTR) mir_alloc(unciphered.length()+1);
+			ptr->tmp = (LPSTR) malloc(unciphered.length()+1);
 			memcpy(ptr->tmp,unciphered.c_str(),unciphered.length()+1);
 		}
 
@@ -149,7 +149,7 @@ LPSTR __cdecl cpp_decrypt(pCNTX ptr, LPCSTR szEncMsg) {
 #if defined(_DEBUG) || defined(NETLIB_LOG)
 		Sent_NetLog("cpp_decrypt: error seh");
 #endif
-		mir_free(ciphered);
+		free(ciphered);
 		SAFE_FREE(ptr->tmp);
 		return NULL;
 	}
@@ -255,14 +255,14 @@ LPSTR __cdecl cpp_decode(int context, LPCSTR szEncMsg) {
 			// utf8 message: convert to unicode -> ansii
 			LPWSTR wstring = utf8decode(szOldMsg);
 			int wlen = wcslen(wstring)+1;
-			szNewMsg = (LPSTR) mir_alloc(wlen*(sizeof(WCHAR)+2));			// work.zy@gmail.com
+			szNewMsg = (LPSTR) malloc(wlen*(sizeof(WCHAR)+2));			// work.zy@gmail.com
 			WideCharToMultiByte(CP_ACP, 0, wstring, -1, szNewMsg, wlen, 0, 0);
 			memcpy(szNewMsg+strlen(szNewMsg)+1, wstring, wlen*sizeof(WCHAR));	// work.zy@gmail.com
 		}
 		else {
 			// ansi message: convert to unicode
 			int slen = strlen(szOldMsg)+1;
-			szNewMsg = (LPSTR) mir_alloc(slen*(sizeof(WCHAR)+1));
+			szNewMsg = (LPSTR) malloc(slen*(sizeof(WCHAR)+1));
 			memcpy(szNewMsg,szOldMsg,slen);
 			WCHAR* wstring = (LPWSTR) alloca(slen*sizeof(WCHAR));
 			MultiByteToWideChar(CP_ACP, 0, szOldMsg, -1, wstring, slen*sizeof(WCHAR));
@@ -289,14 +289,14 @@ LPSTR __cdecl cpp_decodeU(int context, LPCSTR szEncMsg) {
 	if(szOldMsg) {
 		if(ptr->features & FEATURES_UTF8) {
 			// utf8 message: copy
-			szNewMsg = mir_strdup(szOldMsg);
+			szNewMsg = _strdup(szOldMsg);
 		}
 		else {
 			// ansi message: convert to utf8
 			int slen = strlen(szOldMsg)+1;
 			LPWSTR wstring = (LPWSTR) alloca(slen*sizeof(WCHAR));
 			MultiByteToWideChar(CP_ACP, 0, szOldMsg, -1, wstring, slen*sizeof(WCHAR));
-			szNewMsg = mir_strdup(utf8encode(wstring));
+			szNewMsg = _strdup(utf8encode(wstring));
 		}
 	}
 	SAFE_FREE(ptr->tmp);

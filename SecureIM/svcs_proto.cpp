@@ -390,10 +390,11 @@ INT_PTR __cdecl onRecvMsg(WPARAM wParam, LPARAM lParam) {
 			// receive KeyB from user;
 			showPopUpKR(ptr->hContact);
 
-			// reinit key exchange if an old key from user is found
-			if( cpp_keyb(ptr->cntx) ) {
+			if( ptr->cntx && cpp_keyb(ptr->cntx) ) {
+				// reinit key exchange if an old key from user is found
 				cpp_reset_context(ptr->cntx);
 			}
+
 			if( InitKeyB(ptr,szEncMsg)!=CPP_ERROR_NONE ) {
 #if defined(_DEBUG) || defined(NETLIB_LOG)
 				Sent_NetLog("onRecvMsg: SiG_KEYR InitKeyB error");
@@ -413,7 +414,7 @@ INT_PTR __cdecl onRecvMsg(WPARAM wParam, LPARAM lParam) {
 			}
 
 			// other side support RSA mode ?
-			if( cpp_get_features(ptr->cntx) & CPP_FEATURES_RSA ) {
+			if( ptr->features & CPP_FEATURES_RSA ) {
 				// switch to RSAAES mode
 				ptr->mode = MODE_RSAAES;
 				DBWriteContactSettingByte(ptr->hContact, szModuleName, "mode", ptr->mode);
@@ -428,7 +429,7 @@ INT_PTR __cdecl onRecvMsg(WPARAM wParam, LPARAM lParam) {
 			}
 
 			// other side support new key format ?
-			if( cpp_get_features(ptr->cntx) & CPP_FEATURES_NEWPG ) {
+			if( ptr->features & CPP_FEATURES_NEWPG ) {
 				cpp_reset_context(ptr->cntx);
 
 				LPSTR keyToSend = InitKeyA(ptr,CPP_FEATURES_NEWPG|KEY_A_SIG); // calculate NEW public and private key

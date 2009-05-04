@@ -35,11 +35,11 @@ LPSTR __cdecl cpp_init_keya(int context, int features) {
 	p->dh->GenerateKeyPair(autorng, priv1, publ1);
 
 	SAFE_FREE(p->PubA);
-	p->PubA = (PBYTE) mir_alloc(KEYSIZE);
+	p->PubA = (PBYTE) malloc(KEYSIZE);
 	memcpy(p->PubA,publ1,KEYSIZE);
 
 	SAFE_FREE(p->KeyA);
-	p->KeyA = (PBYTE) mir_alloc(KEYSIZE);
+	p->KeyA = (PBYTE) malloc(KEYSIZE);
 	memcpy(p->KeyA,priv1,KEYSIZE);
 
 	if(p->KeyP) {
@@ -168,7 +168,7 @@ int __cdecl cpp_calc_keyx(int context) {
 
 		// store key
 		SAFE_FREE(p->KeyX);
-		p->KeyX = (PBYTE) mir_alloc(Tiger::DIGESTSIZE);
+		p->KeyX = (PBYTE) malloc(Tiger::DIGESTSIZE);
 		memcpy(p->KeyX,buffer,Tiger::DIGESTSIZE);
 	}
 	return (int)agr;
@@ -188,7 +188,7 @@ int __cdecl cpp_init_keyp(int context, LPCSTR password) {
 
 	// store pre-shared key
 	SAFE_FREE(p->KeyP);
-	p->KeyP = (PBYTE) mir_alloc(Tiger::DIGESTSIZE);
+	p->KeyP = (PBYTE) malloc(Tiger::DIGESTSIZE);
 	memcpy(p->KeyP,buffer,Tiger::DIGESTSIZE);
 
 	return 1;

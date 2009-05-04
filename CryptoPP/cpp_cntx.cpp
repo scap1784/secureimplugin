@@ -4,7 +4,7 @@
 pCNTX cntx = NULL;
 int cntx_idx = 0;
 int cntx_cnt = 0;
-int cntx_step = 20; // выделять по 20 контекстов за раз
+int cntx_inc = 10; // выделять по 10 контекстов за раз
 HANDLE thread_timeout = 0;
 
 void __cdecl sttTimeoutThread(LPVOID);
@@ -29,7 +29,7 @@ pCNTX get_context_on_id(int context) {
 		// create context for private pgp keys
 		pCNTX tmp = get_context_on_id(cpp_create_context(0));
 		tmp->cntx = context; tmp->mode = MODE_PGP;
-		tmp->pdata = (PBYTE) mir_alloc(sizeof(PGPDATA));
+		tmp->pdata = (PBYTE) malloc(sizeof(PGPDATA));
 		memset(tmp->pdata,0,sizeof(PGPDATA));
 		return tmp;
 	}
@@ -59,12 +59,12 @@ int __cdecl cpp_create_context(int mode) {
     	EnterCriticalSection(&localContextMutex);
 	for(i=0; i<cntx_cnt && cntx[i].cntx; i++);
 	if(i == cntx_cnt) { // надо добавить новый блок
-		cntx_cnt += cntx_step; 
+		cntx_cnt += cntx_inc; 
 		cntx = (pCNTX) mir_realloc(cntx,sizeof(CNTX)*cntx_cnt);
-		memset(&(cntx[i]),0,sizeof(CNTX)*cntx_cnt); // очищаем выделенный блок
+		memset(&cntx[i],0,sizeof(CNTX)*cntx_inc); // очищаем выделенный блок
 	}
 	else
-		memset(&(cntx[i]),0,sizeof(CNTX)); // очищаем конкретный контекст
+		memset(&cntx[i],0,sizeof(CNTX)); // очищаем конкретный контекст
 	cntx[i].cntx = cntx_idx;
 	cntx[i].mode = mode;
 	LeaveCriticalSection(&localContextMutex);
@@ -95,12 +95,12 @@ void __cdecl cpp_reset_context(int context) {
 PBYTE cpp_alloc_pdata(pCNTX ptr) {
 	if( !ptr->pdata ) {
 	    if( ptr->mode & MODE_PGP ) {
-			ptr->pdata = (PBYTE) mir_alloc(sizeof(PGPDATA));
+			ptr->pdata = (PBYTE) malloc(sizeof(PGPDATA));
 			memset(ptr->pdata,0,sizeof(PGPDATA));
 	    }
 	    else
 	    if( ptr->mode & MODE_GPG ) {
-			ptr->pdata = (PBYTE) mir_alloc(sizeof(GPGDATA));
+			ptr->pdata = (PBYTE) malloc(sizeof(GPGDATA));
 			memset(ptr->pdata,0,sizeof(GPGDATA));
 	    }
 	    else
@@ -118,7 +118,7 @@ PBYTE cpp_alloc_pdata(pCNTX ptr) {
 			ptr->pdata = (PBYTE) p;
 	    }
 	    else {
-			ptr->pdata = (PBYTE) mir_alloc(sizeof(SIMDATA));
+			ptr->pdata = (PBYTE) malloc(sizeof(SIMDATA));
 			memset(ptr->pdata,0,sizeof(SIMDATA));
 	    }
 	}

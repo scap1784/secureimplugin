@@ -446,7 +446,7 @@ LPSTR __cdecl rsa_recv(int context, LPCSTR msg) {
 		SAFE_FREE(ptr->tmp);
 		string msg = decode_msg(p,data);
 		if( msg.length() ) {
-			ptr->tmp = (LPSTR) mir_alloc(msg.length()+1);
+			ptr->tmp = (LPSTR) malloc(msg.length()+1);
 			memcpy(ptr->tmp,msg.c_str(),msg.length()+1);
 		}
 		else {
@@ -484,7 +484,7 @@ LPSTR __cdecl rsa_recv(int context, LPCSTR msg) {
 		SAFE_FREE(ptr->tmp);
 		string msg = decode_rsa(p,r,data);
 		if( msg.length() ) {
-			ptr->tmp = (LPSTR) mir_alloc(msg.length()+1);
+			ptr->tmp = (LPSTR) malloc(msg.length()+1);
 			memcpy(ptr->tmp,msg.c_str(),msg.length()+1);
 		}
 		else {
@@ -613,7 +613,7 @@ LPSTR __cdecl rsa_recv(int context, LPCSTR msg) {
 		SAFE_FREE(ptr->tmp);
 		string msg = decode_msg(p,data);
 		if( msg.length() ) {
-			ptr->tmp = (LPSTR) mir_alloc(msg.length()+1);
+			ptr->tmp = (LPSTR) malloc(msg.length()+1);
 			memcpy(ptr->tmp,msg.c_str(),msg.length()+1);
 		}
 		else {
@@ -627,7 +627,7 @@ LPSTR __cdecl rsa_recv(int context, LPCSTR msg) {
 		SAFE_FREE(ptr->tmp);
 		string msg = decode_rsa(p,r,data);
 		if( msg.length() ) {
-			ptr->tmp = (LPSTR) mir_alloc(msg.length()+1);
+			ptr->tmp = (LPSTR) malloc(msg.length()+1);
 			memcpy(ptr->tmp,msg.c_str(),msg.length()+1);
 		}
 		else {
@@ -687,7 +687,7 @@ void inject_msg(int context, int type, const string& msg) {
 	string txt=tlv(type,msg);
 	char* base64=base64encode(txt.data(),txt.length());
 	imp->rsa_inject(context,(LPCSTR)base64);
-	mir_free(base64);
+	free(base64);
 }
 
 

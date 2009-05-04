@@ -4,7 +4,7 @@
 char *base64encode(const char *inBuffer, const int count) {
 
 	int srcIndex = 0, destIndex = 0, remainder = count % 3;
-	char *outBuffer = (char *) mir_alloc(count*2+1);
+	char *outBuffer = (char *) malloc(count*2+1);
 	BYTE *inBufferPtr = (BYTE *) inBuffer;
 
 	while(srcIndex < count) {
@@ -34,7 +34,7 @@ char *base64encode(const char *inBuffer, const int count) {
 char *base64decode(const char *inBuffer, int *count) {
 
 	int srcIndex = 0, destIndex = 0;
-	char *outBuffer = (char *) mir_alloc(*count);
+	char *outBuffer = (char *) malloc(*count);
 
 	while(srcIndex < *count) {
 		BYTE c0, c1, c2 = 0, c3 = 0;
@@ -47,7 +47,7 @@ char *base64decode(const char *inBuffer, int *count) {
 				c3 = decode64(inBuffer[srcIndex++]);
 		}
 		if((c0 | c1 | c2 | c3) == BERR) {
-			mir_free(outBuffer);
+			free(outBuffer);
 			return(NULL);
 		}
 		outBuffer[destIndex++] = (c0 << 2) | (c1 >> 4);
@@ -57,8 +57,8 @@ char *base64decode(const char *inBuffer, int *count) {
 				outBuffer[destIndex++] = (c2 << 6) | (c3);
 		}
 	}
-	*count = destIndex;
 	outBuffer[destIndex] = '\0';
+	*count = destIndex;
 
 	return outBuffer;
 }
