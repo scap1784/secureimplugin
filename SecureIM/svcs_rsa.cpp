@@ -1,13 +1,6 @@
 #include "commonheaders.h"
 
 
-int __cdecl rsa_inject(int,LPCSTR);
-int __cdecl rsa_check_pub(int,PBYTE,int,PBYTE,int);
-void __cdecl rsa_notify(int,int);
-
-extern void deleteRSAcntx(pUinKey);
-
-
 pRSA_EXPORT exp = NULL;
 RSA_IMPORT imp = {
     rsa_inject,
@@ -28,7 +21,7 @@ int __cdecl rsa_inject(int context, LPCSTR msg) {
 	memcpy(buf,SIG_SECU,LEN_SECU);
 	memcpy(buf+LEN_SECU,msg,len);
 	// отправляем сообщение
-	sendSplitMessage(ptr,buf);
+	splitMessageSend(ptr,buf);
 	mir_free(buf);
 	return 1;
 }
@@ -39,20 +32,28 @@ int __cdecl rsa_inject(int context, LPCSTR msg) {
 int __cdecl rsa_check_pub(int context, PBYTE pub, int pubLen, PBYTE sig, int sigLen) {
 	int v=0;
 	pUinKey ptr = getUinCtx(context); if(!ptr) return 0;
-	LPSTR cnm = (LPSTR) alloca(NAMSIZE); getContactNameA(ptr->hContact,cnm);
-	LPSTR uin = (LPSTR) alloca(KEYSIZE); getContactUinA(ptr->hContact,uin);
-	LPSTR msg = (LPSTR) alloca(MSGSIZE);
+	LPSTR cnm = (LPSTR) mir_alloc(NAMSIZE); getContactNameA(ptr->hContact,cnm);
+	LPSTR uin = (LPSTR) mir_alloc(KEYSIZE); getContactUinA(ptr->hContact,uin);
+	LPSTR msg = (LPSTR) mir_alloc(MSGSIZE);
+	LPSTR sha = mir_strdup(to_hex(sig,sigLen));
+#if defined(_DEBUG) || defined(NETLIB_LOG)
+	Sent_NetLog("rsa_check_pub: %s %s %s", cnm, uin, sha);
+#endif
 	if( bAAK ) {
-		mir_snprintf(msg,MSGSIZE,Translate(sim521),cnm,uin);
+		mir_snprintf(msg,MSGSIZE,Translate(sim521),cnm,uin,sha);
 		showPopUpKRmsg(ptr->hContact,msg);
 		HistoryLog(ptr->hContact,msg);
 		v=1;
+#if defined(_DEBUG) || defined(NETLIB_LOG)
+		Sent_NetLog("rsa_check_pub: auto accepted");
+#endif
 	}
 	else {
-		LPSTR sha = mir_strdup(to_hex(sig,sigLen));
 		mir_snprintf(msg,MSGSIZE,Translate(sim520),cnm,sha);
 		v=(msgbox(0,msg,szModuleName,MB_YESNO|MB_ICONQUESTION)==IDYES);
-		mir_free(sha);
+#if defined(_DEBUG) || defined(NETLIB_LOG)
+		Sent_NetLog("rsa_check_pub: manual accepted %d",v);
+#endif
 	}
 	if(v) {
 		DBCONTACTWRITESETTING cws;
@@ -64,6 +65,10 @@ int __cdecl rsa_check_pub(int context, PBYTE pub, int pubLen, PBYTE sig, int sig
 		CallService(MS_DB_CONTACT_WRITESETTING, (WPARAM)ptr->hContact, (LPARAM)&cws);
 		ptr->keyLoaded = true;
 	}
+	mir_free(cnm);
+	mir_free(uin);
+	mir_free(msg);
+	mir_free(sha);
 	return v;
 }
 
@@ -71,6 +76,9 @@ int __cdecl rsa_check_pub(int context, PBYTE pub, int pubLen, PBYTE sig, int sig
 void __cdecl rsa_notify(int context, int state) {
 	pUinKey ptr = getUinCtx(context); if(!ptr) return;
 	LPCSTR msg=NULL;
+#if defined(_DEBUG) || defined(NETLIB_LOG)
+	Sent_NetLog("rsa_notify: 0x%x", state);
+#endif
 	switch( state ) {
 	case 1: {
 		showPopUpEC(ptr->hContact);

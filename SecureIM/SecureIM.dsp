@@ -128,14 +128,6 @@ SOURCE=.\crypt_popups.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\crypt_rsa.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\crypt_svcs.cpp
-# End Source File
-# Begin Source File
-
 SOURCE=.\dbevent.cpp
 # End Source File
 # Begin Source File
@@ -180,11 +172,23 @@ SOURCE=.\rtfconv.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\splitmsg.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\svcs_clist.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\svcs_cmenu.cpp
+SOURCE=.\svcs_menu.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\svcs_proto.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\svcs_rsa.cpp
 # End Source File
 # Begin Source File
 
@@ -252,11 +256,23 @@ SOURCE=.\secureim.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\splitmsg.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\svcs_clist.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\svcs_cmenu.h
+SOURCE=.\svcs_menu.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\svcs_proto.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\svcs_rsa.h
 # End Source File
 # Begin Source File
 

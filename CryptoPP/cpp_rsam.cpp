@@ -857,7 +857,6 @@ int __cdecl rsa_recv_thread(int context, string& msg) {
 #if defined(_DEBUG) || defined(NETLIB_LOG)
 	Sent_NetLog("rsa_recv_thread: %02x %d", type, p->state);
 #endif
-
 	int t[4];
 
 	switch( type ) {

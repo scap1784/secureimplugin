@@ -273,11 +273,23 @@
 				>
 			</File>
 			<File
+				RelativePath=".\splitmsg.h"
+				>
+			</File>
+			<File
 				RelativePath=".\svcs_clist.h"
 				>
 			</File>
 			<File
-				RelativePath=".\svcs_cmenu.h"
+				RelativePath=".\svcs_menu.h"
+				>
+			</File>
+			<File
+				RelativePath=".\svcs_proto.h"
+				>
+			</File>
+			<File
+				RelativePath=".\svcs_rsa.h"
 				>
 			</File>
 			<File
@@ -331,14 +343,6 @@
 			</File>
 			<File
 				RelativePath=".\crypt_popups.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\crypt_rsa.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\crypt_svcs.cpp"
 				>
 			</File>
 			<File
@@ -462,11 +466,23 @@
 				>
 			</File>
 			<File
+				RelativePath=".\splitmsg.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\svcs_clist.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\svcs_cmenu.cpp"
+				RelativePath=".\svcs_menu.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\svcs_proto.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\svcs_rsa.cpp"
 				>
 			</File>
 			<File
