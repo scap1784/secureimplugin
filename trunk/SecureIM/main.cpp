@@ -227,7 +227,7 @@ int __cdecl onModulesLoaded(WPARAM wParam,LPARAM lParam) {
 	if(bPGP) { //PGP
 	    bPGPloaded = pgp_init();
    	    bUseKeyrings = DBGetContactSettingByte(0,szModuleName,"ukr",1);
-   	    LPSTR priv = DBGetStringDecode(0,szModuleName,"pgpPrivKey");
+   	    LPSTR priv = myDBGetStringDecode(0,szModuleName,"pgpPrivKey");
    	    if(priv) {
 	   	    bPGPprivkey = true;
 		    if(bPGPloaded)
@@ -241,12 +241,12 @@ int __cdecl onModulesLoaded(WPARAM wParam,LPARAM lParam) {
 		}
         	else {
         		LPSTR tmp;
-        		tmp = DBGetString(0,szModuleName,"pgpPubRing");
+        		tmp = myDBGetString(0,szModuleName,"pgpPubRing");
         		if(tmp) {
         			memcpy(PubRingPath,tmp,strlen(tmp));
         			mir_free(tmp);
         		}
-        		tmp = DBGetString(0,szModuleName,"pgpSecRing");
+        		tmp = myDBGetString(0,szModuleName,"pgpSecRing");
         		if(tmp) {
         			memcpy(SecRingPath,tmp,strlen(tmp));
         			mir_free(tmp);
@@ -278,19 +278,19 @@ int __cdecl onModulesLoaded(WPARAM wParam,LPARAM lParam) {
 
    		char gpgexec[MAX_PATH] = {0}, gpghome[MAX_PATH] = {0};
 
-		tmp = DBGetString(0,szModuleName,"gpgExec");
+		tmp = myDBGetString(0,szModuleName,"gpgExec");
 		if(tmp) {
 			memcpy(gpgexec,tmp,strlen(tmp));
 			mir_free(tmp);
 		}
-		tmp = DBGetString(0,szModuleName,"gpgHome");
+		tmp = myDBGetString(0,szModuleName,"gpgHome");
 		if(tmp) {
 			memcpy(gpghome,tmp,strlen(tmp));
 			mir_free(tmp);
 		}
 
 		if(DBGetContactSettingByte(0, szModuleName, "gpgLogFlag",0)) {
-			tmp = DBGetString(0,szModuleName,"gpgLog");
+			tmp = myDBGetString(0,szModuleName,"gpgLog");
 			if(tmp) {
 				gpg_set_log(tmp);
 				mir_free(tmp);
@@ -298,7 +298,7 @@ int __cdecl onModulesLoaded(WPARAM wParam,LPARAM lParam) {
 		}
 
 		if(DBGetContactSettingByte(0, szModuleName, "gpgTmpFlag",0)) {
-			tmp = DBGetString(0,szModuleName,"gpgTmp");
+			tmp = myDBGetString(0,szModuleName,"gpgTmp");
 			if(tmp) {
 				gpg_set_tmp(tmp);
 				mir_free(tmp);
@@ -317,7 +317,7 @@ int __cdecl onModulesLoaded(WPARAM wParam,LPARAM lParam) {
 
 	    bSavePass = DBGetContactSettingByte(0,szModuleName,"gpgSaveFlag",0);
 	    if(bSavePass) {
-			tmp = DBGetString(0,szModuleName,"gpgSave");
+			tmp = myDBGetString(0,szModuleName,"gpgSave");
 			if(tmp) {
 				gpg_set_passphrases(tmp);
 				mir_free(tmp);

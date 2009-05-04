@@ -22,7 +22,7 @@ LPSTR __cdecl utf8encode(LPCWSTR str) {
 	}
 
         SAFE_FREE(szOut);
-	if ((szOut = (LPSTR) mir_alloc(len + 1)) == NULL)
+	if ((szOut = (LPSTR) malloc(len + 1)) == NULL)
 		return NULL;
 
 	i = 0;
@@ -54,7 +54,7 @@ LPWSTR __cdecl utf8decode(LPCSTR str) {
 	len = strlen(str)+1;
 
         SAFE_FREE(wszOut);
-	if ((wszOut = (LPWSTR) mir_alloc(len*sizeof(WCHAR))) == NULL)
+	if ((wszOut = (LPWSTR) malloc(len*sizeof(WCHAR))) == NULL)
 		return NULL;
 	p = (LPSTR)str;
 	i = 0;

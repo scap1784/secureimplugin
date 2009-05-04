@@ -176,9 +176,9 @@ void AddServiceFunction(LPCSTR,MIRANDASERVICE);
 void AddProtoServiceFunction(LPCSTR,MIRANDASERVICE);
 void AddHookFunction(LPCSTR,MIRANDAHOOK);
 
-LPSTR simDBGetString(HANDLE,const char *,const char *);
-LPSTR DBGetStringDecode(HANDLE,const char *,const char *);
-int DBWriteStringEncode(HANDLE,const char *,const char *,const char *);
+LPSTR myDBGetString(HANDLE,const char *,const char *);
+LPSTR myDBGetStringDecode(HANDLE,const char *,const char *);
+int myDBWriteStringEncode(HANDLE,const char *,const char *,const char *);
 
 #if defined(_DEBUG) || defined(NETLIB_LOG)
 extern HANDLE hNetlibUser;

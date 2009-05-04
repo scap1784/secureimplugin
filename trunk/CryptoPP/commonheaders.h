@@ -72,8 +72,8 @@
 #include "m_protomod.h"
 #include "m_protosvc.h"
 #include "m_utils.h"
-#include "m_updater.h"
 #include "m_netlib.h"
+#include "sdk/m_updater.h"
 
 #endif
 

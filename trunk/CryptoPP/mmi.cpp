@@ -38,13 +38,13 @@ void *m_realloc(void *ptr,size_t size) {
 
 #ifndef _DEBUG
 void *operator new(size_t size) {
-	return mir_alloc(size);
+	return malloc(size);
 }
 #endif
 
 
 void operator delete(void *p) {
-	mir_free(p);
+	free(p);
 }
 
 
@@ -70,7 +70,7 @@ char *m_strdup(const char *str) {
 void __fastcall safe_free(void** p)
 {
   if (*p) {
-    mir_free(*p);
+    free(*p);
     *p = NULL;
   }
 }

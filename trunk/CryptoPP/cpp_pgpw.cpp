@@ -204,7 +204,7 @@ LPSTR __cdecl pgp_encrypt(pCNTX ptr, LPCSTR szPlainMsg)
 
 	DWORD dwEncMsgLen = strlen(szEncMsg);
 
-    ptr->tmp = (LPSTR) mir_alloc(dwEncMsgLen+1);
+    ptr->tmp = (LPSTR) malloc(dwEncMsgLen+1);
     memcpy(ptr->tmp, szEncMsg, dwEncMsgLen+1);
     LocalFree((LPVOID)szEncMsg);
 
@@ -230,7 +230,7 @@ LPSTR __cdecl pgp_decrypt(pCNTX ptr, LPCSTR szEncMsg)
 
     DWORD dwPlainMsgLen = strlen(szPlainMsg);
 
-    ptr->tmp = (LPSTR) mir_alloc(dwPlainMsgLen+1);
+    ptr->tmp = (LPSTR) malloc(dwPlainMsgLen+1);
     memcpy(ptr->tmp, szPlainMsg, dwPlainMsgLen+1);
     LocalFree((LPVOID)szPlainMsg);
 
@@ -262,10 +262,10 @@ LPSTR __cdecl pgp_decode(int context, LPCSTR szEncMsg)
 			int slen = strlen(szOldMsg)+1;
 			LPWSTR wszMsg = (LPWSTR) alloca(slen*sizeof(WCHAR));
 			MultiByteToWideChar(CP_ACP, 0, szOldMsg, -1, wszMsg, slen*sizeof(WCHAR));
-			szNewMsg = mir_strdup(utf8encode(wszMsg));
+			szNewMsg = _strdup(utf8encode(wszMsg));
 		}
 		else {
-			szNewMsg = mir_strdup(szOldMsg);
+			szNewMsg = _strdup(szOldMsg);
 		}
 	}
 	SAFE_FREE(ptr->tmp);
@@ -283,7 +283,7 @@ int __cdecl pgp_set_key(int context, LPCSTR RemoteKey)
 //   	if(!p_pgp_check_key(RemoteKey)) return 0;
 
    	SAFE_FREE(p->pgpKey);
-	p->pgpKey = (BYTE *) mir_alloc(strlen(RemoteKey)+1);
+	p->pgpKey = (BYTE *) malloc(strlen(RemoteKey)+1);
 	strcpy((LPSTR)p->pgpKey,RemoteKey);
 
    	return 1;
@@ -297,7 +297,7 @@ int __cdecl pgp_set_keyid(int context, PVOID RemoteKeyID)
    	ptr->error = ERROR_NONE;
 
    	SAFE_FREE(p->pgpKeyID);
-	p->pgpKeyID = (BYTE *) mir_alloc(p_pgp_size_keyid());
+	p->pgpKeyID = (BYTE *) malloc(p_pgp_size_keyid());
 	memcpy(p->pgpKeyID,RemoteKeyID,p_pgp_size_keyid());
 
    	return 1;

@@ -55,33 +55,33 @@ PLUGININFOEX pluginInfoEx = {
 };
 
 
-LPSTR simDBGetString(HANDLE hContact,const char *szModule,const char *szSetting) {
+LPSTR myDBGetString(HANDLE hContact,const char *szModule,const char *szSetting) {
 	char *val=NULL;
 	DBVARIANT dbv;
 	dbv.type = DBVT_ASCIIZ;
 	DBGetContactSetting(hContact,szModule,szSetting,&dbv);
-	if( dbv.type==DBVT_ASCIIZ || dbv.type==DBVT_UTF8 || dbv.type==DBVT_WCHAR)
+	if( dbv.pszVal && (dbv.type==DBVT_ASCIIZ || dbv.type==DBVT_UTF8 || dbv.type==DBVT_WCHAR) )
 		val = mir_strdup(dbv.pszVal);
 	DBFreeVariant(&dbv);
 	return val;
 }
 
 
-LPSTR DBGetStringDecode(HANDLE hContact,const char *szModule,const char *szSetting) {
-	char *val = simDBGetString(hContact,szModule,szSetting);
+LPSTR myDBGetStringDecode(HANDLE hContact,const char *szModule,const char *szSetting) {
+	char *val = myDBGetString(hContact,szModule,szSetting);
 	if(!val) return NULL;
 	int len = strlen(val)+64;
 	char *buf = (LPSTR)mir_alloc(len);
-	strcpy(buf,val); mir_free(val);
+	strncpy(buf,val,len); mir_free(val);
 	CallService(MS_DB_CRYPT_DECODESTRING,(WPARAM)len,(LPARAM)buf);
 	return buf;
 }
 
 
-int DBWriteStringEncode(HANDLE hContact,const char *szModule,const char *szSetting,const char *val) {
+int myDBWriteStringEncode(HANDLE hContact,const char *szModule,const char *szSetting,const char *val) {
 	int len = strlen(val)+64;
 	char *buf = (LPSTR)alloca(len);
-	strcpy(buf,val);
+	strncpy(buf,val,len);
 	CallService(MS_DB_CRYPT_ENCODESTRING,(WPARAM)len,(LPARAM)buf);
 	int ret = DBWriteContactSettingString(hContact,szModule,szSetting,buf);
 	return ret;

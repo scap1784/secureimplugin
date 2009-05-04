@@ -152,7 +152,7 @@ BOOL isContactNewPG(HANDLE hContact) {
 	if (!clist_cnt) return false;
 	for(int j=0;j<clist_cnt;j++) {
 		if (clist[j].hContact == hContact && clist[j].cntx) {
-			return (cpp_get_features(clist[j].cntx) & CPP_FEATURES_NEWPG) != 0;
+			return (clist[j].features & CPP_FEATURES_NEWPG) != 0;
 		}
 	}
 	return false;

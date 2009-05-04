@@ -1093,7 +1093,7 @@ void RefreshPGPDlg(HWND hDlg, BOOL iInit) {
 		pUinKey ptr = getUinKey(hContact);
 		if (ptr && ptr->mode==MODE_PGP && isSecureProtocol(hContact) /*&& !getMetaContact(hContact)*/ && !isChatRoom(hContact)) {
 
-			LPSTR szKeyID = DBGetString(hContact,szModuleName,"pgp_abbr");
+			LPSTR szKeyID = myDBGetString(hContact,szModuleName,"pgp_abbr");
 
 			lvi.iItem++;
 			lvi.iImage = (szKeyID!=0);
@@ -1122,19 +1122,19 @@ void RefreshGPGDlg(HWND hDlg, BOOL iInit) {
 #if defined(_DEBUG) || defined(NETLIB_LOG)
 	Sent_NetLog("RefreshGPGDlg");
 #endif
-	path = DBGetString(0,szModuleName,"gpgExec");
+	path = myDBGetString(0,szModuleName,"gpgExec");
 	if(path) {
 		SetDlgItemText(hDlg, IDC_GPGEXECUTABLE_EDIT, path);
 		mir_free(path);
 	}
-	path = DBGetString(0,szModuleName,"gpgHome");
+	path = myDBGetString(0,szModuleName,"gpgHome");
 	if(path) {
 		SetDlgItemText(hDlg, IDC_GPGHOME_EDIT, path);
 		mir_free(path);
 	}
 	BOOL bGPGLogFlag = DBGetContactSettingByte(0, szModuleName, "gpgLogFlag",0);
 	SendMessage(GetDlgItem(hDlg,IDC_LOGGINGON_CBOX),BM_SETCHECK,(bGPGLogFlag)?BST_CHECKED:BST_UNCHECKED,0L);
-	path = DBGetString(0,szModuleName,"gpgLog");
+	path = myDBGetString(0,szModuleName,"gpgLog");
 	if(path) {
 		SetDlgItemText(hDlg, IDC_GPGLOGFILE_EDIT, path);
 		mir_free(path);
@@ -1142,7 +1142,7 @@ void RefreshGPGDlg(HWND hDlg, BOOL iInit) {
 	SendMessage(GetDlgItem(hDlg,IDC_SAVEPASS_CBOX),BM_SETCHECK,(bSavePass)?BST_CHECKED:BST_UNCHECKED,0L);
 	BOOL bGPGTmpFlag = DBGetContactSettingByte(0, szModuleName, "gpgTmpFlag",0);
 	SendMessage(GetDlgItem(hDlg,IDC_TMPPATHON_CBOX),BM_SETCHECK,(bGPGTmpFlag)?BST_CHECKED:BST_UNCHECKED,0L);
-	path = DBGetString(0,szModuleName,"gpgTmp");
+	path = myDBGetString(0,szModuleName,"gpgTmp");
 	if(path) {
 		SetDlgItemText(hDlg, IDC_GPGTMPPATH_EDIT, path);
 		mir_free(path);
@@ -1167,7 +1167,7 @@ void RefreshGPGDlg(HWND hDlg, BOOL iInit) {
 				ptr->tgpgMode = ptr->gpgMode;
 			}
 
-			LPSTR szKeyID = DBGetString(hContact,szModuleName,"gpg");
+			LPSTR szKeyID = myDBGetString(hContact,szModuleName,"gpg");
 
 			lvi.iItem++;
 			lvi.iImage = (szKeyID!=0);
@@ -1327,7 +1327,7 @@ void ApplyGeneralSettings(HWND hDlg) {
 			else 				DBWriteContactSettingByte(ptr->hContact, szModuleName, "StatusID", ptr->status);
 		}
 		if( getListViewPSK(hLV,i) ) {
-		    LPSTR tmp = DBGetString(ptr->hContact,szModuleName,"tPSK");
+		    LPSTR tmp = myDBGetString(ptr->hContact,szModuleName,"tPSK");
 		    DBWriteContactSettingString(ptr->hContact, szModuleName, "PSK", tmp);
 		    mir_free(tmp);
 		}
@@ -1366,11 +1366,11 @@ void ApplyPGPSettings(HWND hDlg) {
 	bUseKeyrings = !(SendMessage(GetDlgItem(hDlg, IDC_NO_KEYRINGS),BM_GETCHECK,0L,0L)==BST_CHECKED);
 	DBWriteContactSettingByte(0,szModuleName,"ukr",bUseKeyrings);
 
-	char *priv = DBGetString(0,szModuleName,"tpgpPrivKey");
+	char *priv = myDBGetString(0,szModuleName,"tpgpPrivKey");
 	if(priv) {
    	    bPGPprivkey = true;
 	    pgp_set_key(-1,priv);
-		DBWriteStringEncode(0,szModuleName,"pgpPrivKey",priv);
+		myDBWriteStringEncode(0,szModuleName,"pgpPrivKey",priv);
 		mir_free(priv);
   		DBDeleteContactSetting(0,szModuleName,"tpgpPrivKey");
 	}

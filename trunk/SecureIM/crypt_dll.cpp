@@ -7,7 +7,7 @@ LPSTR InitKeyA(pUinKey ptr,int features) {
 	if(!ptr->cntx)
 		ptr->cntx = cpp_create_context(isProtoSmallPackets(ptr->hContact)?CPP_MODE_BASE64:0);
 
-	char *tmp = DBGetString(ptr->hContact,szModuleName,"PSK");
+	char *tmp = myDBGetString(ptr->hContact,szModuleName,"PSK");
 	if(tmp) {
 	    cpp_init_keyp(ptr->cntx,tmp);	// make pre-shared key from password
 	    mir_free(tmp);
@@ -46,14 +46,15 @@ int InitKeyB(pUinKey ptr,LPCSTR key) {
 		ptr->cntx = cpp_create_context(isProtoSmallPackets(ptr->hContact)?CPP_MODE_BASE64:0);
 
 	if(!cpp_keyp(ptr->cntx)) {
-		char *tmp = DBGetString(ptr->hContact,szModuleName,"PSK");
+		char *tmp = myDBGetString(ptr->hContact,szModuleName,"PSK");
 		if(tmp) {
 		    cpp_init_keyp(ptr->cntx,tmp);	// make pre-shared key from password
 		    mir_free(tmp);
 		}
 	}
-	ptr->features = cpp_get_features(ptr->cntx);
+
 	cpp_init_keyb(ptr->cntx,key);
+	ptr->features = cpp_get_features(ptr->cntx);
 
 	return cpp_get_error(ptr->cntx);
 }
@@ -206,7 +207,7 @@ BOOL LoadKeyPGP(pUinKey ptr) {
    	}
    	else
    	if(mode==1) {
-   		LPSTR key = DBGetStringDecode(ptr->hContact,szModuleName,"pgp");
+   		LPSTR key = myDBGetStringDecode(ptr->hContact,szModuleName,"pgp");
 		if( key ) {
    			pgp_set_key(ptr->cntx,key);
    			mir_free(key);
@@ -219,7 +220,7 @@ BOOL LoadKeyPGP(pUinKey ptr) {
 
 BOOL LoadKeyGPG(pUinKey ptr) {
 
-	LPSTR key = DBGetString(ptr->hContact,szModuleName,"gpg");
+	LPSTR key = myDBGetString(ptr->hContact,szModuleName,"gpg");
 	if( key ) {
 		gpg_set_keyid(ptr->cntx,key);
 		mir_free(key);

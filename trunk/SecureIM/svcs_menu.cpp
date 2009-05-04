@@ -114,7 +114,7 @@ INT_PTR __cdecl Service_PGPsetKey(WPARAM wParam, LPARAM lParam) {
     	  		char *publ = LoadKeys(KeyPath,false);
     	  		if(publ) {
     				DBDeleteContactSetting((HANDLE)wParam,szModuleName,"pgp");
-    		  		DBWriteStringEncode((HANDLE)wParam,szModuleName,"pgp",publ);
+    		  		myDBWriteStringEncode((HANDLE)wParam,szModuleName,"pgp",publ);
     				DBWriteContactSettingByte((HANDLE)wParam,szModuleName,"pgp_mode",1);
     				DBWriteContactSettingString((HANDLE)wParam,szModuleName,"pgp_abbr","(binary)");
     		  		mir_free(publ);
