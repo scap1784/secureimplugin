@@ -58,6 +58,7 @@ CLEAN :
 	-@erase "$(INTDIR)\resource.res"
 	-@erase "$(INTDIR)\rtfconv.obj"
 	-@erase "$(INTDIR)\secureim.pch"
+	-@erase "$(INTDIR)\splitmsg.obj"
 	-@erase "$(INTDIR)\svcs_clist.obj"
 	-@erase "$(INTDIR)\svcs_menu.obj"
 	-@erase "$(INTDIR)\svcs_proto.obj"
@@ -135,6 +136,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\options.obj" \
 	"$(INTDIR)\popupOptions.obj" \
 	"$(INTDIR)\rtfconv.obj" \
+	"$(INTDIR)\splitmsg.obj" \
 	"$(INTDIR)\svcs_clist.obj" \
 	"$(INTDIR)\svcs_menu.obj" \
 	"$(INTDIR)\svcs_proto.obj" \
@@ -180,6 +182,7 @@ CLEAN :
 	-@erase "$(INTDIR)\resource.res"
 	-@erase "$(INTDIR)\rtfconv.obj"
 	-@erase "$(INTDIR)\secureim.pch"
+	-@erase "$(INTDIR)\splitmsg.obj"
 	-@erase "$(INTDIR)\svcs_clist.obj"
 	-@erase "$(INTDIR)\svcs_menu.obj"
 	-@erase "$(INTDIR)\svcs_proto.obj"
@@ -259,6 +262,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\options.obj" \
 	"$(INTDIR)\popupOptions.obj" \
 	"$(INTDIR)\rtfconv.obj" \
+	"$(INTDIR)\splitmsg.obj" \
 	"$(INTDIR)\svcs_clist.obj" \
 	"$(INTDIR)\svcs_menu.obj" \
 	"$(INTDIR)\svcs_proto.obj" \
@@ -396,6 +400,11 @@ SOURCE=.\popupOptions.cpp
 SOURCE=.\rtfconv.cpp
 
 "$(INTDIR)\rtfconv.obj" : $(SOURCE) "$(INTDIR)" "$(INTDIR)\secureim.pch"
+
+
+SOURCE=.\splitmsg.cpp
+
+"$(INTDIR)\splitmsg.obj" : $(SOURCE) "$(INTDIR)" "$(INTDIR)\secureim.pch"
 
 
 SOURCE=.\svcs_clist.cpp

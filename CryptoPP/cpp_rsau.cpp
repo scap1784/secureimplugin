@@ -24,7 +24,7 @@ string tlv(int t, int v) {
 
 
 string& un_tlv(string& b, int& t, string& v) {
-	string r = ""; v = r;
+	string r; v = r;
 	if( b.length() > 3 ) {
 		t = 0;
 		b.copy((char*)&t,3);
@@ -36,7 +36,7 @@ string& un_tlv(string& b, int& t, string& v) {
 		}
 	}
 	if( !v.length() ) {
-	  t = -1;
+		t = -1;
 	}
 	b = r;
 	return b;

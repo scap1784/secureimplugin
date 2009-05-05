@@ -94,7 +94,8 @@ void ShowStatusIcon(HANDLE hContact,int mode) {
 		}
 	}
 	if( ServiceExists(MS_MSG_MODIFYICON) ) {  // обновить иконки в messagew
-		StatusIconData sid = {0};
+		StatusIconData sid;
+		memset(&sid,0,sizeof(sid));
 		sid.cbSize = sizeof(sid);
 		sid.szModule = (char*)szModuleName;
 		for(int i=MODE_NATIVE; i<MODE_CNT;i++) {

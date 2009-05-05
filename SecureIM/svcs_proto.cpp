@@ -24,7 +24,8 @@ int getSecureSig(LPCSTR szMsg, LPSTR *szPlainMsg=NULL) {
 
 int returnNoError(HANDLE hContact) {
 	HANDLE hEvent = CreateEvent( NULL, TRUE, FALSE, NULL );
-	CloseHandle( (HANDLE) _beginthread(sttFakeAck, 0, new TFakeAckParams(hEvent,hContact,777,0)) );
+	unsigned int tID;
+	CloseHandle( (HANDLE) _beginthreadex(NULL, 0, sttFakeAck, new TFakeAckParams(hEvent,hContact,777,0), 0, &tID) );
 	SetEvent( hEvent );
 	return 777;
 }
@@ -32,7 +33,8 @@ int returnNoError(HANDLE hContact) {
 
 int returnError(HANDLE hContact, LPCSTR err) {
 	HANDLE hEvent = CreateEvent( NULL, TRUE, FALSE, NULL );
-	CloseHandle( (HANDLE) _beginthread(sttFakeAck, 0, new TFakeAckParams(hEvent,hContact,666,err)) );
+	unsigned int tID;
+	CloseHandle( (HANDLE) _beginthreadex(NULL, 0, sttFakeAck, new TFakeAckParams(hEvent,hContact,666,err), 0, &tID) );
 	SetEvent( hEvent );
 	return 666;
 }
@@ -599,13 +601,20 @@ INT_PTR __cdecl onSendMsg(WPARAM wParam, LPARAM lParam) {
 		stat==-1 ||
 		(ssig==SiG_NONE && ptr->sendQueue) ||
 		(ssig==SiG_NONE && ptr->status==STATUS_DISABLED) // Disabled - pass unhandled
-	   )
+	   ) {
 		return CallService(MS_PROTO_CHAINSEND, wParam, lParam);
+#if defined(_DEBUG) || defined(NETLIB_LOG)
+		Sent_NetLog("onSendMsg: pass unhandled");
+#endif
+	}
 
 	//
 	// PGP/GPG mode
 	// 
 	if( ptr->mode==MODE_PGP || ptr->mode==MODE_GPG ) {
+#if defined(_DEBUG) || defined(NETLIB_LOG)
+	    Sent_NetLog("onSendMsg: PGP|GPG mode");
+#endif
 	    // если можно зашифровать - шифруем
             if( isContactPGP(ptr->hContact) || isContactGPG(ptr->hContact) ) {
 /*
@@ -659,6 +668,9 @@ INT_PTR __cdecl onSendMsg(WPARAM wParam, LPARAM lParam) {
 	// RSA/AES mode
 	//
 	if( ptr->mode==MODE_RSAAES ) {
+#if defined(_DEBUG) || defined(NETLIB_LOG)
+		Sent_NetLog("onSendMsg: RSA/AES mode");
+#endif
 		// contact is offline
 		if ( stat==ID_STATUS_OFFLINE ) {
         		if( ptr->cntx ) {
@@ -741,9 +753,15 @@ INT_PTR __cdecl onSendMsg(WPARAM wParam, LPARAM lParam) {
 	//
 	// Native mode
 	//
+#if defined(_DEBUG) || defined(NETLIB_LOG)
+	Sent_NetLog("onSendMsg: Native mode");
+#endif
 
 	// SecureIM connection with this contact is disabled
 	if( stid==STATUS_DISABLED ) {
+#if defined(_DEBUG) || defined(NETLIB_LOG)
+		Sent_NetLog("onSendMsg: message for Disabled");
+#endif
 		// if user try initialize connection
 		if( ssig==SiG_INIT ) {
 			// secure IM is disabled ...
@@ -768,7 +786,9 @@ INT_PTR __cdecl onSendMsg(WPARAM wParam, LPARAM lParam) {
 
 	// contact is offline
 	if( stat==ID_STATUS_OFFLINE ) {
-
+#if defined(_DEBUG) || defined(NETLIB_LOG)
+		Sent_NetLog("onSendMsg: message for offline");
+#endif
 		if( ssig==SiG_INIT && cpp_keyx(ptr->cntx) ) {
 			// reinit key exchange
 			cpp_reset_context(ptr->cntx);
@@ -818,6 +838,9 @@ INT_PTR __cdecl onSendMsg(WPARAM wParam, LPARAM lParam) {
 
 	}
 	else {
+#if defined(_DEBUG) || defined(NETLIB_LOG)
+		Sent_NetLog("onSendMsg: message for online");
+#endif
 		// contact is online and we use an offline key -> reset offline key
 		if( ptr->offlineKey ) {
 			cpp_reset_context(ptr->cntx);
@@ -828,11 +851,17 @@ INT_PTR __cdecl onSendMsg(WPARAM wParam, LPARAM lParam) {
 
 	// if init is called from contact menu list reinit secure im connection
 	if( ssig==SiG_INIT ) {
+#if defined(_DEBUG) || defined(NETLIB_LOG)
+		Sent_NetLog("onSendMsg: SiG_INIT");
+#endif
 		cpp_reset_context(ptr->cntx);
 	}
 
 	// if deinit is called from contact menu list deinit secure im connection
 	if( ssig==SiG_DEIN ) {
+#if defined(_DEBUG) || defined(NETLIB_LOG)
+		Sent_NetLog("onSendMsg: SiG_DEIN");
+#endif
 		// disable SecureIM only if it was enabled
 		if (ptr->cntx) {
 			cpp_delete_context(ptr->cntx); ptr->cntx=0;
@@ -853,7 +882,9 @@ INT_PTR __cdecl onSendMsg(WPARAM wParam, LPARAM lParam) {
 
 	// if cryptokey exist
 	if( cpp_keyx(ptr->cntx) ) {
-
+#if defined(_DEBUG) || defined(NETLIB_LOG)
+		Sent_NetLog("onSendMsg: cryptokey exist");
+#endif
 /*	    if( !hMetaContact && isProtoMetaContacts(pccsd->hContact) && (DBGetContactSettingByte(NULL, "MetaContacts", "SubcontactHistory", 1) == 1)) {
 		// add sent event to subcontact
     		DBEVENTINFO dbei; HANDLE hC = getMostOnline(pccsd->hContact);
@@ -891,6 +922,9 @@ INT_PTR __cdecl onSendMsg(WPARAM wParam, LPARAM lParam) {
 	    return ret;
 	}
 	else {
+#if defined(_DEBUG) || defined(NETLIB_LOG)
+		Sent_NetLog("onSendMsg: cryptokey not exist, try establishe connection");
+#endif
 	  	// send KeyA if init || always_try || waitkey || always_if_possible
   		if( ssig==SiG_INIT || (stid==STATUS_ALWAYSTRY && isClientMiranda(ptr->hContact)) || isSecureIM(ptr->hContact) || ptr->waitForExchange ) {
 			if (ssig==SiG_NONE) {
@@ -916,6 +950,9 @@ INT_PTR __cdecl onSendMsg(WPARAM wParam, LPARAM lParam) {
 	  		}
 			return returnNoError(pccsd->hContact);
 	  	}
+#if defined(_DEBUG) || defined(NETLIB_LOG)
+		Sent_NetLog("onSendMsg: pass unchanged to chain");
+#endif
  		return CallService(MS_PROTO_CHAINSEND, wParam, lParam);
 	}
 }
@@ -1025,7 +1062,7 @@ int __cdecl onProtoAck(WPARAM wParam,LPARAM lParam) {
 					LPSTR pos=strrchr(file_out,'.'); //find last .
 					if (pos) *pos='\0'; //remove aes from name
 					if(isFileExist(file_out)) {
-						char ext[32]={0};
+						char ext[32]; ext[0]='\0';
 						LPSTR p=strrchr(file_out,'.');
 						LPSTR x=strrchr(file_out,'\\');
 						if(p>x) {

@@ -3,6 +3,7 @@
 
 #include <queue>
 #include <deque>
+#include <list>
 
 //#pragma warning(push)
 // 4231: nonstandard extension used : 'extern' before template explicit instantiation
@@ -37,6 +38,46 @@ USING_NAMESPACE(std)
 #define KEYSIZE 256
 #define DEFMSGS 4096
 
+#define HEADER 0xABCD1234
+#define FOOTER 0x9876FEDC
+#define EMPTYH 0xF1E2D3C4
+
+typedef struct __CNTX {
+	u_int	header;		// HEADER
+	short	mode;		// mode of encoding
+	short	features;	// features of client
+	short	error;		// error code of last operation
+	PBYTE	pdata;		// data block
+	PVOID	udata;		// user data
+	LPSTR	tmp;		// return string
+	u_int	deleted;	// delete time&flag to delete
+	u_int	footer;		// FOOTER
+} CNTX;
+typedef CNTX* pCNTX;
+
+
+#define FEATURES_UTF8			0x01
+#define FEATURES_BASE64			0x02
+#define FEATURES_GZIP			0x04
+#define FEATURES_CRC32			0x08
+#define FEATURES_PSK			0x10
+#define FEATURES_NEWPG			0x20
+#define FEATURES_RSA			0x40
+
+#define MODE_BASE16			0x0000
+#define MODE_BASE64			0x0001
+#define MODE_PGP			0x0002
+#define MODE_GPG			0x0004
+#define MODE_GPG_ANSI			0x0008
+#define MODE_RSA_PRIV			0x0010
+#define MODE_RSA_2048			0x0020
+#define MODE_RSA_4096			0x0040
+#define MODE_RSA			MODE_RSA_4096
+#define MODE_RSA_ONLY			0x0080
+#define MODE_RSA_ZLIB			0x0100
+#define MODE_PRIV_KEY			0x0200
+
+#define DATA_GZIP			1
 
 typedef struct __SIMDATA {
 	DH	*dh;		// diffie-hellman
@@ -95,40 +136,6 @@ typedef struct __RSADATA {
 typedef RSADATA* pRSADATA;
 
 
-typedef struct __CNTX {
-	int	cntx;		// context id
-	u_int	deleted;	// delete time&flag to delete
-	PBYTE	pdata;		// data block, for key exchange
-	short	features;	// features of client
-	short	mode;		// mode of encoding
-	short	error;		// error code of last operation
-	LPSTR	tmp;		// return string
-} CNTX;
-typedef CNTX* pCNTX;
-
-
-#define FEATURES_UTF8			0x01
-#define FEATURES_BASE64			0x02
-#define FEATURES_GZIP			0x04
-#define FEATURES_CRC32			0x08
-#define FEATURES_PSK			0x10
-#define FEATURES_NEWPG			0x20
-#define FEATURES_RSA			0x40
-
-#define MODE_BASE16			0x0000
-#define MODE_BASE64			0x0001
-#define MODE_PGP			0x0002
-#define MODE_GPG			0x0004
-#define MODE_GPG_ANSI			0x0008
-#define MODE_RSA_PRIV			0x0010
-#define MODE_RSA_2048			0x0020
-#define MODE_RSA_4096			0x0040
-#define MODE_RSA			MODE_RSA_4096
-#define MODE_RSA_ONLY			0x0080
-#define MODE_RSA_ZLIB			0x0100
-
-#define DATA_GZIP			1
-
 #define ERROR_NONE			0
 #define ERROR_SEH			1
 #define ERROR_NO_KEYA			2
@@ -157,6 +164,7 @@ extern LPCSTR szVersionStr;
 extern HINSTANCE g_hInst;
 
 pCNTX get_context_on_id(int);
+pCNTX get_context_on_id(HANDLE);
 void cpp_free_keys(pCNTX);
 BYTE *cpp_gzip(BYTE*,int,int&);
 BYTE *cpp_gunzip(BYTE*,int,int&);
@@ -169,6 +177,7 @@ typedef struct {
     int (__cdecl *rsa_get_keyhash)(short,PBYTE,int*,PBYTE,int*);	// возвращает hash пары ключей для указанной длины
     int (__cdecl *rsa_set_keypair)(short,PBYTE,int,PBYTE,int);		// устанавливает ключи, указанной длины
     int (__cdecl *rsa_set_pubkey)(int,PBYTE,int);			// загружает паблик ключ для указанного контекста
+    void (__cdecl *rsa_set_timeout)(int);				// установить таймаут для установки секюрного соединения
     int (__cdecl *rsa_get_state)(int);					// получить статус указанного контекста
     int (__cdecl *rsa_connect)(int);					// запускает процесс установки содинения с указанным контекстом
     int (__cdecl *rsa_disconnect)(int);					// разрывает соединение

@@ -138,7 +138,7 @@ void __cdecl rsa_notify(int context, int state) {
 }
 
 
-void __cdecl sttGenerateRSA( LPVOID param ) {
+unsigned __stdcall sttGenerateRSA( LPVOID param ) {
 
 	char priv_key[4096]; int priv_len;
 	char pub_key[4096]; int pub_len;
@@ -170,6 +170,8 @@ void __cdecl sttGenerateRSA( LPVOID param ) {
 	cws.value.cpbVal = pub_len;
 	CallService(MS_DB_CONTACT_WRITESETTING, (WPARAM)0, (LPARAM)&cws);
 	rsa_4096=1;
+
+	return 0;
 }
 
 

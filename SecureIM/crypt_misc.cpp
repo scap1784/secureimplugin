@@ -2,7 +2,8 @@
 
 
 int SendBroadcast( HANDLE hContact, int type, int result, HANDLE hProcess, LPARAM lParam ) {
-	ACKDATA ack = {0};
+	ACKDATA ack;
+	memset(&ack,0,sizeof(ack));
 	ack.cbSize = sizeof( ACKDATA );
 	ack.szModule = 	(char*)CallService(MS_PROTO_GETCONTACTBASEPROTO, (WPARAM)hContact, 0);
 	ack.hContact = hContact;
@@ -14,7 +15,7 @@ int SendBroadcast( HANDLE hContact, int type, int result, HANDLE hProcess, LPARA
 }
 
 
-void __cdecl sttFakeAck( LPVOID param ) {
+unsigned __stdcall sttFakeAck( LPVOID param ) {
 
 	TFakeAckParams* tParam = ( TFakeAckParams* )param;
 	WaitForSingleObject( tParam->hEvent, INFINITE );
@@ -27,10 +28,12 @@ void __cdecl sttFakeAck( LPVOID param ) {
 
 	CloseHandle( tParam->hEvent );
 	delete tParam;
+
+	return 0;
 }
 
 
-void __cdecl sttWaitForExchange( LPVOID param ) {
+unsigned __stdcall sttWaitForExchange( LPVOID param ) {
 
 	TWaitForExchange* tParam = ( TWaitForExchange* )param;
 	WaitForSingleObject( tParam->hEvent, INFINITE );
@@ -38,7 +41,7 @@ void __cdecl sttWaitForExchange( LPVOID param ) {
 	pUinKey ptr = getUinKey(tParam->hContact);
 	delete tParam;
 
-	if( !ptr ) return;
+	if( !ptr ) return 0;
 
 	for(int i=0;i<DBGetContactSettingWord(0,szModuleName,"ket",10)*10; i++) {
 		Sleep( 100 );
@@ -106,6 +109,7 @@ void __cdecl sttWaitForExchange( LPVOID param ) {
 		ptr->msgQueue = NULL;
 		LeaveCriticalSection(&localQueueMutex);
    	}
+   	return 0;
 }
 
 
@@ -124,7 +128,8 @@ void waitForExchange(pUinKey ptr, int flag) {
 		ptr->waitForExchange = 1;
 		// запускаем трэд
 		HANDLE hEvent = CreateEvent( NULL, TRUE, FALSE, NULL );
-		CloseHandle( (HANDLE) _beginthread(sttWaitForExchange, 0, new TWaitForExchange(hEvent,ptr->hContact)) );
+		unsigned int tID;
+		CloseHandle( (HANDLE) _beginthreadex(NULL, 0, sttWaitForExchange, new TWaitForExchange(hEvent,ptr->hContact), 0, &tID) );
 		SetEvent( hEvent );
 		break;
 	}

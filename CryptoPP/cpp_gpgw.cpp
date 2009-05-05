@@ -203,10 +203,7 @@ LPSTR __cdecl gpg_encrypt(pCNTX ptr, LPCSTR szPlainMsg)
 	szEncMsg = p_gpg_encrypt(szPlainMsg,(LPCSTR)p->gpgKeyID);
 	if(!szEncMsg) return 0;
 
-	DWORD dwEncMsgLen = strlen(szEncMsg);
-
-	ptr->tmp = (LPSTR) malloc(dwEncMsgLen+1);
-	memcpy(ptr->tmp, szEncMsg, dwEncMsgLen+1);
+	ptr->tmp = (LPSTR) strdup(szEncMsg);
 	LocalFree((LPVOID)szEncMsg);
 
 	return ptr->tmp;
@@ -220,16 +217,13 @@ LPSTR __cdecl gpg_decrypt(pCNTX ptr, LPCSTR szEncMsg)
 
     LPSTR szPlainMsg = p_gpg_decrypt(szEncMsg);
 /*	if(!szPlainMsg) {
-	    ptr = get_context_on_id(-1); // find private pgp keys
+	    ptr = get_context_on_id(hPGPPRIV); // find private pgp keys
     	if(ptr && ptr->pgpKey)
 			szPlainMsg = p_gpg_decrypt_key(szEncMsg,(LPCSTR)ptr->pgpKey);
 		if(!szPlainMsg) return NULL;
     }*/
 
-    DWORD dwPlainMsgLen = strlen(szPlainMsg);
-
-    ptr->tmp = (LPSTR) malloc(dwPlainMsgLen+1);
-    memcpy(ptr->tmp, szPlainMsg, dwPlainMsgLen+1);
+    ptr->tmp = (LPSTR) strdup(szPlainMsg);
     LocalFree((LPVOID)szPlainMsg);
 
     return ptr->tmp;
@@ -307,8 +301,7 @@ int __cdecl gpg_set_keyid(int context, LPCSTR RemoteKeyID)
    	ptr->error = ERROR_NONE;
 
    	SAFE_FREE(p->gpgKeyID);
-	p->gpgKeyID = (BYTE*) malloc(strlen(RemoteKeyID)+1);
-	strcpy((char*)p->gpgKeyID,RemoteKeyID);
+	p->gpgKeyID = (PBYTE) strdup(RemoteKeyID);
 
    	return 1;
 }

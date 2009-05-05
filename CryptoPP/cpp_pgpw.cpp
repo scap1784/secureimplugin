@@ -136,10 +136,18 @@ int __cdecl pgp_init()
 {
 	int r;
 
+	if( !hPGPPRIV ) {
+		// create context for private pgp keys
+		hPGPPRIV = (HANDLE) cpp_create_context(MODE_PGP|MODE_PRIV_KEY);
+		pCNTX tmp = (pCNTX) hPGPPRIV;
+		tmp->pdata = (PBYTE) malloc(sizeof(PGPDATA));
+		memset(tmp->pdata,0,sizeof(PGPDATA));
+	}
+
 	if( r = load_pgp_sdk(666,6) ) return r;
 	if( r = load_pgp_sdk(666,8) ) return r;
 
-    hpgpsdk = 0;
+	hpgpsdk = 0;
 
 	return 0;
 }
@@ -202,13 +210,10 @@ LPSTR __cdecl pgp_encrypt(pCNTX ptr, LPCSTR szPlainMsg)
 		szEncMsg = p_pgp_encrypt_keydb(szPlainMsg,p->pgpKeyID);
 	if(!szEncMsg) return 0;
 
-	DWORD dwEncMsgLen = strlen(szEncMsg);
+	ptr->tmp = (LPSTR) strdup(szEncMsg);
+	LocalFree((LPVOID)szEncMsg);
 
-    ptr->tmp = (LPSTR) malloc(dwEncMsgLen+1);
-    memcpy(ptr->tmp, szEncMsg, dwEncMsgLen+1);
-    LocalFree((LPVOID)szEncMsg);
-
-    return ptr->tmp;
+	return ptr->tmp;
 }
 
 
@@ -219,7 +224,7 @@ LPSTR __cdecl pgp_decrypt(pCNTX ptr, LPCSTR szEncMsg)
 
     LPSTR szPlainMsg = p_pgp_decrypt_keydb(szEncMsg);
     if(!szPlainMsg) {
-	ptr = get_context_on_id(-1); // find private pgp keys
+	ptr = get_context_on_id(hPGPPRIV); // find private pgp keys
     	if(ptr) {
 	    pPGPDATA p = (pPGPDATA) ptr->pdata;
     	    if(p->pgpKey)
@@ -228,10 +233,7 @@ LPSTR __cdecl pgp_decrypt(pCNTX ptr, LPCSTR szEncMsg)
 	if(!szPlainMsg) return NULL;
     }
 
-    DWORD dwPlainMsgLen = strlen(szPlainMsg);
-
-    ptr->tmp = (LPSTR) malloc(dwPlainMsgLen+1);
-    memcpy(ptr->tmp, szPlainMsg, dwPlainMsgLen+1);
+    ptr->tmp = (LPSTR) strdup(szPlainMsg);
     LocalFree((LPVOID)szPlainMsg);
 
     return ptr->tmp;
@@ -283,8 +285,7 @@ int __cdecl pgp_set_key(int context, LPCSTR RemoteKey)
 //   	if(!p_pgp_check_key(RemoteKey)) return 0;
 
    	SAFE_FREE(p->pgpKey);
-	p->pgpKey = (BYTE *) malloc(strlen(RemoteKey)+1);
-	strcpy((LPSTR)p->pgpKey,RemoteKey);
+	p->pgpKey = (PBYTE) strdup(RemoteKey);
 
    	return 1;
 }
@@ -297,7 +298,7 @@ int __cdecl pgp_set_keyid(int context, PVOID RemoteKeyID)
    	ptr->error = ERROR_NONE;
 
    	SAFE_FREE(p->pgpKeyID);
-	p->pgpKeyID = (BYTE *) malloc(p_pgp_size_keyid());
+	p->pgpKeyID = (PBYTE) malloc(p_pgp_size_keyid());
 	memcpy(p->pgpKeyID,RemoteKeyID,p_pgp_size_keyid());
 
    	return 1;

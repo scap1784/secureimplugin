@@ -11,7 +11,7 @@ const static ULONGLONG ix_epoch = 116444736000000000;
 const static ULONGLONG ix_epoch = 116444736000000000LL;
 #endif
 
-DWORD gettime(void) {
+u_int gettime(void) {
 
 		ULONGLONG diff_100_nsec;
 		union {
@@ -23,7 +23,7 @@ DWORD gettime(void) {
 
 		diff_100_nsec = now.u.QuadPart - ix_epoch;
 
-		return (DWORD)( diff_100_nsec / div_100_nsec );
+		return (u_int)( diff_100_nsec / div_100_nsec );
 }
 
 // EOF

@@ -115,7 +115,8 @@ int __cdecl onRebuildContactMenu(WPARAM wParam,LPARAM lParam) {
 	pUinKey ptr = getUinKey(hContact);
 	int i;
 
-	CLISTMENUITEM mi = {0};
+	CLISTMENUITEM mi;
+	memset(&mi,0,sizeof(mi));
 	mi.cbSize = sizeof(CLISTMENUITEM);
 
 	ShowStatusIconNotify(hContact);

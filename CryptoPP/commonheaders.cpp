@@ -7,6 +7,10 @@ PLUGINLINK *pluginLink;
 MM_INTERFACE mmi={0};
 MUUID interfaces[] = {MIID_CRYPTOPP, MIID_LAST};
 
+HANDLE hPGPPRIV = NULL;
+HANDLE hRSA2048 = NULL;
+HANDLE hRSA4096 = NULL;
+
 CRITICAL_SECTION localQueueMutex;
 CRITICAL_SECTION localContextMutex;
 
@@ -89,7 +93,8 @@ int rtrim(LPCSTR str) {
 HANDLE hNetlibUser;
 
 void InitNetlib() {
-	NETLIBUSER nl_user = {0};
+	NETLIBUSER nl_user;
+	memset(&nl_user,0,sizeof(nl_user));
 	nl_user.cbSize = sizeof(nl_user);
 	nl_user.szSettingsModule = (LPSTR)szModuleName;
 	nl_user.szDescriptiveName = (LPSTR)szModuleName;

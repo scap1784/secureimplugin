@@ -35,6 +35,7 @@ int __cdecl rsa_get_keypair(short,PBYTE,int*,PBYTE,int*);
 int __cdecl rsa_get_keyhash(short,PBYTE,int*,PBYTE,int*);
 int __cdecl rsa_set_keypair(short,PBYTE,int,PBYTE,int);
 int __cdecl rsa_set_pubkey(int,PBYTE,int);
+void __cdecl rsa_set_timeout(int);
 int __cdecl rsa_get_state(int);
 int __cdecl rsa_connect(int);
 int __cdecl rsa_disconnect(int);
@@ -55,7 +56,7 @@ void null_msg(int,int,int);
 void rsa_free(pRSADATA);
 void clear_queue(pRSADATA);
 
-void __cdecl sttConnectThread(LPVOID);
+unsigned __stdcall sttConnectThread(LPVOID);
 
 ///////////////////////////////////////////////////////////////////////////
 
@@ -65,13 +66,14 @@ RSA_EXPORT exp = {
     rsa_get_keyhash,
     rsa_set_keypair,
     rsa_set_pubkey,
+    rsa_set_timeout,
     rsa_get_state,
     rsa_connect,
     rsa_disconnect,
     rsa_recv,
     rsa_send,
-	rsa_encrypt_file,
-	rsa_decrypt_file,
+    rsa_encrypt_file,
+    rsa_decrypt_file,
     utf8encode,
     utf8decode,
     is_7bit_string,
@@ -92,6 +94,20 @@ int __cdecl rsa_init(pRSA_EXPORT* e, pRSA_IMPORT i) {
 #endif
 	*e = &exp;
 	imp = i;
+	if( !hRSA2048 ) {
+		// create context for private rsa keys
+		hRSA2048 = (HANDLE) cpp_create_context(MODE_RSA_2048|MODE_PRIV_KEY);
+		pCNTX tmp = (pCNTX) hRSA2048;
+		pRSAPRIV p = new RSAPRIV;
+		tmp->pdata = (PBYTE) p;
+	}
+	if( !hRSA4096 ) {
+		// create context for private rsa keys
+		hRSA4096 = (HANDLE) cpp_create_context(MODE_RSA_4096|MODE_PRIV_KEY);
+		pCNTX tmp = (pCNTX) hRSA4096;
+		pRSAPRIV p = new RSAPRIV;
+		tmp->pdata = (PBYTE) p;
+	}
 	return 1;
 }
 
@@ -107,9 +123,9 @@ int __cdecl rsa_done(void) {
 ///////////////////////////////////////////////////////////////////////////
 
 
-pRSAPRIV rsa_gen_keys(int context) {
+pRSAPRIV rsa_gen_keys(HANDLE context) {
 
-	if( context != -2 && context != -3) return 0;
+	if( context!=hRSA2048 && context!=hRSA4096 ) return 0;
 
 #if defined(_DEBUG) || defined(NETLIB_LOG)
 	Sent_NetLog("rsa_gen_keys: %d", context);
@@ -118,7 +134,7 @@ pRSAPRIV rsa_gen_keys(int context) {
 	pRSAPRIV r = (pRSAPRIV) ptr->pdata;
 
 	string priv, pub;
-	GenerateRSAKey((context==-3)?4096:2048, priv, pub);
+	GenerateRSAKey((context==hRSA4096)?4096:2048, priv, pub);
 
 	StringSource pubsrc(pub, true, NULL);
 	RSAES_PKCS1v15_Encryptor Encryptor(pubsrc);
@@ -135,12 +151,19 @@ pRSAPRIV rsa_gen_keys(int context) {
 }
 
 
+pRSAPRIV rsa_get_priv(pCNTX ptr) {
+	pCNTX p = get_context_on_id((ptr->mode&MODE_RSA_4096)?hRSA4096:hRSA2048);
+	pRSAPRIV r = (pRSAPRIV) p->pdata;
+	return r;
+}
+
+
 int __cdecl rsa_gen_keypair(short mode) {
 #if defined(_DEBUG) || defined(NETLIB_LOG)
 	Sent_NetLog("rsa_gen_keypair: %d", mode);
 #endif
-	if( mode&MODE_RSA_2048 )	rsa_gen_keys(-2); // 2048
-	if( mode&MODE_RSA_4096 )	rsa_gen_keys(-3); // 4096
+	if( mode&MODE_RSA_2048 ) rsa_gen_keys(hRSA2048); // 2048
+	if( mode&MODE_RSA_4096 ) rsa_gen_keys(hRSA4096); // 4096
 
 	return 1;
 }
@@ -150,7 +173,7 @@ int __cdecl rsa_get_keypair(short mode, PBYTE privKey, int* privKeyLen, PBYTE pu
 #if defined(_DEBUG) || defined(NETLIB_LOG)
 	Sent_NetLog("rsa_get_keypair: %d", mode);
 #endif
-	pCNTX ptr = get_context_on_id((mode&MODE_RSA_4096)?-3:-2);
+	pCNTX ptr = get_context_on_id((mode&MODE_RSA_4096)?hRSA4096:hRSA2048);
 	pRSAPRIV r = (pRSAPRIV) ptr->pdata;
 
 	*privKeyLen = r->priv_k.length(); r->priv_k.copy((char*)privKey, *privKeyLen);
@@ -164,7 +187,7 @@ int __cdecl rsa_get_keyhash(short mode, PBYTE privKey, int* privKeyLen, PBYTE pu
 #if defined(_DEBUG) || defined(NETLIB_LOG)
 	Sent_NetLog("rsa_get_keyhash: %d", mode);
 #endif
-	pCNTX ptr = get_context_on_id((mode&MODE_RSA_4096)?-3:-2);
+	pCNTX ptr = get_context_on_id((mode&MODE_RSA_4096)?hRSA4096:hRSA2048);
 	pRSAPRIV r = (pRSAPRIV) ptr->pdata;
 
 	if( privKey ) { *privKeyLen = r->priv_s.length(); r->priv_s.copy((char*)privKey, *privKeyLen); }
@@ -176,9 +199,9 @@ int __cdecl rsa_get_keyhash(short mode, PBYTE privKey, int* privKeyLen, PBYTE pu
 
 int __cdecl rsa_set_keypair(short mode, PBYTE privKey, int privKeyLen, PBYTE pubKey, int pubKeyLen) {
 #if defined(_DEBUG) || defined(NETLIB_LOG)
-	Sent_NetLog("rsa_set_keypair: '%s'", privKey);
+	Sent_NetLog("rsa_set_keypair: %s", privKey);
 #endif
-	pCNTX ptr = get_context_on_id((mode&MODE_RSA_4096)?-3:-2);
+	pCNTX ptr = get_context_on_id((mode&MODE_RSA_4096)?hRSA4096:hRSA2048);
 	pRSAPRIV r = (pRSAPRIV) ptr->pdata;
 
 	r->priv_k.assign((char*)privKey, privKeyLen);
@@ -193,7 +216,7 @@ int __cdecl rsa_set_keypair(short mode, PBYTE privKey, int privKeyLen, PBYTE pub
 
 int __cdecl rsa_set_pubkey(int context, PBYTE pubKey, int pubKeyLen) {
 #if defined(_DEBUG) || defined(NETLIB_LOG)
-	Sent_NetLog("rsa_set_pubkey: '%s'", pubKey);
+	Sent_NetLog("rsa_set_pubkey: %s", pubKey);
 #endif
 	pCNTX ptr = get_context_on_id(context);	if(!ptr) return 0;
 	pRSADATA p = (pRSADATA) cpp_alloc_pdata(ptr);
@@ -207,15 +230,30 @@ int __cdecl rsa_set_pubkey(int context, PBYTE pubKey, int pubKeyLen) {
 }
 
 
-int __cdecl rsa_connect(int context) {
+void __cdecl rsa_set_timeout(int t) {
+#if defined(_DEBUG) || defined(NETLIB_LOG)
+	Sent_NetLog("rsa_set_timeout: %d", t);
+#endif
+	timeout = t;
+}
 
+
+int __cdecl rsa_get_state(int context) {
+
+	pCNTX ptr = get_context_on_id(context);	if(!ptr) return 0;
+	pRSADATA p = (pRSADATA) cpp_alloc_pdata(ptr);
+
+	return p->state;
+}
+
+int __cdecl rsa_connect(int context) {
+#if defined(_DEBUG) || defined(NETLIB_LOG)
+	Sent_NetLog("rsa_connect: %08x", context);
+#endif
 	pCNTX ptr = get_context_on_id(context); if(!ptr) return 0;
 	pRSADATA p = (pRSADATA) cpp_alloc_pdata(ptr); if(p->state) return p->state;
-	pRSAPRIV r = (pRSAPRIV) (get_context_on_id((ptr->mode&MODE_RSA_4096)?-3:-2))->pdata;
+	pRSAPRIV r = rsa_get_priv(ptr);
 
-#if defined(_DEBUG) || defined(NETLIB_LOG)
-	Sent_NetLog("rsa_connect: '%s' '%s'", r->pub_s.c_str(), p->pub_s.c_str());
-#endif
         if(ptr->mode&MODE_RSA_ONLY) {
 		inject_msg(context,0x0D,tlv(0,0)+tlv(1,r->pub_k)+tlv(2,p->pub_s));
 		p->state = 0x0D;
@@ -231,12 +269,12 @@ int __cdecl rsa_connect(int context) {
 
 
 int __cdecl rsa_disconnect(int context) {
-
+#if defined(_DEBUG) || defined(NETLIB_LOG)
+	Sent_NetLog("rsa_disconnect: %08x", context);
+#endif
 	pCNTX ptr = get_context_on_id(abs(context)); if(!ptr) return 0;
 	pRSADATA p = (pRSADATA) cpp_alloc_pdata(ptr); 
-#if defined(_DEBUG) || defined(NETLIB_LOG)
-	Sent_NetLog("rsa_disconnect: '%s'", p->pub_s.c_str());
-#endif
+
 	rsa_free( p ); // удалим трэд и очередь сообщений
 	if( context<0 ) { // просто послать разрыв по причине "disabled"
 		p->state = 0;
@@ -258,23 +296,15 @@ int __cdecl rsa_disconnect(int context) {
 }
 
 
-int __cdecl rsa_get_state(int context) {
-
-	pCNTX ptr = get_context_on_id(context);	if(!ptr) return 0;
-	pRSADATA p = (pRSADATA) cpp_alloc_pdata(ptr);
-
-	return p->state;
-}
-
 /*
 LPSTR __cdecl rsa_recv(int context, LPCSTR msg) {
 
 #if defined(_DEBUG) || defined(NETLIB_LOG)
-	Sent_NetLog("rsa_recv: '%s'", msg);
+	Sent_NetLog("rsa_recv: %s", msg);
 #endif
 	pCNTX ptr = get_context_on_id(context);	if(!ptr) return 0;
 	pRSADATA p = (pRSADATA) cpp_alloc_pdata(ptr);
-	pRSAPRIV r = (pRSAPRIV) (get_context_on_id((ptr->mode&MODE_RSA_4096)?-3:-2))->pdata;
+	pRSAPRIV r = rsa_get_priv(ptr);
 
 	int len = rtrim(msg);
 	PBYTE buf = (PBYTE)base64decode(msg,&len);
@@ -515,11 +545,11 @@ LPSTR __cdecl rsa_recv(int context, LPCSTR msg) {
 LPSTR __cdecl rsa_recv(int context, LPCSTR msg) {
 
 #if defined(_DEBUG) || defined(NETLIB_LOG)
-	Sent_NetLog("rsa_recv: '%s'", msg);
+	Sent_NetLog("rsa_recv: %s", msg);
 #endif
 	pCNTX ptr = get_context_on_id(context);	if(!ptr) return 0;
 	pRSADATA p = (pRSADATA) cpp_alloc_pdata(ptr);
-	pRSAPRIV r = (pRSAPRIV) (get_context_on_id((ptr->mode&MODE_RSA_4096)?-3:-2))->pdata;
+	pRSAPRIV r = rsa_get_priv(ptr);
 
 	int len = rtrim(msg);
 	PBYTE buf = (PBYTE)base64decode(msg,&len);
@@ -568,9 +598,10 @@ LPSTR __cdecl rsa_recv(int context, LPCSTR msg) {
 		data.assign((LPSTR)buf,len);
 		if( !p->event ) {
 			p->event = CreateEvent(NULL,FALSE,FALSE,NULL);
-			p->thread = (HANDLE) _beginthread(sttConnectThread, 0, (PVOID)context);
+			unsigned int tID;
+			p->thread = (HANDLE) _beginthreadex(NULL, 0, sttConnectThread, (PVOID)context, 0, &tID);
 #if defined(_DEBUG) || defined(NETLIB_LOG)
-			Sent_NetLog("rsa_recv: _beginthread");
+			Sent_NetLog("rsa_recv: _beginthreadex(sttConnectThread)");
 #endif
 		}
 		EnterCriticalSection(&localQueueMutex);
@@ -591,7 +622,7 @@ LPSTR __cdecl rsa_recv(int context, LPCSTR msg) {
 		GlobalRNG().GenerateBlock(buffer,RAND_SIZE);
         	inject_msg(context,0x60,encode_msg(0,p,sign(buffer,RAND_SIZE)));
 		p->state=7; p->time=0;
-		rsa_free( p );
+		rsa_free( p ); // удалим трэд и очередь сообщений
 		imp->rsa_notify(context,1);	// заебися, криптосессия установлена
 	} break;
 
@@ -604,7 +635,7 @@ LPSTR __cdecl rsa_recv(int context, LPCSTR msg) {
 			return 0;
 		}
 		p->state=7; p->time=0;
-		rsa_free( p );
+		rsa_free( p ); // удалим трэд и очередь сообщений
 		imp->rsa_notify(context,1);	// заебися, криптосессия установлена
 	} break;
 
@@ -613,8 +644,7 @@ LPSTR __cdecl rsa_recv(int context, LPCSTR msg) {
 		SAFE_FREE(ptr->tmp);
 		string msg = decode_msg(p,data);
 		if( msg.length() ) {
-			ptr->tmp = (LPSTR) malloc(msg.length()+1);
-			memcpy(ptr->tmp,msg.c_str(),msg.length()+1);
+			ptr->tmp = (LPSTR) strdup(msg.c_str());
 		}
 		else {
 			imp->rsa_notify(context,-5); // ошибка декодирования AES сообщения
@@ -627,8 +657,7 @@ LPSTR __cdecl rsa_recv(int context, LPCSTR msg) {
 		SAFE_FREE(ptr->tmp);
 		string msg = decode_rsa(p,r,data);
 		if( msg.length() ) {
-			ptr->tmp = (LPSTR) malloc(msg.length()+1);
-			memcpy(ptr->tmp,msg.c_str(),msg.length()+1);
+			ptr->tmp = (LPSTR) strdup(msg.c_str());
 		}
 		else {
 			imp->rsa_notify(context,-6); // ошибка декодирования RSA сообщения
@@ -672,7 +701,7 @@ int __cdecl rsa_send(int context, LPCSTR msg) {
 	if( p->state == 0 ) { // сессия  установлена, отправляем RSA сообщение
 		if( !p->pub_k.length() ) return 0;
 		// есть паблик ключ - отправим сообщение
-		pRSAPRIV r = (pRSAPRIV) (get_context_on_id((ptr->mode&MODE_RSA_4096)?-3:-2))->pdata;
+		pRSAPRIV r = rsa_get_priv(ptr);
 		inject_msg(context,0xE0,encode_rsa(1,p,r,string(msg)));
 	}
 
@@ -682,7 +711,7 @@ int __cdecl rsa_send(int context, LPCSTR msg) {
 
 void inject_msg(int context, int type, const string& msg) {
 #if defined(_DEBUG) || defined(NETLIB_LOG)
-	Sent_NetLog("inject_msg(%02x): '%s'", type, msg.c_str());
+	Sent_NetLog("inject_msg(%02x): %s", type, msg.c_str());
 #endif
 	string txt=tlv(type,msg);
 	char* base64=base64encode(txt.data(),txt.length());
@@ -691,8 +720,10 @@ void inject_msg(int context, int type, const string& msg) {
 }
 
 
-string encode_msg(short z,pRSADATA p, string& msg) {
-
+string encode_msg(short z, pRSADATA p, string& msg) {
+#if defined(_DEBUG) || defined(NETLIB_LOG)
+	Sent_NetLog("encode_msg: %s", msg.c_str());
+#endif
 	string zlib = (z) ? cpp_zlibc(msg) : msg;
 	string sig = sign(zlib);
 
@@ -711,9 +742,12 @@ string encode_msg(short z,pRSADATA p, string& msg) {
 
 
 string decode_msg(pRSADATA p, string& msg) {
-
+#if defined(_DEBUG) || defined(NETLIB_LOG)
+	Sent_NetLog("decode_msg: %s", msg.c_str());
+#endif
 	string ciphered,sig; int t1,t2;
-	un_tlv(un_tlv(msg,t1,ciphered),t2,sig);
+	un_tlv(msg,t1,ciphered);
+	un_tlv(msg,t2,sig);
 
 	string unciphered,zlib;
 	try {
@@ -733,8 +767,10 @@ string decode_msg(pRSADATA p, string& msg) {
 }
 
 
-string encode_rsa(short z,pRSADATA p,pRSAPRIV r,string& msg) {
-
+string encode_rsa(short z, pRSADATA p, pRSAPRIV r, string& msg) {
+#if defined(_DEBUG) || defined(NETLIB_LOG)
+	Sent_NetLog("encode_rsa: %s", msg.c_str());
+#endif
 	string zlib = (z) ? cpp_zlibc(msg) : msg;
 
 	string enc = RSAEncryptString(p->pub,zlib);
@@ -744,10 +780,13 @@ string encode_rsa(short z,pRSADATA p,pRSAPRIV r,string& msg) {
 }
 
 
-string decode_rsa(pRSADATA p,pRSAPRIV r,string& msg) {
-
+string decode_rsa(pRSADATA p, pRSAPRIV r, string& msg) {
+#if defined(_DEBUG) || defined(NETLIB_LOG)
+	Sent_NetLog("decode_rsa: %s", msg.c_str());
+#endif
 	string ciphered,sig; int t1,t2;
-	un_tlv(un_tlv(msg,t1,ciphered),t2,sig);
+	un_tlv(msg,t1,ciphered);
+	un_tlv(msg,t2,sig);
 
 	string unciphered,zlib;
 	zlib = RSADecryptString(r->priv_k,ciphered);
@@ -758,8 +797,10 @@ string decode_rsa(pRSADATA p,pRSAPRIV r,string& msg) {
 }
 
 
-string gen_aes_key_iv(short m,pRSADATA p,pRSAPRIV r) {
-
+string gen_aes_key_iv(short m, pRSADATA p, pRSAPRIV r) {
+#if defined(_DEBUG) || defined(NETLIB_LOG)
+	Sent_NetLog("gen_aes_key_iv: %04x", m);
+#endif
 	PBYTE buffer=(PBYTE) alloca(RAND_SIZE);
 
 	GlobalRNG().GenerateBlock(buffer, RAND_SIZE);
@@ -790,7 +831,7 @@ void init_pub(pRSADATA p, string& pub) {
 
 void null_msg(int context, int type, int status) {
 #if defined(_DEBUG) || defined(NETLIB_LOG)
-	Sent_NetLog("null_msg: '%02x'", status);
+	Sent_NetLog("null_msg: %02x", status);
 #endif
 	inject_msg(context,type,null);
 	imp->rsa_notify(context,status);
@@ -844,11 +885,11 @@ int __cdecl rsa_decrypt_file(int context,LPCSTR file_in,LPCSTR file_out) {
 int __cdecl rsa_recv_thread(int context, string& msg) {
 
 #if defined(_DEBUG) || defined(NETLIB_LOG)
-	Sent_NetLog("rsa_recv_thread: '%s'", msg.c_str());
+	Sent_NetLog("rsa_recv_thread: %s", msg.c_str());
 #endif
 	pCNTX ptr = get_context_on_id(context);	if(!ptr) return 0;
 	pRSADATA p = (pRSADATA) cpp_alloc_pdata(ptr);
-	pRSAPRIV r = (pRSAPRIV) (get_context_on_id((ptr->mode&MODE_RSA_4096)?-3:-2))->pdata;
+	pRSAPRIV r = rsa_get_priv(ptr);
 
 	string data; int type;
 	un_tlv(msg,type,data);
@@ -962,7 +1003,8 @@ int __cdecl rsa_recv_thread(int context, string& msg) {
 			null_msg(context,0x00,-type); // сессия разорвана по ошибке
 			return 0;
 		}
-		un_tlv(un_tlv(key,t[0],p->aes_k),t[1],p->aes_v);
+		un_tlv(key,t[0],p->aes_k);
+		un_tlv(key,t[1],p->aes_v);
 		PBYTE buffer=(PBYTE) alloca(RAND_SIZE);
 		GlobalRNG().GenerateBlock(buffer,RAND_SIZE);
 		inject_msg(context,0x50,encode_msg(0,p,sign(buffer,RAND_SIZE)));
@@ -1011,11 +1053,11 @@ void rsa_free( pRSADATA p ) {
 	if( p->event ) {
 		p->thread_exit = 1;
 		SetEvent( p->event );
-		// ждем завершене потока
+		// ждем завершения потока
 		WaitForSingleObject(p->thread, INFINITE);
-//		CloseHandle( p->thread );
+		CloseHandle( p->thread );
 		CloseHandle( p->event );
-		p->thread = p->event = 0;
+		p->thread = p->event = NULL;
 		p->thread_exit = 0;
 	}
 	p->time = 0;
@@ -1024,16 +1066,19 @@ void rsa_free( pRSADATA p ) {
 
 
 // establish RSA/AES thread
-void __cdecl sttConnectThread( LPVOID arg ) {
+unsigned __stdcall sttConnectThread( LPVOID arg ) {
 
-        int context = (int) arg;
+	int context = (int) arg;
 
-	pCNTX ptr = get_context_on_id(context);	if(!ptr) return;
+	pCNTX ptr = get_context_on_id(context);	if(!ptr) return 0;
 	pRSADATA p = (pRSADATA) cpp_alloc_pdata(ptr);
 
 	while(1) {
+#if defined(_DEBUG) || defined(NETLIB_LOG)
+		Sent_NetLog("sttConnectThread: WaitForSingleObject");
+#endif
 		WaitForSingleObject(p->event, INFINITE); // dwMsec rc==WAIT_TIMEOUT
-		if( p->thread_exit ) return;
+		if( p->thread_exit ) return 0;
 		// дождались сообщения в очереди
 		while( p->queue && !p->queue->empty() ) { // обработаем сообщения из очереди
 			if( rsa_recv_thread(context, p->queue->front()) == -1 ) {
@@ -1042,7 +1087,7 @@ void __cdecl sttConnectThread( LPVOID arg ) {
 				break;
 			}
 			EnterCriticalSection(&localQueueMutex);
-		        p->queue->pop();
+			p->queue->pop();
 			LeaveCriticalSection(&localQueueMutex);
 		}
 	}

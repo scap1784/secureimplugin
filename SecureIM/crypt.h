@@ -36,8 +36,13 @@ struct partitionMessage {
 };
 typedef partitionMessage* pPM;
 
+#define HEADER 0xABCD1234
+#define FOOTER 0x9876FEDC
+#define EMPTYH 0xF1E2D3C4
+
 // memory struct for keys
 struct UinKey {
+	u_int header;		// HEADER
 	HANDLE hContact;	// handle of contact
 	pSupPro proto;		// proto struct
 	BYTE mode,tmode;	// mode: Native,PGP,GPG,RSA/AES,RSA [0..4]
@@ -62,6 +67,7 @@ struct UinKey {
 	BOOL finFileRecv;
 	BOOL finFileSend;
 	LPSTR tmp;		// tmp text string
+	u_int footer;		// FOOTER
 };
 typedef UinKey* pUinKey;
 
@@ -168,8 +174,8 @@ BOOL LoadKeyPGP(pUinKey);
 BOOL LoadKeyGPG(pUinKey);
 
 // crypt_misc.cpp
-void __cdecl sttFakeAck(LPVOID);
-void __cdecl sttWaitForExchange(LPVOID);
+unsigned __stdcall sttFakeAck(LPVOID);
+unsigned __stdcall sttWaitForExchange(LPVOID);
 void waitForExchange(pUinKey ptr, int flag = 1);
 
 #endif

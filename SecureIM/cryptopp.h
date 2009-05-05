@@ -39,6 +39,7 @@ typedef struct {
     int (__cdecl *rsa_get_keyhash)(short,PBYTE,int*,PBYTE,int*);	// возвращает hash пары ключей для указанной длины
     int (__cdecl *rsa_set_keypair)(short,PBYTE,int,PBYTE,int);		// устанавливает ключи, указанной длины
     int (__cdecl *rsa_set_pubkey)(int,PBYTE,int);			// загружает паблик ключ для указанного контекста
+    void (__cdecl *rsa_set_timeout)(int);				// установить таймаут для установки секюрного соединения
     int (__cdecl *rsa_get_state)(int);					// получить статус указанного контекста
     int (__cdecl *rsa_connect)(int);					// запускает процесс установки содинения с указанным контекстом
     int (__cdecl *rsa_disconnect)(int);					// разрывает соединение

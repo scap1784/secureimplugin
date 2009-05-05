@@ -3,8 +3,10 @@
 
 // generate KeyA pair and return public key
 LPSTR InitKeyA(pUinKey ptr,int features) {
-
-	if(!ptr->cntx)
+#if defined(_DEBUG) || defined(NETLIB_LOG)
+	Sent_NetLog("InitKeyA: %04x", features);
+#endif
+	if( !ptr->cntx )
 		ptr->cntx = cpp_create_context(isProtoSmallPackets(ptr->hContact)?CPP_MODE_BASE64:0);
 
 	char *tmp = myDBGetString(ptr->hContact,szModuleName,"PSK");
@@ -41,7 +43,9 @@ LPSTR InitKeyA(pUinKey ptr,int features) {
 
 // store KeyB into context
 int InitKeyB(pUinKey ptr,LPCSTR key) {
-
+#if defined(_DEBUG) || defined(NETLIB_LOG)
+	Sent_NetLog("InitKeyB: %s", key);
+#endif
 	if(!ptr->cntx)
 		ptr->cntx = cpp_create_context(isProtoSmallPackets(ptr->hContact)?CPP_MODE_BASE64:0);
 

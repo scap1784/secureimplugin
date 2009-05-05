@@ -47,7 +47,7 @@ int LV_InsertItemA(HWND hwnd, LVITEM *lvi) {
 
 
 void LV_SetItemText(HWND hwnd, WPARAM wparam, int subitem, LPSTR text) {
-	LV_ITEM lvi = {0};
+	LV_ITEM lvi; memset(&lvi,0,sizeof(lvi));
 	lvi.iSubItem = subitem;
 	lvi.pszText = text;
 	SNDMSG(hwnd, bCoreUnicode ? LVM_SETITEMTEXTW : LVM_SETITEMTEXTA, wparam, (LPARAM)&lvi);
@@ -62,7 +62,7 @@ void LV_SetItemTextA(HWND hwnd, WPARAM wparam, int subitem, LPSTR text) {
 
 
 void LV_GetItemTextA(HWND hwnd, WPARAM wparam, int iSubItem, LPSTR text, int cchTextMax) {
-	LV_ITEM lvi = {0};
+	LV_ITEM lvi; memset(&lvi,0,sizeof(lvi));
 	lvi.iSubItem = iSubItem;
 	lvi.cchTextMax = cchTextMax;
 	lvi.pszText = text;
@@ -619,15 +619,16 @@ BOOL CALLBACK DlgProcOptionsPGP(HWND hDlg, UINT wMsg, WPARAM wParam, LPARAM lPar
 		case WM_COMMAND: {
 			switch(LOWORD(wParam)) {
 		  	case IDC_SET_KEYRINGS: {
-	  			char PubRingPath[MAX_PATH] = {0}, SecRingPath[MAX_PATH] = {0};
-			    bPGPkeyrings = pgp_open_keyrings(PubRingPath,SecRingPath);
+	  			char PubRingPath[MAX_PATH], SecRingPath[MAX_PATH];
+				PubRingPath[0]='\0'; SecRingPath[0]='\0';
+				bPGPkeyrings = pgp_open_keyrings(PubRingPath,SecRingPath);
 				if(bPGPkeyrings && PubRingPath[0] && SecRingPath[0]) {
 					DBWriteContactSettingString(0,szModuleName,"pgpPubRing",PubRingPath);
 					DBWriteContactSettingString(0,szModuleName,"pgpSecRing",SecRingPath);
 				}
-			    SetDlgItemText(hDlg, IDC_KEYRING_STATUS, bPGPkeyrings?Translate(sim216):Translate(sim217));
+				SetDlgItemText(hDlg, IDC_KEYRING_STATUS, bPGPkeyrings?Translate(sim216):Translate(sim217));
 //				EnableWindow(hLV, bPGPkeyrings);
-//			    RefreshPGPDlg(hDlg);
+//				RefreshPGPDlg(hDlg);
 				return FALSE;
 		  	}
 		  	break;
@@ -639,7 +640,7 @@ BOOL CALLBACK DlgProcOptionsPGP(HWND hDlg, UINT wMsg, WPARAM wParam, LPARAM lPar
 		  	}
 		  	break;
 		  	case IDC_LOAD_PRIVKEY: {
-				char KeyPath[MAX_PATH] = {0};
+				char KeyPath[MAX_PATH]; KeyPath[0]='\0';
 			  	if(ShowSelectKeyDlg(hDlg,KeyPath)){
 			  		char *priv = LoadKeys(KeyPath,true);
 			  		if(priv) {
@@ -974,7 +975,7 @@ void RefreshGeneralDlg(HWND hDlg, BOOL iInit) {
 	HWND hLV = GetDlgItem(hDlg,IDC_STD_USERLIST);
 	ListView_DeleteAllItems(hLV);
 
-	LVITEM lvi = {0};
+	LVITEM lvi; memset(&lvi,0,sizeof(lvi));
 	lvi.mask = LVIF_TEXT | LVIF_IMAGE | LVIF_PARAM;
 
 	HANDLE hContact = (HANDLE)CallService(MS_DB_CONTACT_FINDFIRST, 0, 0);
@@ -1027,7 +1028,7 @@ void RefreshProtoDlg(HWND hDlg) {
 	HWND hLV = GetDlgItem(hDlg,IDC_PROTO);
 	ListView_DeleteAllItems(hLV);
 
-	LVITEM lvi = {0};
+	LVITEM lvi; memset(&lvi,0,sizeof(lvi));
 	lvi.mask = LVIF_TEXT | LVIF_PARAM;
 
 	for(i=0;i<proto_cnt;i++) {
@@ -1082,7 +1083,7 @@ void RefreshPGPDlg(HWND hDlg, BOOL iInit) {
 	HWND hLV = GetDlgItem(hDlg,IDC_PGP_USERLIST);
 	ListView_DeleteAllItems(hLV);
 
-	LVITEM lvi = {0};
+	LVITEM lvi; memset(&lvi,0,sizeof(lvi));
 	lvi.mask = LVIF_TEXT | LVIF_IMAGE | LVIF_PARAM;
 
 	HANDLE hContact = (HANDLE)CallService(MS_DB_CONTACT_FINDFIRST, 0, 0);
@@ -1152,7 +1153,7 @@ void RefreshGPGDlg(HWND hDlg, BOOL iInit) {
 	HWND hLV = GetDlgItem(hDlg,IDC_GPG_USERLIST);
 	ListView_DeleteAllItems(hLV);
 
-	LVITEM lvi = {0};
+	LVITEM lvi; memset(&lvi,0,sizeof(lvi));
 	lvi.mask = LVIF_TEXT | LVIF_IMAGE | LVIF_PARAM;
 
 	HANDLE hContact = (HANDLE)CallService(MS_DB_CONTACT_FINDFIRST, 0, 0);
@@ -1217,7 +1218,7 @@ void ResetGeneralDlg(HWND hDlg) {
 	HWND hLV = GetDlgItem(hDlg,IDC_STD_USERLIST);
 	ListView_DeleteAllItems(hLV);
 
-	LVITEM lvi = {0};
+	LVITEM lvi; memset(&lvi,0,sizeof(lvi));
 	lvi.mask = LVIF_TEXT | LVIF_IMAGE | LVIF_PARAM;
 
 	HANDLE hContact = (HANDLE)CallService(MS_DB_CONTACT_FINDFIRST, 0, 0);
@@ -1272,6 +1273,7 @@ void ApplyGeneralSettings(HWND hDlg) {
 	GetDlgItemText(hDlg,IDC_KET,timeout,5);
 	tmp = atoi(timeout); if(tmp > 65535) tmp = 65535;
 	DBWriteContactSettingWord(0,szModuleName,"ket",tmp);
+	exp->rsa_set_timeout( DBGetContactSettingWord(0,szModuleName,"ket",10) );
 	mir_itoa(tmp,timeout,10);
 	SetDlgItemText(hDlg,IDC_KET,timeout);
 
@@ -1426,7 +1428,7 @@ void ApplyGPGSettings(HWND hDlg) {
 
 LPARAM getListViewParam(HWND hLV, UINT iItem) {
 
-	LVITEM lvi = {0};
+	LVITEM lvi; memset(&lvi,0,sizeof(lvi));
 	lvi.iItem = iItem;
 	lvi.mask = LVIF_PARAM;
 	ListView_GetItem(hLV, &lvi);
@@ -1436,7 +1438,7 @@ LPARAM getListViewParam(HWND hLV, UINT iItem) {
 
 void setListViewIcon(HWND hLV, UINT iItem, pUinKey ptr) {
 
-	LVITEM lvi = {0};
+	LVITEM lvi; memset(&lvi,0,sizeof(lvi));
 	lvi.iItem = iItem;
 	switch(ptr->tmode) {
 	case MODE_NATIVE:
@@ -1652,7 +1654,8 @@ LPSTR LoadKeys(LPCSTR file,BOOL priv) {
 
 
 int onRegisterOptions(WPARAM wParam, LPARAM) {
-	OPTIONSDIALOGPAGE odp = {0};
+	OPTIONSDIALOGPAGE odp;
+	memset(&odp,0,sizeof(odp));
 	odp.cbSize = sizeof(odp);
 	odp.hInstance = g_hInst;
 	odp.pszTemplate = MAKEINTRESOURCE(IDD_OPTIONSTAB);
