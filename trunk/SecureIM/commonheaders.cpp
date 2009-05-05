@@ -226,7 +226,8 @@ int msgbox( HWND hWnd, LPCSTR lpText, LPCSTR lpCaption, UINT uType) {
 HANDLE hNetlibUser;
 
 void InitNetlib() {
-	NETLIBUSER nl_user = {0};
+	NETLIBUSER nl_user;
+	memset(&nl_user,0,sizeof(nl_user));
 	nl_user.cbSize = sizeof(nl_user);
 	nl_user.szSettingsModule = (LPSTR)szModuleName;
 	nl_user.szDescriptiveName = (LPSTR)szModuleName;

@@ -1,7 +1,7 @@
 // Windows API
 
 #define WIN32_LEAN_AND_MEAN
-//#define NETLIB_LOG
+#define NETLIB_LOG
 
 #ifdef _MSC_VER
 #pragma once
@@ -102,6 +102,11 @@ extern PLUGININFO pluginInfo;
 extern PLUGININFOEX pluginInfoEx;
 //extern MM_INTERFACE mmi;
 extern MUUID interfaces[];
+
+extern HANDLE hPGPPRIV;
+extern HANDLE hRSA2048;
+extern HANDLE hRSA4096;
+
 extern CRITICAL_SECTION localQueueMutex;
 extern CRITICAL_SECTION localContextMutex;
 

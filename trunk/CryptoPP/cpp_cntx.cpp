@@ -1,75 +1,69 @@
 #include "commonheaders.h"
 
 
-pCNTX cntx = NULL;
-int cntx_idx = 0;
-int cntx_cnt = 0;
-int cntx_inc = 10; // выделять по 10 контекстов за раз
+list<pCNTX> CL; // CL.size() CL.empty()
+
 HANDLE thread_timeout = 0;
 
-void __cdecl sttTimeoutThread(LPVOID);
+unsigned __stdcall sttTimeoutThread(LPVOID);
 
 
 // get context data on context id
 pCNTX get_context_on_id(int context) {
 
     if(	!thread_timeout ) {
-	thread_timeout = (HANDLE) _beginthread(sttTimeoutThread,0,0); // -1 при ошибке
-	if( thread_timeout == (HANDLE)-1L ) thread_timeout = 0;
+	unsigned int tID;
+	thread_timeout = (HANDLE) _beginthreadex(NULL, 0, sttTimeoutThread, NULL, 0, &tID);
     }
 
     if( context ) {
-		for(int i=0;i<cntx_cnt;i++) {
-			if(cntx[i].cntx == context)
-				return &cntx[i];
-	}
-	switch( context ) {
-	case -1:
-	{
-		// create context for private pgp keys
-		pCNTX tmp = get_context_on_id(cpp_create_context(0));
-		tmp->cntx = context; tmp->mode = MODE_PGP;
-		tmp->pdata = (PBYTE) malloc(sizeof(PGPDATA));
-		memset(tmp->pdata,0,sizeof(PGPDATA));
-		return tmp;
-	}
-	case -2:
-	case -3:
-	{
-		// create context for private rsa keys
-		pCNTX tmp = get_context_on_id(cpp_create_context(0));
-		tmp->cntx = context; tmp->mode = (context==-3) ? MODE_RSA_4096 : MODE_RSA_2048;
-		pRSAPRIV p = new RSAPRIV;
-		tmp->pdata = (PBYTE) p;
-		return tmp;
-	}
-	} // switch
+	pCNTX cntx = (pCNTX) context;
+	if( cntx->header == HEADER && cntx->footer == FOOTER )
+		return cntx;
+#if defined(_DEBUG) || defined(NETLIB_LOG)
+	else
+		Sent_NetLog("get_context_on_id: corrupted context %08X", cntx);
+#endif
     }
     return NULL;
+}
+
+
+pCNTX get_context_on_id(HANDLE context) {
+	return get_context_on_id((int)context);
 }
 
 
 // create context, return context id
 int __cdecl cpp_create_context(int mode) {
 
-	int i;
-//	while(get_context_on_id(++cntx_idx));
-	cntx_idx++;
+	list<pCNTX>::iterator i;
+	pCNTX cntx = NULL;
 
-    	EnterCriticalSection(&localContextMutex);
-	for(i=0; i<cntx_cnt && cntx[i].cntx; i++);
-	if(i == cntx_cnt) { // надо добавить новый блок
-		cntx_cnt += cntx_inc; 
-		cntx = (pCNTX) mir_realloc(cntx,sizeof(CNTX)*cntx_cnt);
-		memset(&cntx[i],0,sizeof(CNTX)*cntx_inc); // очищаем выделенный блок
+	EnterCriticalSection(&localContextMutex);
+
+	if( !CL.empty() ) {
+		for(i=CL.begin(); i!=CL.end(); ++i) { // ищем пустой
+			if( (*i)->header==EMPTYH && (*i)->footer==EMPTYH ) {
+	    	    cntx = (pCNTX) *i;
+	    	    break;
+			}
+		}
 	}
-	else
-		memset(&cntx[i],0,sizeof(CNTX)); // очищаем конкретный контекст
-	cntx[i].cntx = cntx_idx;
-	cntx[i].mode = mode;
+
+	if( !cntx ) { // не нашли - создаем новый
+	    cntx = (pCNTX) malloc(sizeof(CNTX));
+	    CL.push_back(cntx); // добавили в конец списка
+	}
+
+	memset(cntx,0,sizeof(CNTX)); // очищаем выделенный блок
+	cntx->header = HEADER;
+	cntx->footer = FOOTER;
+	cntx->mode = mode;
+
 	LeaveCriticalSection(&localContextMutex);
 
-	return cntx_idx;
+	return (int)cntx;
 }
 
 
@@ -108,13 +102,9 @@ PBYTE cpp_alloc_pdata(pCNTX ptr) {
 			pRSADATA p = new RSADATA;
 			p->state = 0;
 			p->time = 0;
-			p->thread = p->event = 0;
+			p->thread = p->event = NULL;
 			p->thread_exit = 0;
 			p->queue = new STRINGQUEUE;
-/*			p->pub_k.assign("");
-			p->pub_s.assign("");
-			p->aes_k.assign("");
-			p->aes_v.assign("");*/
 			ptr->pdata = (PBYTE) p;
 	    }
 	    else {
@@ -127,30 +117,38 @@ PBYTE cpp_alloc_pdata(pCNTX ptr) {
 
 
 // search not established RSA/AES contexts && clear deleted contexts
-void __cdecl sttTimeoutThread( LPVOID ) {
+unsigned __stdcall sttTimeoutThread( LPVOID ) {
 
+	list<pCNTX>::iterator i;
 	while(1) {
-	    Sleep( 1000 ); // раз в секунду
-	    DWORD time = gettime();
-	    for(int i=0;i<cntx_cnt;i++) {
+		Sleep( 1000 ); // раз в секунду
+		if( CL.empty() ) continue;
+		u_int time = gettime();
+		// пробегаем все контексты
 		EnterCriticalSection(&localContextMutex);
-	    	pCNTX tmp = &cntx[i];
-	    	if( tmp->cntx>0 && tmp->mode&MODE_RSA && tmp->pdata ) {
-	    		// проверяем не протухло ли соединение
-			pRSADATA p = (pRSADATA) tmp->pdata;
-			if( p->time && p->time < time ) {
-				rsa_timeout(tmp->cntx,p);
-			}
+	    for(i=CL.begin(); i!=CL.end(); ++i) {
+	    	pCNTX tmp = *i;
+			if( tmp->header!=HEADER || tmp->footer!=FOOTER ) continue;
+			// пропускаем приватные ключи
+	    	if( tmp->mode&MODE_PRIV_KEY ) continue;
+	    	else
+			if( tmp->deleted && tmp->deleted < time ) {
+				// удалить помеченный для удаления контекст
+				cpp_free_keys(tmp);
+				tmp->deleted = 0;
+				tmp->header = tmp->footer = EMPTYH;
 	    	}
-	    	if( tmp->cntx>0 && tmp->deleted && tmp->deleted < time ) {
-			// удалить помеченный для удаления контекст
-			cpp_free_keys(tmp);
-			tmp->cntx = 0;
-			tmp->deleted = 0;
+	    	else
+			if( tmp->mode&MODE_RSA && tmp->pdata ) {
+				// проверяем не протухло ли соединение
+				pRSADATA p = (pRSADATA) tmp->pdata;
+				if( p->time && p->time < time ) {
+					rsa_timeout((int)tmp,p);
+				}
 	    	}
+	    } // for
 		LeaveCriticalSection(&localContextMutex);
-	    }
-	}
+	} //while
 }
 
 

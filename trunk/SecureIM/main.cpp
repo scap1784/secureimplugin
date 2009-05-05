@@ -53,7 +53,8 @@ void AddHookFunction(LPCSTR eventName, MIRANDAHOOK hookFunction) {
 
 HANDLE AddMenuItem(LPCSTR name,int pos,HICON hicon,LPCSTR service,int flags=0,WPARAM wParam=0) {
 
-	CLISTMENUITEM mi={0};
+	CLISTMENUITEM mi;
+	memset(&mi,0,sizeof(mi));
 	mi.cbSize=sizeof(mi);
 	mi.flags=flags | CMIF_HIDDEN;
 	mi.position=pos;
@@ -67,7 +68,8 @@ HANDLE AddMenuItem(LPCSTR name,int pos,HICON hicon,LPCSTR service,int flags=0,WP
 
 HANDLE AddSubItem(HANDLE rootid,LPCSTR name,int pos,int poppos,LPCSTR service,WPARAM wParam=0) {
 
-    CLISTMENUITEM mi={0};
+    CLISTMENUITEM mi;
+    memset(&mi,0,sizeof(mi));
     mi.cbSize=sizeof(mi);
     mi.flags=CMIF_CHILDPOPUP | CMIF_HIDDEN;
     mi.position=pos;
@@ -107,7 +109,8 @@ int __cdecl Load(PLUGINLINK *link) {
 		typedef HRESULT (CALLBACK *PFNDLLGETVERSION)(DLLVERSIONINFO*);
 		PFNDLLGETVERSION pfnDllGetVersion = (PFNDLLGETVERSION) GetProcAddress(hComCtlDll,"DllGetVersion");
 		if ( pfnDllGetVersion ) {
-			DLLVERSIONINFO dvi = {0};
+			DLLVERSIONINFO dvi;
+			memset(&dvi,0,sizeof(dvi));
 			dvi.cbSize = sizeof(dvi);
 			HRESULT hRes = (*pfnDllGetVersion)( &dvi );
 			if ( SUCCEEDED(hRes) && dvi.dwMajorVersion >= 6 ) {
@@ -135,7 +138,8 @@ int __cdecl Load(PLUGINLINK *link) {
 	load_rtfconv();
 
 	// register plugin module
-	PROTOCOLDESCRIPTOR pd = {0};
+	PROTOCOLDESCRIPTOR pd;
+	memset(&pd,0,sizeof(pd));
 	pd.cbSize = sizeof(pd);
 	pd.szName = (char*)szModuleName;
 	pd.type = PROTOTYPE_ENCRYPTION;
@@ -207,6 +211,7 @@ int __cdecl onModulesLoaded(WPARAM wParam,LPARAM lParam) {
 			}
 			DBFreeVariant(&dbv1);
 		}
+
 		if( DBGetContactSetting(0,szModuleName,"rsa_priv_4096",&dbv1) == 0 ) {
 			if( DBGetContactSetting(0,szModuleName,"rsa_pub_4096",&dbv2) == 0 ) {
 				exp->rsa_set_keypair(CPP_MODE_RSA_4096,dbv1.pbVal,dbv1.cpbVal,dbv2.pbVal,dbv2.cpbVal);
@@ -215,9 +220,13 @@ int __cdecl onModulesLoaded(WPARAM wParam,LPARAM lParam) {
 			}
 			DBFreeVariant(&dbv1);
 		}
+
 		if( !rsa_2048 || !rsa_4096 ) {
-			CloseHandle( (HANDLE) _beginthread(sttGenerateRSA,0,0) );
+			unsigned int tID;
+			CloseHandle( (HANDLE) _beginthreadex(NULL, 0, sttGenerateRSA, NULL, 0, &tID) );
 		}
+
+		exp->rsa_set_timeout( DBGetContactSettingWord(0,szModuleName,"ket",10) );
 	}
 
 #if defined(_DEBUG) || defined(NETLIB_LOG)
@@ -235,7 +244,8 @@ int __cdecl onModulesLoaded(WPARAM wParam,LPARAM lParam) {
 	   	    mir_free(priv);
 	    }// if(priv)
             if(bPGPloaded && bUseKeyrings) {
-    		char PubRingPath[MAX_PATH] = {0}, SecRingPath[MAX_PATH] = {0};
+    		char PubRingPath[MAX_PATH], SecRingPath[MAX_PATH];
+    		PubRingPath[0]='\0'; SecRingPath[0]='\0';
     		if(pgp_get_version()<0x02000000) { // 6xx
     		    bPGPkeyrings = pgp_open_keyrings(PubRingPath,SecRingPath);
 		}
@@ -243,12 +253,12 @@ int __cdecl onModulesLoaded(WPARAM wParam,LPARAM lParam) {
         		LPSTR tmp;
         		tmp = myDBGetString(0,szModuleName,"pgpPubRing");
         		if(tmp) {
-        			memcpy(PubRingPath,tmp,strlen(tmp));
+        			strncpy(PubRingPath,tmp,sizeof(PubRingPath));
         			mir_free(tmp);
         		}
         		tmp = myDBGetString(0,szModuleName,"pgpSecRing");
         		if(tmp) {
-        			memcpy(SecRingPath,tmp,strlen(tmp));
+        			strncpy(SecRingPath,tmp,sizeof(SecRingPath));
         			mir_free(tmp);
         		}
         	   	if(PubRingPath[0] && SecRingPath[0]) {
@@ -276,16 +286,17 @@ int __cdecl onModulesLoaded(WPARAM wParam,LPARAM lParam) {
 
 		bGPGloaded = gpg_init();
 
-   		char gpgexec[MAX_PATH] = {0}, gpghome[MAX_PATH] = {0};
+   		char gpgexec[MAX_PATH], gpghome[MAX_PATH];
+   		gpgexec[0]='\0'; gpghome[0]='\0';
 
 		tmp = myDBGetString(0,szModuleName,"gpgExec");
 		if(tmp) {
-			memcpy(gpgexec,tmp,strlen(tmp));
+			strncpy(gpgexec,tmp,sizeof(gpgexec));
 			mir_free(tmp);
 		}
 		tmp = myDBGetString(0,szModuleName,"gpgHome");
 		if(tmp) {
-			memcpy(gpghome,tmp,strlen(tmp));
+			strncpy(gpghome,tmp,sizeof(gpghome));
 			mir_free(tmp);
 		}
 
@@ -315,14 +326,14 @@ int __cdecl onModulesLoaded(WPARAM wParam,LPARAM lParam) {
 			DBDeleteContactSetting(0, szModuleName, "gpgHome");
 		}
 
-	    bSavePass = DBGetContactSettingByte(0,szModuleName,"gpgSaveFlag",0);
-	    if(bSavePass) {
+		bSavePass = DBGetContactSettingByte(0,szModuleName,"gpgSaveFlag",0);
+		if(bSavePass) {
 			tmp = myDBGetString(0,szModuleName,"gpgSave");
 			if(tmp) {
 				gpg_set_passphrases(tmp);
 				mir_free(tmp);
 			}
-	    }
+		}
 	}
 
 #if defined(_DEBUG) || defined(NETLIB_LOG)
@@ -445,7 +456,8 @@ int __cdecl onModulesLoaded(WPARAM wParam,LPARAM lParam) {
 	// add icon to srmm status icons
 	if(ServiceExists(MS_MSG_ADDICON)) {
 
-		StatusIconData sid = {0};
+		StatusIconData sid;
+		memset(&sid,0,sizeof(sid));
 		sid.cbSize = sizeof(sid);
 		sid.szModule = (char*)szModuleName;
 		sid.flags = MBF_DISABLED|MBF_HIDDEN;

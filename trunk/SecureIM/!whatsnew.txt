@@ -1,7 +1,9 @@
 
-Verison 1.0.12.2 [04-05-2009]
+Verison 1.0.12.2 [05-05-2009]
 
 [*] possible memory leak fixed
+[*] some security fixes
+[+] KeyExchangeTimeout for RSA/AES
 
 
 Verison 1.0.12.1 [04-05-2009]

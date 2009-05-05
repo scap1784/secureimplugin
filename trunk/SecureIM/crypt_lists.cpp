@@ -232,6 +232,9 @@ pUinKey getUinCtx(int cntx) {
 // add message to user queue for send later
 void addMsg2Queue(pUinKey ptr,WPARAM wParam,LPSTR szMsg) {
 		
+#if defined(_DEBUG) || defined(NETLIB_LOG)
+		Sent_NetLog("addMsg2Queue: msg: -----\n%s\n-----\n",szMsg);
+#endif
 		pWM ptrMessage;
 
 		EnterCriticalSection(&localQueueMutex);

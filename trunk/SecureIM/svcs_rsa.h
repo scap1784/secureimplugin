@@ -11,7 +11,7 @@ int __cdecl rsa_inject(int,LPCSTR);
 int __cdecl rsa_check_pub(int,PBYTE,int,PBYTE,int);
 void __cdecl rsa_notify(int,int);
 
-void __cdecl sttGenerateRSA(LPVOID);
+unsigned __stdcall sttGenerateRSA(LPVOID);
 BYTE loadRSAkey(pUinKey);
 void createRSAcntx(pUinKey);
 void resetRSAcntx(pUinKey);

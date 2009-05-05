@@ -91,11 +91,12 @@ INT_PTR __cdecl Service_PGPsetKey(WPARAM wParam, LPARAM lParam) {
 	BOOL del = true;
 	if(bPGPloaded) {
     	if(bPGPkeyrings) {
-	    char szKeyID[128] = {0};
+	    char szKeyID[128]; szKeyID[0]='\0';
     	    PVOID KeyID = pgp_select_keyid(GetForegroundWindow(),szKeyID);
 	    if(szKeyID[0]) {
     		DBDeleteContactSetting((HANDLE)wParam,szModuleName,"pgp");
     		DBCONTACTWRITESETTING cws;
+    		memset(&cws,0,sizeof(cws));
     		cws.szModule = szModuleName;
     		cws.szSetting = "pgp";
     		cws.value.type = DBVT_BLOB;
@@ -109,7 +110,7 @@ INT_PTR __cdecl Service_PGPsetKey(WPARAM wParam, LPARAM lParam) {
     	}
     	else
     	if(bPGPprivkey) {
-    		char KeyPath[MAX_PATH] = {0};
+    		char KeyPath[MAX_PATH]; KeyPath[0]='\0';
     	  	if(ShowSelectKeyDlg(0,KeyPath)){
     	  		char *publ = LoadKeys(KeyPath,false);
     	  		if(publ) {
@@ -152,8 +153,8 @@ INT_PTR __cdecl Service_GPGsetKey(WPARAM wParam, LPARAM lParam) {
 
 	BOOL del = true;
 	if(bGPGloaded && bGPGkeyrings) {
-   		char szKeyID[128] = {0};
-   	    gpg_select_keyid(GetForegroundWindow(),szKeyID);
+   		char szKeyID[128]; szKeyID[0]='\0';
+		gpg_select_keyid(GetForegroundWindow(),szKeyID);
    		if(szKeyID[0]) {
    		    DBWriteContactSettingString((HANDLE)wParam,szModuleName,"gpg",szKeyID);
    	  		del = false;

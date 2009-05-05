@@ -1,7 +1,10 @@
 
-Verison 1.0.4.2 [04-05-2009]
+Verison 1.0.4.2 [05-05-2009]
 
 [*] serious memory corrupting fixed
+[*] some security fixes
+[*] the principle of operation with contexts is changed
+[+] rsa_set_timeout
 
 
 Verison 1.0.4.1 [04-05-2009]

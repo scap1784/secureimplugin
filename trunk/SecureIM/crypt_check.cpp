@@ -79,16 +79,12 @@ BOOL isClientMiranda(HANDLE hContact) {
 	if (!clist_cnt)	return false;
 	for(int j=0;j<clist_cnt;j++) {
 		if (clist[j].hContact == hContact && clist[j].proto->inspecting) {
-
 			BOOL isMiranda = true;
-
-			DBVARIANT dbv;
-			DBGetContactSetting(hContact,clist[j].proto->name,"MirVer",&dbv);
-			if(dbv.type==DBVT_ASCIIZ) {
-				isMiranda = strstr(dbv.pszVal,"Miranda")!=NULL;
+			LPSTR mirver = myDBGetString(hContact,clist[j].proto->name,"MirVer");
+			if( mirver ) {
+				isMiranda = (strstr(mirver,"Miranda")!=NULL);
+				mir_free(mirver);
 			}
-			DBFreeVariant(&dbv);
-
 			return isMiranda;
 		}
 	}
@@ -261,12 +257,11 @@ BOOL isSecureIM(HANDLE hContact) {
 				return false;
 			}
 
-			DBVARIANT dbv;
-			DBGetContactSetting(hContact,clist[j].proto->name,"MirVer",&dbv);
-			if(dbv.type==DBVT_ASCIIZ) {
-				isSecureIM = (strstr(dbv.pszVal,"SecureIM")!=NULL) || (strstr(dbv.pszVal,"secureim")!=NULL);
+			LPSTR mirver = myDBGetString(hContact,clist[j].proto->name,"MirVer");
+			if( mirver ) {
+				isSecureIM = (strstr(mirver,"SecureIM")!=NULL) || (strstr(mirver,"secureim")!=NULL);
+				mir_free(mirver);
 			}
-			DBFreeVariant(&dbv);
 
 			return isSecureIM;
 		}

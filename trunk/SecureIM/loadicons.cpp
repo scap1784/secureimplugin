@@ -65,7 +65,8 @@ void InitIcons(void)
 		g_hIconInst = hNewIconInst;
 
 
-	SKINICONDESC sid={0};
+	SKINICONDESC sid;
+	memset(&sid,0,sizeof(sid));
 
 	sid.cbSize = sizeof(SKINICONDESC);
 	sid.pszSection = "SecureIM";

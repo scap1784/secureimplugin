@@ -138,8 +138,7 @@ LPSTR __cdecl cpp_decrypt(pCNTX ptr, LPCSTR szEncMsg) {
 			ptr->tmp[clen] = 0;
 		}
 		else {
-			ptr->tmp = (LPSTR) malloc(unciphered.length()+1);
-			memcpy(ptr->tmp,unciphered.c_str(),unciphered.length()+1);
+			ptr->tmp = (LPSTR) strdup(unciphered.c_str());
 		}
 
 		ptr->error = ERROR_NONE;
