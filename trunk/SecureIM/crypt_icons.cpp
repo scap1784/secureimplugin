@@ -93,7 +93,7 @@ void ShowStatusIcon(HANDLE hContact,int mode) {
 			}
 		}
 	}
-	if( ServiceExists(MS_MSG_MODIFYICON) ) {  // обновить иконки в messagew
+	if( ServiceExists(MS_MSG_MODIFYICON) ) {  // обновить иконки в srmm
 		StatusIconData sid;
 		memset(&sid,0,sizeof(sid));
 		sid.cbSize = sizeof(sid);

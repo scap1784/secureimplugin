@@ -23,6 +23,8 @@ void setListViewMode(HWND,UINT,UINT);
 void setListViewStatus(HWND,UINT,UINT);
 UINT getListViewPSK(HWND,UINT);
 void setListViewPSK(HWND,UINT,UINT);
+UINT getListViewPUB(HWND,UINT);
+void setListViewPUB(HWND,UINT,UINT);
 int onRegisterOptions(WPARAM,LPARAM);
 int CALLBACK CompareFunc(LPARAM,LPARAM,LPARAM);
 void ListView_Sort(HWND,LPARAM);

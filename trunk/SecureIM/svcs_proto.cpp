@@ -681,7 +681,7 @@ INT_PTR __cdecl onSendMsg(WPARAM wParam, LPARAM lParam) {
         		else {
         			createRSAcntx(ptr);
         		}
-			if( !bSOM || !loadRSAkey(ptr) ) {
+			if( !bSOM || (!isClientMiranda(ptr,1) && !isSecureIM(ptr,1)) || !loadRSAkey(ptr) ) {
 				if( ssig==SiG_NONE ) {
         				// просто шлем незашифрованное в оффлайн
 					return CallService(MS_PROTO_CHAINSEND, wParam, lParam);
@@ -798,8 +798,8 @@ INT_PTR __cdecl onSendMsg(WPARAM wParam, LPARAM lParam) {
 		    if( ssig!=SiG_NONE ) {
 				return returnNoError(pccsd->hContact);
 		    }
-			// exit and send unencrypted message
-			return CallService(MS_PROTO_CHAINSEND, wParam, lParam);
+		    // exit and send unencrypted message
+		    return CallService(MS_PROTO_CHAINSEND, wParam, lParam);
 		}
 		BOOL isMiranda = isClientMiranda(ptr->hContact);
 

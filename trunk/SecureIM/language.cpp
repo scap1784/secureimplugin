@@ -58,6 +58,7 @@ LPCSTR sim229 = "UTF8";
 LPCSTR sim230 = "Mode";
 LPCSTR sim231[] = { "Native", "PGP", "GPG", "RSA/AES", "RSA" };
 LPCSTR sim232[] = { "Disabled", "Enabled", "Always try" };
+LPCSTR sim233= "PUB";
 
 //Context Menu
 LPCSTR sim301 = "Create SecureIM connection";
