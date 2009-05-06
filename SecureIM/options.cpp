@@ -5,6 +5,25 @@ BOOL bChangeSortOrder = false;
 const char *szAdvancedIcons[] = {"None", "Email", "Protocol", "SMS", "Advanced 1", "Advanced 2", "Web", "Client", "VisMode", "Advanced 6", "Advanced 7", 0};
 
 
+BOOL hasKey(pUinKey ptr) {
+	BOOL ret = 0;
+	if( ptr->mode==MODE_NATIVE ) {
+		LPSTR str = myDBGetString(ptr->hContact,szModuleName,"PSK");
+		ret = (str!=NULL); SAFE_FREE(str);
+	}
+	else
+	if( ptr->mode==MODE_RSAAES ) {
+		DBVARIANT dbv;
+		dbv.type = DBVT_BLOB;
+		if( DBGetContactSetting(ptr->hContact,szModuleName,"rsa_pub",&dbv) == 0 ) {
+			ret = 1;
+			DBFreeVariant(&dbv);
+		}
+	}
+	return ret;
+}
+
+
 void TC_InsertItem(HWND hwnd, WPARAM wparam, TCITEM *tci) {
 	if( bCoreUnicode ) {
 		LPWSTR tmp = mir_a2u(tci->pszText);
@@ -435,16 +454,28 @@ BOOL CALLBACK DlgProcOptionsGeneral(HWND hDlg, UINT wMsg, WPARAM wParam, LPARAM 
 					POINT p; GetCursorPos(&p);
 					HMENU hMenu = NULL;
 					if( ptr->tmode==MODE_NATIVE || ptr->tmode==MODE_RSAAES ) {
-						switch(lpLV->iSubItem) {
+						switch( lpLV->iSubItem ) {
 						case 2: // mode
 							hMenu = LoadMenu(g_hInst, MAKEINTRESOURCE(IDM_CLIST2));
 							break;
 						case 3: // status
 							hMenu = LoadMenu(g_hInst, MAKEINTRESOURCE((ptr->tmode==MODE_NATIVE)?IDM_CLIST01:IDM_CLIST11));
 							break;
-						default:
+						case 4: // PSK/PUB
+							hMenu = LoadMenu(g_hInst, MAKEINTRESOURCE((ptr->tmode==MODE_NATIVE)?IDM_CLIST02:IDM_CLIST12));
+							break;
+						default: // full menu
 							hMenu = LoadMenu(g_hInst, MAKEINTRESOURCE((ptr->tmode==MODE_NATIVE)?IDM_CLIST0:IDM_CLIST1));
 							break;
+						}
+						CheckMenuItem(hMenu, ID_DISABLED+ptr->tstatus, MF_CHECKED );
+						if( ptr->tmode==MODE_NATIVE ) {
+							if( !hasKey(ptr) ) EnableMenuItem(hMenu, ID_DELPSK, MF_GRAYED );
+						}
+						else
+						if( ptr->tmode==MODE_RSAAES ) {
+							EnableMenuItem(hMenu, ID_GETPUBL, MF_GRAYED );
+							if( !hasKey(ptr) ) EnableMenuItem(hMenu, ID_DELPUBL, MF_GRAYED );
 						}
 					}
 					if( !hMenu )
@@ -453,13 +484,7 @@ BOOL CALLBACK DlgProcOptionsGeneral(HWND hDlg, UINT wMsg, WPARAM wParam, LPARAM 
 					CheckMenuItem(hMenu, ID_SIM_NATIVE+ptr->tmode, MF_CHECKED );
 					if( !bPGP ) EnableMenuItem(hMenu, ID_SIM_PGP, MF_GRAYED );
 					if( !bGPG ) EnableMenuItem(hMenu, ID_SIM_GPG, MF_GRAYED );
-					if( ptr->tmode==MODE_NATIVE || ptr->tmode==MODE_RSAAES ) {
-						CheckMenuItem(hMenu, ID_DISABLED+ptr->tstatus, MF_CHECKED );
-					}
-					if( ptr->tmode==MODE_RSAAES ) {
-						EnableMenuItem(hMenu, ID_GETPUBL, MF_GRAYED );
-					}
-					CheckMenuItem(hMenu, ID_ENCRYPTION, MF_BYCOMMAND );
+//					CheckMenuItem(hMenu, ID_ENCRYPTION, MF_BYCOMMAND );
 					TrackPopupMenu(GetSubMenu(hMenu, 0), TPM_LEFTALIGN | TPM_TOPALIGN, p.x, p.y, 0, hDlg, 0);
 					DestroyMenu(hMenu);
 				}
@@ -1014,8 +1039,6 @@ void RefreshGeneralDlg(HWND hDlg, BOOL iInit) {
 
 	HANDLE hContact = (HANDLE)CallService(MS_DB_CONTACT_FINDFIRST, 0, 0);
 	char tmp[NAMSIZE];
-	int psk,pub;
-	char *str;
 
 	while (hContact) {
 
@@ -1026,23 +1049,6 @@ void RefreshGeneralDlg(HWND hDlg, BOOL iInit) {
 				ptr->tmode = ptr->mode;
 				ptr->tstatus = ptr->status;
 			}
-
-			if( ptr->mode==MODE_NATIVE ) {
-				str = myDBGetString(hContact,szModuleName,"PSK");
-				psk = (str!=NULL); SAFE_FREE(str);
-			}
-			else
-			if( ptr->mode==MODE_RSAAES ) {
-				DBVARIANT dbv;
-				dbv.type = DBVT_BLOB;
-				if( DBGetContactSetting(ptr->hContact,szModuleName,"rsa_pub",&dbv) == 0 ) {
-					pub = 1;
-       					DBFreeVariant(&dbv);
-       				}
-       				else {
-					pub = 0;
-       				}
-       			}
 
 			lvi.iItem++;
 			lvi.iImage = ptr->tstatus;
@@ -1057,8 +1063,8 @@ void RefreshGeneralDlg(HWND hDlg, BOOL iInit) {
 
 			setListViewMode(hLV, itemNum, ptr->tmode);
 			setListViewStatus(hLV, itemNum, ptr->tstatus);
-			if( ptr->mode==MODE_NATIVE )	setListViewPSK(hLV, itemNum, psk);
-			else				setListViewPUB(hLV, itemNum, pub);
+			if( ptr->mode==MODE_NATIVE )	setListViewPSK(hLV, itemNum, hasKey(ptr));
+			else				setListViewPUB(hLV, itemNum, hasKey(ptr));
 			setListViewIcon(hLV, itemNum, ptr);
 		}
 		hContact = (HANDLE)CallService(MS_DB_CONTACT_FINDNEXT, (WPARAM)hContact, 0);

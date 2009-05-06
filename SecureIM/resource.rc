@@ -230,6 +230,16 @@ BEGIN
 END
 
 
+IDM_CLIST02 MENU 
+BEGIN
+    POPUP ""
+    BEGIN
+            MENUITEM "Set pre-shared key", ID_SETPSK
+            MENUITEM "Delete pre-shared key", ID_DELPSK
+    END
+END
+
+
 IDM_CLIST1 MENU 
 BEGIN
     POPUP ""
@@ -262,6 +272,16 @@ BEGIN
     BEGIN
             MENUITEM "Secure IM Enabled", ID_ENABLED
             MENUITEM "Secure IM Disabled", ID_DISABLED
+    END
+END
+
+
+IDM_CLIST12 MENU 
+BEGIN
+    POPUP ""
+    BEGIN
+            MENUITEM "View public key", ID_GETPUBL
+            MENUITEM "Delete public key", ID_DELPUBL
     END
 END
 

@@ -248,6 +248,10 @@ SOURCE=.\popupOptions.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\resource.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\rtfconv.h
 # End Source File
 # Begin Source File

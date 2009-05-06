@@ -7,6 +7,7 @@ Verison 1.0.12.2 [06-05-2009]
 [+] show RSA Public key flag in Options dialog
 [+] reset RSA public key for contact
 [+] copy SHA of my RSA public key to Clipboard
+[*] context menu on RClick in columns "Mode","Status","-"
 
 
 Verison 1.0.12.1 [04-05-2009]
