@@ -4,7 +4,7 @@ pSupPro proto=NULL;
 pUinKey clist=NULL;
 int proto_cnt = 0;
 int clist_cnt = 0;
-int clist_inc = 10;
+int clist_inc = 100;
 
 
 void loadSupportedProtocols() {
@@ -137,7 +137,7 @@ pUinKey addContact(HANDLE hContact) {
 				CallService(MS_PROTO_ADDTOCONTACT, (WPARAM)hContact, (LPARAM)szModuleName);
 			MoveToLastInFilterList(hContact);
 			for(j=0;j<clist_cnt;j++) {
-				if(!clist[j].hContact) break;
+				if( !clist[j].hContact ) break;
 			}
 			if(j==clist_cnt) {
 				clist_cnt+=clist_inc;
@@ -146,6 +146,8 @@ pUinKey addContact(HANDLE hContact) {
 			}
 			else
 				memset(&clist[j],0,sizeof(UinKey));
+			clist[j].header = HEADER;
+			clist[j].footer = FOOTER;
 			clist[j].hContact = hContact;
 			clist[j].proto = proto;
 			clist[j].mode = DBGetContactSettingByte(hContact, szModuleName, "mode", 99);
@@ -176,6 +178,7 @@ void delContact(HANDLE hContact) {
 				clist[j].hContact = 0;
 				SAFE_FREE(clist[j].tmp);
 				SAFE_FREE(clist[j].msgSplitted);
+				clist[j].header = clist[j].footer = EMPTYH;
 				return;
 			}
 		}

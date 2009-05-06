@@ -420,7 +420,7 @@ BOOL CALLBACK DlgProcOptionsGeneral(HWND hDlg, UINT wMsg, WPARAM wParam, LPARAM 
 					idx = LPNMLISTVIEW(lParam)->iItem;
 					ptr = (pUinKey) getListViewParam(hLV,idx);
 					if (ptr) {
-						ptr->tstatus++; if(ptr->tstatus>2) ptr->tstatus=0;
+						ptr->tstatus++; if(ptr->tstatus>(ptr->tmode==MODE_RSAAES?1:2)) ptr->tstatus=0;
 						setListViewStatus(hLV,idx,ptr->tstatus);
 						setListViewIcon(hLV,idx,ptr);
 						SendMessage(GetParent(hDlg), PSM_CHANGED, 0, 0);
@@ -428,11 +428,28 @@ BOOL CALLBACK DlgProcOptionsGeneral(HWND hDlg, UINT wMsg, WPARAM wParam, LPARAM 
 				}
                     } break;
                     case NM_RCLICK: {
-  				idx = ListView_GetSelectionMark(hLV);
-  				ptr = (pUinKey) getListViewParam(hLV,idx);
+//  				idx = ListView_GetSelectionMark(hLV);
+				LPNMLISTVIEW lpLV = (LPNMLISTVIEW)lParam;
+  				ptr = (pUinKey) getListViewParam(hLV,lpLV->iItem);
 				if (ptr) {
 					POINT p; GetCursorPos(&p);
-					HMENU hMenu = LoadMenu(g_hInst, MAKEINTRESOURCE((ptr->tmode==MODE_NATIVE)?IDM_CLIST0:((ptr->tmode==MODE_RSAAES)?IDM_CLIST1:IDM_CLIST2)));					CallService(MS_LANGPACK_TRANSLATEMENU, (WPARAM)hMenu, 0);
+					HMENU hMenu = NULL;
+					if( ptr->tmode==MODE_NATIVE || ptr->tmode==MODE_RSAAES ) {
+						switch(lpLV->iSubItem) {
+						case 2: // mode
+							hMenu = LoadMenu(g_hInst, MAKEINTRESOURCE(IDM_CLIST2));
+							break;
+						case 3: // status
+							hMenu = LoadMenu(g_hInst, MAKEINTRESOURCE((ptr->tmode==MODE_NATIVE)?IDM_CLIST01:IDM_CLIST11));
+							break;
+						default:
+							hMenu = LoadMenu(g_hInst, MAKEINTRESOURCE((ptr->tmode==MODE_NATIVE)?IDM_CLIST0:IDM_CLIST1));
+							break;
+						}
+					}
+					if( !hMenu )
+						hMenu = LoadMenu(g_hInst, MAKEINTRESOURCE(IDM_CLIST2));
+					CallService(MS_LANGPACK_TRANSLATEMENU, (WPARAM)hMenu, 0);
 					CheckMenuItem(hMenu, ID_SIM_NATIVE+ptr->tmode, MF_CHECKED );
 					if( !bPGP ) EnableMenuItem(hMenu, ID_SIM_PGP, MF_GRAYED );
 					if( !bGPG ) EnableMenuItem(hMenu, ID_SIM_GPG, MF_GRAYED );
@@ -505,13 +522,14 @@ BOOL CALLBACK DlgProcOptionsProto(HWND hDlg, UINT wMsg, WPARAM wParam, LPARAM lP
 
 		case WM_COMMAND: {
 			switch(LOWORD(wParam)) {
-		  	case IDC_RSA_COPY:
-		  		char txt[256];
+		  	case IDC_RSA_COPY: {
+		  		char txt[128];
 				GetDlgItemText(hDlg, IDC_RSA_SHA, txt, sizeof(txt));
 		  	        CopyToClipboard(hDlg,txt);
-		  		break;
-		  	}
-			if( HIWORD(wParam) == EN_CHANGE ) {
+		  	} break;
+			case IDC_SPLITON:
+			case IDC_SPLITOFF: {
+			    if( HIWORD(wParam) == EN_CHANGE ) {
 				idx = ListView_GetSelectionMark(hLV);
 				if( idx == -1 ) break;
 				idx = (int) getListViewParam(hLV,idx);
@@ -525,10 +543,11 @@ BOOL CALLBACK DlgProcOptionsProto(HWND hDlg, UINT wMsg, WPARAM wParam, LPARAM lP
 					proto[idx].tsplit_off = atoi(buf);
 				break;
 				}
-			}
-
-			if(!iInit)
+			    }
+			    if(!iInit)
 				SendMessage(GetParent(hDlg), PSM_CHANGED, 0, 0);
+			} break;
+		  	}
 		}
 		break;
 
