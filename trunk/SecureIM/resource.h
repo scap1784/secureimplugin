@@ -44,7 +44,9 @@
 #define IDM_CLIST1                    	151
 #define IDM_CLIST2                    	152
 #define IDM_CLIST01                    	153
-#define IDM_CLIST11                    	154
+#define IDM_CLIST02                    	154
+#define IDM_CLIST11                    	155
+#define IDM_CLIST12                    	156
 
 #define IDD_OPTIONSTAB                  501
 #define IDD_TAB_GENERAL                 502
