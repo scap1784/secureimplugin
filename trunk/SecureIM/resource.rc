@@ -219,6 +219,17 @@ BEGIN
 END
 
 
+IDM_CLIST01 MENU 
+BEGIN
+    POPUP ""
+    BEGIN
+            MENUITEM "Always Try to Establish Secure IM", ID_ALWAYS
+            MENUITEM "Secure IM Enabled", ID_ENABLED
+            MENUITEM "Secure IM Disabled", ID_DISABLED
+    END
+END
+
+
 IDM_CLIST1 MENU 
 BEGIN
     POPUP ""
@@ -245,18 +256,25 @@ BEGIN
 END
 
 
+IDM_CLIST11 MENU 
+BEGIN
+    POPUP ""
+    BEGIN
+            MENUITEM "Secure IM Enabled", ID_ENABLED
+            MENUITEM "Secure IM Disabled", ID_DISABLED
+    END
+END
+
+
 IDM_CLIST2 MENU 
 BEGIN
     POPUP ""
     BEGIN
-        POPUP "Mode"
-        BEGIN
             MENUITEM "Native SecureIM", ID_SIM_NATIVE
             MENUITEM "PGP SecureIM", ID_SIM_PGP
             MENUITEM "GPG SecureIM", ID_SIM_GPG
             MENUITEM "RSA/AES SecureIM", ID_SIM_RSAAES
 //            MENUITEM "RSA SecureIM", ID_SIM_RSA
-        END
     END
 END
 

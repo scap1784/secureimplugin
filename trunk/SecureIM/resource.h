@@ -31,17 +31,20 @@
 #define ID_UPDATE_PROTO                 117
 #define ID_UPDATE_PLIST                 118
 #define ID_UPDATE_GLIST                 119
-#define IDM_CLIST0                    	120
-#define IDM_CLIST1                    	121
-#define IDM_CLIST2                    	122
-#define ID_GETPUBL                      123
-#define ID_DELPUBL                      124
+#define ID_GETPUBL                      120
+#define ID_DELPUBL                      121
 
 #define ID_SIM_NATIVE			130
 #define ID_SIM_PGP                      131
 #define ID_SIM_GPG                      132
 #define ID_SIM_RSAAES                   133
 #define ID_SIM_RSA                      134
+
+#define IDM_CLIST0                    	150
+#define IDM_CLIST1                    	151
+#define IDM_CLIST2                    	152
+#define IDM_CLIST01                    	153
+#define IDM_CLIST11                    	154
 
 #define IDD_OPTIONSTAB                  501
 #define IDD_TAB_GENERAL                 502
