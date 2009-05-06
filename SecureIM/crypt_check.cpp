@@ -21,28 +21,16 @@ BOOL isSecureProtocol(HANDLE hContact) {
 
 
 BYTE isContactSecured(HANDLE hContact) {
-
+	// нужна проверка на Offline и в этом случае другие статусы
 	if (!clist_cnt) return 0;
 
 	BYTE r=0;
-
 	if( isProtoMetaContacts(hContact) )
 		hContact = getMostOnline(hContact); // возьмем тот, через который пойдет сообщение
 
-//	HANDLE hMetaContact = getMetaContact(hContact);
-//	if( hMetaContact ) hContact = hMetaContact;
-
 	for(int j=0;j<clist_cnt;j++) {
-		if (clist[j].hContact == hContact && clist[j].proto->inspecting) {
-/*			if(strstr(clist[j].proto->name,"MetaContacts")!=NULL) {
-				for(int i=0;i<CallService(MS_MC_GETNUMCONTACTS,(WPARAM)hContact,0);i++) {
-					HANDLE hSubContact = (HANDLE)CallService(MS_MC_GETSUBCONTACT,(WPARAM)hContact,(LPARAM)i);
-					if(hSubContact) {
-						BYTE secured = isContactSecured(hSubContact);
-						if(secured)	return secured;
-					}
-				}
-			}*/
+		if( clist[j].hContact == hContact ) {
+			if( !clist[j].proto->inspecting ) break;
        			DBVARIANT dbv;
 			r=clist[j].mode;
 			switch(r) {
@@ -50,15 +38,15 @@ BYTE isContactSecured(HANDLE hContact) {
 				if(cpp_keyx(clist[j].cntx)!=0) r|=SECURED;
 				break;
 			case MODE_PGP:
-        		DBGetContactSetting(hContact,szModuleName,"pgp",&dbv);
-        		if( dbv.type!=0 ) r|=SECURED;
-        		DBFreeVariant(&dbv);
-        		break;
+				DBGetContactSetting(hContact,szModuleName,"pgp",&dbv);
+				if( dbv.type!=0 ) r|=SECURED;
+				DBFreeVariant(&dbv);
+				break;
 			case MODE_GPG:
-        		DBGetContactSetting(hContact,szModuleName,"gpg",&dbv);
-        		if( dbv.type!=0 ) r|=SECURED;
-        		DBFreeVariant(&dbv);
-        		break;
+				DBGetContactSetting(hContact,szModuleName,"gpg",&dbv);
+				if( dbv.type!=0 ) r|=SECURED;
+				DBFreeVariant(&dbv);
+				break;
 			case MODE_RSAAES:
 				if(exp->rsa_get_state(clist[j].cntx)==7) r|=SECURED;
 				break;
@@ -73,19 +61,29 @@ BYTE isContactSecured(HANDLE hContact) {
 }
 
 
-BOOL isClientMiranda(HANDLE hContact) {
+BOOL isClientMiranda(pUinKey ptr, BOOL emptyMirverAsMiranda) {
 
-	if (!bMCD) return true;
-	if (!clist_cnt)	return false;
+	if( !bMCD ) return true;
+	if( !ptr->proto->inspecting ) return false;
+
+	BOOL isMiranda = true;
+	LPSTR mirver = myDBGetString(ptr->hContact,ptr->proto->name,"MirVer");
+	if( mirver ) {
+		isMiranda = (emptyMirverAsMiranda && !*mirver) || (strstr(mirver,"Miranda")!=NULL);
+		mir_free(mirver);
+	}
+	return isMiranda;
+}
+
+
+BOOL isClientMiranda(HANDLE hContact, BOOL emptyMirverAsMiranda) {
+
+	if( !bMCD ) return true;
+	if( !clist_cnt ) return false;
+
 	for(int j=0;j<clist_cnt;j++) {
-		if (clist[j].hContact == hContact && clist[j].proto->inspecting) {
-			BOOL isMiranda = true;
-			LPSTR mirver = myDBGetString(hContact,clist[j].proto->name,"MirVer");
-			if( mirver ) {
-				isMiranda = (strstr(mirver,"Miranda")!=NULL);
-				mir_free(mirver);
-			}
-			return isMiranda;
+		if( clist[j].hContact == hContact ) {
+			return isClientMiranda(&clist[j],emptyMirverAsMiranda);
 		}
 	}
 	return false;
@@ -93,24 +91,14 @@ BOOL isClientMiranda(HANDLE hContact) {
 
 
 BOOL isProtoSmallPackets(HANDLE hContact) {
+
 	if (!clist_cnt) return false;
 	for(int j=0;j<clist_cnt;j++) {
-		if (clist[j].hContact == hContact && clist[j].proto->inspecting) {
-//			if (strstr(clist[j].proto->name,"MetaContacts")!=NULL) {
-//				HANDLE hSubContact;
-//				char *proto = 0;
-//
-//				hSubContact = (HANDLE)CallService(MS_MC_GETMOSTONLINECONTACT,(WPARAM)hContact,0);
-//				proto = (char *)CallService(MS_PROTO_GETCONTACTBASEPROTO, (WPARAM)hSubContact, 0);
-//				return  strstr(proto,"IRC")!=NULL ||
-//						strstr(proto,"WinPopup")!=NULL ||
-//						strstr(proto,"VyChat")!=NULL;
-//			}
-//			else {
+		if( clist[j].hContact == hContact ) {
+			if( !clist[j].proto->inspecting ) break;
 				return  strstr(clist[j].proto->name,"IRC")!=NULL ||
-						strstr(clist[j].proto->name,"WinPopup")!=NULL ||
-						strstr(clist[j].proto->name,"VyChat")!=NULL;
-//			}
+					strstr(clist[j].proto->name,"WinPopup")!=NULL ||
+					strstr(clist[j].proto->name,"VyChat")!=NULL;
 		}
 	}
 	return false;
@@ -118,10 +106,12 @@ BOOL isProtoSmallPackets(HANDLE hContact) {
 
 
 BOOL isContactInvisible(HANDLE hContact) {
+
 	if( !DBGetContactSettingByte(hContact,"CList","Hidden",0) ) {
 		if( !clist_cnt ) return false;
 		for(int j=0;j<clist_cnt;j++) {
-			if( clist[j].hContact == hContact && clist[j].proto->inspecting ) {
+			if( clist[j].hContact == hContact ) {
+				if( !clist[j].proto->inspecting ) return false;
 				if( clist[j].waitForExchange ) return false;
 				switch( (int)DBGetContactSettingWord(hContact,clist[j].proto->name,"ApparentMode",0) ) {
 				case 0:
@@ -145,9 +135,12 @@ BOOL isNotOnList(HANDLE hContact) {
 
 
 BOOL isContactNewPG(HANDLE hContact) {
+
 	if (!clist_cnt) return false;
 	for(int j=0;j<clist_cnt;j++) {
-		if (clist[j].hContact == hContact && clist[j].cntx) {
+		if (clist[j].hContact == hContact) {
+			if( !clist[j].proto->inspecting ) break;
+			if( !clist[j].cntx ) break;
 			return (clist[j].features & CPP_FEATURES_NEWPG) != 0;
 		}
 	}
@@ -156,22 +149,17 @@ BOOL isContactNewPG(HANDLE hContact) {
 
 
 BOOL isContactPGP(HANDLE hContact) {
+
 	if(!bPGPloaded || (!bPGPkeyrings && !bPGPprivkey)) return false;
 	if (!clist_cnt) return false;
-//	HANDLE hMetaContact = getMetaContact(hContact);
-//   	if( hMetaContact ) hContact = hMetaContact;
 	for(int j=0;j<clist_cnt;j++) {
-	    if (clist[j].hContact == hContact && clist[j].mode==MODE_PGP) {
-//        	HANDLE hMetaContact = getMetaContact(hContact);
+	    if (clist[j].hContact == hContact) {
+		if( !clist[j].proto->inspecting ) break;
+	    	if( clist[j].mode!=MODE_PGP ) break;
         	DBVARIANT dbv;
         	DBGetContactSetting(hContact,szModuleName,"pgp",&dbv);
         	BOOL r=(dbv.type!=0);
         	DBFreeVariant(&dbv);
-//        	if( hMetaContact ) {
-//        		DBGetContactSetting(hMetaContact,szModuleName,"pgp",&dbv);
-//        		r|=(dbv.type!=0);
-//        		DBFreeVariant(&dbv);
-//        	}
         	return r;
 	    }
 	}
@@ -180,22 +168,17 @@ BOOL isContactPGP(HANDLE hContact) {
 
 
 BOOL isContactGPG(HANDLE hContact) {
+
 	if(!bGPGloaded || !bGPGkeyrings) return false;
 	if (!clist_cnt) return false;
-//	HANDLE hMetaContact = getMetaContact(hContact);
-//   	if( hMetaContact ) hContact = hMetaContact;
 	for(int j=0;j<clist_cnt;j++) {
-	    if (clist[j].hContact == hContact && clist[j].mode==MODE_GPG) {
-//        	HANDLE hMetaContact = getMetaContact(hContact);
+	    if (clist[j].hContact == hContact) {
+		if( !clist[j].proto->inspecting ) break;
+	    	if( clist[j].mode!=MODE_GPG ) break;
         	DBVARIANT dbv;
         	DBGetContactSetting(hContact,szModuleName,"gpg",&dbv);
         	BOOL r=(dbv.type!=0);
         	DBFreeVariant(&dbv);
-//        	if( hMetaContact ) {
-//       		DBGetContactSetting(hMetaContact,szModuleName,"gpg",&dbv);
-//        		r|=(dbv.type!=0);
-//        		DBFreeVariant(&dbv);
-//        	}
         	return r;
 	    }
 	}
@@ -204,11 +187,12 @@ BOOL isContactGPG(HANDLE hContact) {
 
 
 BOOL isContactRSAAES(HANDLE hContact) {
+
 	if (!clist_cnt) return false;
-//	HANDLE hMetaContact = getMetaContact(hContact);
-//   	if( hMetaContact ) hContact = hMetaContact;
         for(int j=0;j<clist_cnt;j++) {
-		if (clist[j].hContact == hContact && clist[j].mode==MODE_RSAAES) {
+		if (clist[j].hContact == hContact) {
+			if( !clist[j].proto->inspecting ) break;
+			if( clist[j].mode!=MODE_RSAAES ) break;
         		return true;
 		}
 	}
@@ -217,12 +201,13 @@ BOOL isContactRSAAES(HANDLE hContact) {
 
 
 BOOL isContactRSA(HANDLE hContact) {
+
 	if (!clist_cnt) return false;
-//	HANDLE hMetaContact = getMetaContact(hContact);
-//   	if( hMetaContact ) hContact = hMetaContact;
         for(int j=0;j<clist_cnt;j++) {
-		if (clist[j].hContact == hContact && clist[j].mode==MODE_RSA) {
-        		return true;
+		if (clist[j].hContact == hContact) {
+			if( !clist[j].proto->inspecting ) break;
+			if( clist[j].mode!=MODE_RSA ) break;
+        	return true;
 		}
 	}
 	return false;
@@ -230,10 +215,13 @@ BOOL isContactRSA(HANDLE hContact) {
 
 
 BOOL isChatRoom(HANDLE hContact) {
+
 	if (!clist_cnt) return false;
 	for(int j=0;j<clist_cnt;j++) {
-		if (clist[j].hContact == hContact && clist[j].proto->inspecting)
+		if( clist[j].hContact == hContact ) {
+			if( !clist[j].proto->inspecting ) break;
 			return (DBGetContactSettingByte(hContact,clist[j].proto->name,"ChatRoom",0)!=0);
+		}
 	}
 	return false;
 }
@@ -244,26 +232,32 @@ BOOL isFileExist(LPCSTR filename) {
 }
 
 
-BOOL isSecureIM(HANDLE hContact) {
+BOOL isSecureIM(pUinKey ptr, BOOL emptyMirverAsSecureIM) {
 
-	if (!bAIP) return false;
-	if (!clist_cnt) return false;
+	if( !bAIP ) return false;
+	if( !ptr->proto->inspecting ) return false;
+
+	BOOL isSecureIM = false;
+	if( bNOL && DBGetContactSettingByte(ptr->hContact,"CList","NotOnList",0) ) {
+		return false;
+	}
+	LPSTR mirver = myDBGetString(ptr->hContact,ptr->proto->name,"MirVer");
+	if( mirver ) {
+		isSecureIM = (emptyMirverAsSecureIM && !*mirver) || (strstr(mirver,"SecureIM")!=NULL) || (strstr(mirver,"secureim")!=NULL);
+		mir_free(mirver);
+	}
+	return isSecureIM;
+}
+
+
+BOOL isSecureIM(HANDLE hContact, BOOL emptyMirverAsSecureIM) {
+
+	if( !bAIP ) return false;
+	if( !clist_cnt ) return false;
+
 	for(int j=0;j<clist_cnt;j++) {
-		if (clist[j].hContact == hContact && clist[j].proto->inspecting) {
-
-			BOOL isSecureIM = false;
-
-			if( bNOL && DBGetContactSettingByte(hContact,"CList","NotOnList",0) ) {
-				return false;
-			}
-
-			LPSTR mirver = myDBGetString(hContact,clist[j].proto->name,"MirVer");
-			if( mirver ) {
-				isSecureIM = (strstr(mirver,"SecureIM")!=NULL) || (strstr(mirver,"secureim")!=NULL);
-				mir_free(mirver);
-			}
-
-			return isSecureIM;
+		if (clist[j].hContact == hContact) {
+			return isSecureIM(&clist[j],emptyMirverAsSecureIM);
 		}
 	}
 	return false;

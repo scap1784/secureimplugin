@@ -34,6 +34,8 @@
 #define IDM_CLIST0                    	120
 #define IDM_CLIST1                    	121
 #define IDM_CLIST2                    	122
+#define ID_GETPUBL                      123
+#define ID_DELPUBL                      124
 
 #define ID_SIM_NATIVE			130
 #define ID_SIM_PGP                      131
@@ -103,6 +105,7 @@
 #define IDC_NOL                         1051
 #define IDC_AAK                         1052
 #define IDC_MCM                         1053
+#define IDC_RSA_COPY                    1054
 
 #define IDC_NO_PGP                      1100
 #define IDC_PGP                         1101

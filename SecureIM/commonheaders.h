@@ -201,6 +201,7 @@ LPWSTR a2u( LPCSTR src );
 */
 LPSTR TranslateU( LPCSTR lpText );
 int msgbox( HWND hWnd, LPCSTR lpText, LPCSTR lpCaption, UINT uType );
+void CopyToClipboard(HWND hwnd,LPSTR msg);
 #define msgbox0(a,b,c,d) msgbox(a,b,c,d)
 #define msgbox1(a,b,c,d) msgbox(a,b,c,d)
 

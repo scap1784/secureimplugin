@@ -122,7 +122,8 @@ int getContactStatus(HANDLE);
 
 BOOL isSecureProtocol(HANDLE);
 BYTE isContactSecured(HANDLE);
-BOOL isClientMiranda(HANDLE);
+BOOL isClientMiranda(pUinKey ptr, BOOL emptyMirverAsMiranda=FALSE);
+BOOL isClientMiranda(HANDLE hContact, BOOL emptyMirverAsMiranda=FALSE);
 BOOL isProtoSmallPackets(HANDLE);
 BOOL isContactInvisible(HANDLE);
 BOOL isNotOnList(HANDLE);
@@ -133,7 +134,8 @@ BOOL isContactRSAAES(HANDLE);
 BOOL isContactRSA(HANDLE);
 BOOL isChatRoom(HANDLE);
 BOOL isFileExist(LPCSTR);
-BOOL isSecureIM(HANDLE);
+BOOL isSecureIM(pUinKey ptr, BOOL emptyMirverAsSecureIM=FALSE);
+BOOL isSecureIM(HANDLE hContact, BOOL emptyMirverAsSecureIM=FALSE);
 
 // crypt_icons.cpp
 HICON mode2icon(int,int);

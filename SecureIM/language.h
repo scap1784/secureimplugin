@@ -61,6 +61,7 @@ extern LPCSTR sim229;
 extern LPCSTR sim230;
 extern LPCSTR sim231[];
 extern LPCSTR sim232[];
+extern LPCSTR sim233;
 
 //Context Menu
 extern LPCSTR sim301;

@@ -236,15 +236,12 @@ BOOL CALLBACK DlgProcOptionsGeneral(HWND hDlg, UINT wMsg, WPARAM wParam, LPARAM 
 		  ListView_SetImageList(hLV, hSmall, LVSIL_SMALL);
 		  ListView_SetImageList(hLV, hLarge, LVSIL_NORMAL);
 
-		  static const char *szColHdr[] = { sim203, sim204, sim230, sim205, sim206, 0 };
-		  static int iColWidth[] = { 150, 115, 45, 65, 35 };
+		  static const char *szColHdr[] = { sim203, sim204, sim230, sim205, "", 0 };
+		  static int iColWidth[] = { 150, 110, 60, 55, 35 };
 		  LVCOLUMN lvc;
 		  lvc.mask = LVCF_FMT | LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM;
 		  lvc.fmt = LVCFMT_LEFT;
 		  for (i = 0; szColHdr[i]; i++) {
-#if defined(_DEBUG) || defined(NETLIB_LOG)
-	Sent_NetLog("LV_InsertColumn(%d,%s)",i,szColHdr[i]);
-#endif
 			  lvc.iSubItem = i;
 			  lvc.pszText = (LPSTR)szColHdr[i];
 			  lvc.cx = iColWidth[i];
@@ -313,7 +310,7 @@ BOOL CALLBACK DlgProcOptionsGeneral(HWND hDlg, UINT wMsg, WPARAM wParam, LPARAM 
 					getContactName(ptr->hContact, buffer);
 					int res = DialogBoxParam(g_hInst,MAKEINTRESOURCE(IDD_PSK),NULL,(DLGPROC)DlgProcSetPSK,(LPARAM)buffer);
 					if(res == IDOK) {
-						setListViewPSK(hLV,idx,1);
+					    setListViewPSK(hLV,idx,1);
 					    DBWriteContactSettingString(ptr->hContact,szModuleName,"tPSK",buffer);
 					}
 					mir_free(buffer);
@@ -327,6 +324,15 @@ BOOL CALLBACK DlgProcOptionsGeneral(HWND hDlg, UINT wMsg, WPARAM wParam, LPARAM 
 		  		if(ptr) {
 					setListViewPSK(hLV,idx,0);
 					DBDeleteContactSetting(ptr->hContact, szModuleName, "tPSK");
+				}
+		  	}
+		  	break;
+
+		  	case ID_DELPUBL: {
+		  		idx = ListView_GetSelectionMark(hLV);
+		  		ptr = (pUinKey) getListViewParam(hLV,idx);
+		  		if(ptr) {
+					setListViewPUB(hLV,idx,0);
 				}
 		  	}
 		  	break;
@@ -426,13 +432,15 @@ BOOL CALLBACK DlgProcOptionsGeneral(HWND hDlg, UINT wMsg, WPARAM wParam, LPARAM 
   				ptr = (pUinKey) getListViewParam(hLV,idx);
 				if (ptr) {
 					POINT p; GetCursorPos(&p);
-					HMENU hMenu = LoadMenu(g_hInst, MAKEINTRESOURCE((ptr->tmode==MODE_NATIVE)?IDM_CLIST0:((ptr->tmode==MODE_RSAAES)?IDM_CLIST1:IDM_CLIST2)));
-					CallService(MS_LANGPACK_TRANSLATEMENU, (WPARAM)hMenu, 0);
+					HMENU hMenu = LoadMenu(g_hInst, MAKEINTRESOURCE((ptr->tmode==MODE_NATIVE)?IDM_CLIST0:((ptr->tmode==MODE_RSAAES)?IDM_CLIST1:IDM_CLIST2)));					CallService(MS_LANGPACK_TRANSLATEMENU, (WPARAM)hMenu, 0);
 					CheckMenuItem(hMenu, ID_SIM_NATIVE+ptr->tmode, MF_CHECKED );
-					if( !bPGP ) EnableMenuItem(hMenu, ID_SIM_NATIVE+1, MF_GRAYED );
-					if( !bGPG ) EnableMenuItem(hMenu, ID_SIM_NATIVE+2, MF_GRAYED );
+					if( !bPGP ) EnableMenuItem(hMenu, ID_SIM_PGP, MF_GRAYED );
+					if( !bGPG ) EnableMenuItem(hMenu, ID_SIM_GPG, MF_GRAYED );
 					if( ptr->tmode==MODE_NATIVE || ptr->tmode==MODE_RSAAES ) {
 						CheckMenuItem(hMenu, ID_DISABLED+ptr->tstatus, MF_CHECKED );
+					}
+					if( ptr->tmode==MODE_RSAAES ) {
+						EnableMenuItem(hMenu, ID_GETPUBL, MF_GRAYED );
 					}
 					CheckMenuItem(hMenu, ID_ENCRYPTION, MF_BYCOMMAND );
 					TrackPopupMenu(GetSubMenu(hMenu, 0), TPM_LEFTALIGN | TPM_TOPALIGN, p.x, p.y, 0, hDlg, 0);
@@ -496,6 +504,13 @@ BOOL CALLBACK DlgProcOptionsProto(HWND hDlg, UINT wMsg, WPARAM wParam, LPARAM lP
 		break;
 
 		case WM_COMMAND: {
+			switch(LOWORD(wParam)) {
+		  	case IDC_RSA_COPY:
+		  		char txt[256];
+				GetDlgItemText(hDlg, IDC_RSA_SHA, txt, sizeof(txt));
+		  	        CopyToClipboard(hDlg,txt);
+		  		break;
+		  	}
 			if( HIWORD(wParam) == EN_CHANGE ) {
 				idx = ListView_GetSelectionMark(hLV);
 				if( idx == -1 ) break;
@@ -795,13 +810,13 @@ BOOL CALLBACK DlgProcOptionsGPG(HWND hDlg, UINT wMsg, WPARAM wParam, LPARAM lPar
 				char *txtselectexecutable="Select GnuPG Executable"; /*lang*/
 
     			// filter zusammensetzen
-    			ZeroMemory(&filter, sizeof(filter));
+    			memset(&filter,0,sizeof(filter));
     			strcpy(filter, Translate(txtexecutablefiles));
     			strcat(filter, " (*.exe)");
     			strcpy(filter+strlen(filter)+1, "*.exe");
 
     			// OPENFILENAME initialisieren
-    			ZeroMemory(&ofn, sizeof(ofn));
+    			memset(&ofn,0,sizeof(ofn));
     			ofn.lStructSize=sizeof(ofn);
     			ofn.hwndOwner=hDlg;
     			ofn.lpstrFilter=filter;
@@ -980,6 +995,8 @@ void RefreshGeneralDlg(HWND hDlg, BOOL iInit) {
 
 	HANDLE hContact = (HANDLE)CallService(MS_DB_CONTACT_FINDFIRST, 0, 0);
 	char tmp[NAMSIZE];
+	int psk,pub;
+	char *str;
 
 	while (hContact) {
 
@@ -991,10 +1008,22 @@ void RefreshGeneralDlg(HWND hDlg, BOOL iInit) {
 				ptr->tstatus = ptr->status;
 			}
 
-			DBVARIANT dbv;
-			DBGetContactSetting(hContact,szModuleName,"PSK",&dbv);
-			int psk=(dbv.type==DBVT_ASCIIZ);
-			DBFreeVariant(&dbv);
+			if( ptr->mode==MODE_NATIVE ) {
+				str = myDBGetString(hContact,szModuleName,"PSK");
+				psk = (str!=NULL); SAFE_FREE(str);
+			}
+			else
+			if( ptr->mode==MODE_RSAAES ) {
+				DBVARIANT dbv;
+				dbv.type = DBVT_BLOB;
+				if( DBGetContactSetting(ptr->hContact,szModuleName,"rsa_pub",&dbv) == 0 ) {
+					pub = 1;
+       					DBFreeVariant(&dbv);
+       				}
+       				else {
+					pub = 0;
+       				}
+       			}
 
 			lvi.iItem++;
 			lvi.iImage = ptr->tstatus;
@@ -1009,7 +1038,8 @@ void RefreshGeneralDlg(HWND hDlg, BOOL iInit) {
 
 			setListViewMode(hLV, itemNum, ptr->tmode);
 			setListViewStatus(hLV, itemNum, ptr->tstatus);
-			setListViewPSK(hLV, itemNum, psk);
+			if( ptr->mode==MODE_NATIVE )	setListViewPSK(hLV, itemNum, psk);
+			else				setListViewPUB(hLV, itemNum, pub);
 			setListViewIcon(hLV, itemNum, ptr);
 		}
 		hContact = (HANDLE)CallService(MS_DB_CONTACT_FINDNEXT, (WPARAM)hContact, 0);
@@ -1247,7 +1277,8 @@ void ResetGeneralDlg(HWND hDlg) {
 
 			setListViewMode(hLV, itemNum, ptr->tmode);
 			setListViewStatus(hLV, itemNum, ptr->tstatus);
-			setListViewPSK(hLV, itemNum, 0);
+			if( ptr->mode==MODE_NATIVE )	setListViewPSK(hLV, itemNum, 0);
+			else				setListViewPUB(hLV, itemNum, 0);
 			setListViewIcon(hLV, itemNum, ptr);
 		}
 		hContact = (HANDLE)CallService(MS_DB_CONTACT_FINDNEXT, (WPARAM)hContact, 0);
@@ -1328,15 +1359,23 @@ void ApplyGeneralSettings(HWND hDlg) {
 			if(ptr->status==STATUS_ENABLED)	DBDeleteContactSetting(ptr->hContact, szModuleName, "StatusID");
 			else 				DBWriteContactSettingByte(ptr->hContact, szModuleName, "StatusID", ptr->status);
 		}
-		if( getListViewPSK(hLV,i) ) {
-		    LPSTR tmp = myDBGetString(ptr->hContact,szModuleName,"tPSK");
-		    DBWriteContactSettingString(ptr->hContact, szModuleName, "PSK", tmp);
-		    mir_free(tmp);
+		if( ptr->mode==MODE_NATIVE ) {
+			if( getListViewPSK(hLV,i) ) {
+			    LPSTR tmp = myDBGetString(ptr->hContact,szModuleName,"tPSK");
+			    DBWriteContactSettingString(ptr->hContact, szModuleName, "PSK", tmp);
+			    mir_free(tmp);
+			}
+			else {
+			    DBDeleteContactSetting(ptr->hContact, szModuleName, "PSK");
+			}
+			DBDeleteContactSetting(ptr->hContact, szModuleName, "tPSK");
 		}
-		else {
-		    DBDeleteContactSetting(ptr->hContact, szModuleName, "PSK");
+		else
+		if( ptr->mode==MODE_RSAAES ) {
+			if( !getListViewPUB(hLV,i) ) {
+			    DBDeleteContactSetting(ptr->hContact, szModuleName, "rsa_pub");
+			}
 		}
-		DBDeleteContactSetting(ptr->hContact, szModuleName, "tPSK");
 		i = ListView_GetNextItem(hLV,i,LVNI_ALL);
 	}
 }
@@ -1475,19 +1514,33 @@ void setListViewStatus(HWND hLV, UINT iItem, UINT iStatus) {
 
 UINT getListViewPSK(HWND hLV, UINT iItem) {
 
-	char szPSK[128];
-	LV_GetItemTextA(hLV, iItem, 4, szPSK, sizeof(szPSK));
-	return strncmp(szPSK, Translate(sim212), sizeof(szPSK))==0;
+	char str[128];
+	LV_GetItemTextA(hLV, iItem, 4, str, sizeof(str));
+	return strncmp(str, Translate(sim206), sizeof(str))==0;
 }
 
 
 void setListViewPSK(HWND hLV, UINT iItem, UINT iStatus) {
 
-	// change status text
-	char szPSK[128];
-	if (iStatus)	strncpy(szPSK, Translate(sim212), sizeof(szPSK));
-	else 		strncpy(szPSK, Translate(sim213), sizeof(szPSK));
-	LV_SetItemTextA(hLV, iItem, 4, szPSK);
+	char str[128];
+	strncpy(str, (iStatus)?Translate(sim206):"-", sizeof(str));
+	LV_SetItemTextA(hLV, iItem, 4, str);
+}
+
+
+UINT getListViewPUB(HWND hLV, UINT iItem) {
+
+	char str[128];
+	LV_GetItemTextA(hLV, iItem, 4, str, sizeof(str));
+	return strncmp(str, Translate(sim233), sizeof(str))==0;
+}
+
+
+void setListViewPUB(HWND hLV, UINT iItem, UINT iStatus) {
+
+	char str[128];
+	strncpy(str, (iStatus)?Translate(sim233):"-", sizeof(str));
+	LV_SetItemTextA(hLV, iItem, 4, str);
 }
 
 

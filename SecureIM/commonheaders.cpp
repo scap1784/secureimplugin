@@ -222,6 +222,22 @@ int msgbox( HWND hWnd, LPCSTR lpText, LPCSTR lpCaption, UINT uType) {
 	return MessageBoxA(hWnd,Translate(lpText),Translate(lpCaption),uType);
 }
 
+void CopyToClipboard(HWND hwnd,LPSTR msg)
+{
+	HGLOBAL hglbCopy;
+	LPSTR lpstrCopy;
+
+	hglbCopy = GlobalAlloc(GMEM_MOVEABLE, lstrlenA(msg)+1); 
+	lpstrCopy = (LPSTR)GlobalLock(hglbCopy); 
+	lstrcpyA(lpstrCopy, msg); 
+	GlobalUnlock(hglbCopy); 
+
+	OpenClipboard(NULL);
+	EmptyClipboard(); 
+	SetClipboardData(CF_TEXT, hglbCopy); 
+	CloseClipboard(); 
+}
+
 #if defined(_DEBUG) || defined(NETLIB_LOG)
 HANDLE hNetlibUser;
 

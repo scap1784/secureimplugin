@@ -1,9 +1,12 @@
 
-Verison 1.0.12.2 [05-05-2009]
+Verison 1.0.12.2 [06-05-2009]
 
-[*] possible memory leak fixed
+[*] some memory leak fixed
 [*] some security fixes
-[+] KeyExchangeTimeout for RSA/AES
+[+] use KeyExchangeTimeout for RSA/AES keyexchange
+[+] show RSA Public key flag in Options dialog
+[+] reset RSA public key for contact
+[+] copy SHA of my RSA public key to Clipboard
 
 
 Verison 1.0.12.1 [04-05-2009]
