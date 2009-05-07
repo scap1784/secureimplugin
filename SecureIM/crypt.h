@@ -58,7 +58,7 @@ struct UinKey {
 				// 3 - дослать без шифрования с вопросом
 	BOOL decoded;		// false on decode error
 	short features;
-	int cntx;		// crypto context
+	HANDLE cntx;		// crypto context
 	BYTE keyLoaded;		// ( 1-PGP, 2-GPG ) | 1-RSA
 	BYTE gpgMode,tgpgMode;	// 0-UTF8, 1-ANSI
 	char *lastFileRecv;
@@ -109,7 +109,7 @@ pUinKey addContact(HANDLE);
 void delContact(HANDLE);
 pSupPro getSupPro(HANDLE);
 pUinKey getUinKey(HANDLE);
-pUinKey getUinCtx(int);
+pUinKey getUinCtx(HANDLE);
 void addMsg2Queue(pUinKey,WPARAM,LPSTR);
 
 void getContactName(HANDLE hContact, LPSTR szName);

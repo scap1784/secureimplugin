@@ -44,6 +44,7 @@ BOOL loadlib(void) {
 	cpp.pgp_ck   = (_pgp_close_keyrings	) GetProcAddress(h, "pgp_close_keyrings");
 	cpp.pgp_gv   = (_pgp_get_version	) GetProcAddress(h, "pgp_get_version");
 	cpp.pgp_ge   = (_pgp_get_error		) GetProcAddress(h, "pgp_get_error");
+	cpp.pgp_spk  = (_pgp_set_priv_key	) GetProcAddress(h, "pgp_set_priv_key");
 	cpp.pgp_sk   = (_pgp_set_key		) GetProcAddress(h, "pgp_set_key");
 	cpp.pgp_ski  = (_pgp_set_keyid		) GetProcAddress(h, "pgp_set_keyid");
 	cpp.pgp_szki = (_pgp_size_keyid		) GetProcAddress(h, "pgp_size_keyid");

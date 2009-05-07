@@ -9,7 +9,7 @@ unsigned __stdcall sttTimeoutThread(LPVOID);
 
 
 // get context data on context id
-pCNTX get_context_on_id(int context) {
+pCNTX get_context_on_id(HANDLE context) {
 
     if(	!thread_timeout ) {
 	unsigned int tID;
@@ -28,14 +28,14 @@ pCNTX get_context_on_id(int context) {
     return NULL;
 }
 
-
+/*
 pCNTX get_context_on_id(HANDLE context) {
 	return get_context_on_id((int)context);
 }
-
+*/
 
 // create context, return context id
-int __cdecl cpp_create_context(int mode) {
+HANDLE __cdecl cpp_create_context(int mode) {
 
 	list<pCNTX>::iterator i;
 	pCNTX cntx = NULL;
@@ -63,12 +63,12 @@ int __cdecl cpp_create_context(int mode) {
 
 	LeaveCriticalSection(&localContextMutex);
 
-	return (int)cntx;
+	return (HANDLE)cntx;
 }
 
 
 // delete context
-void __cdecl cpp_delete_context(int context) {
+void __cdecl cpp_delete_context(HANDLE context) {
 
 	pCNTX tmp = get_context_on_id(context);
 	if(tmp) { // помечаем на удаление
@@ -78,7 +78,7 @@ void __cdecl cpp_delete_context(int context) {
 
 
 // reset context
-void __cdecl cpp_reset_context(int context) {
+void __cdecl cpp_reset_context(HANDLE context) {
 
 	pCNTX tmp = get_context_on_id(context);
 	if(tmp)	cpp_free_keys(tmp);
@@ -143,7 +143,7 @@ unsigned __stdcall sttTimeoutThread( LPVOID ) {
 				// проверяем не протухло ли соединение
 				pRSADATA p = (pRSADATA) tmp->pdata;
 				if( p->time && p->time < time ) {
-					rsa_timeout((int)tmp,p);
+					rsa_timeout((HANDLE)tmp,p);
 				}
 	    	}
 	    } // for

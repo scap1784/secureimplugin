@@ -240,7 +240,7 @@ LPSTR __cdecl pgp_decrypt(pCNTX ptr, LPCSTR szEncMsg)
 }
 
 
-LPSTR __cdecl pgp_encode(int context, LPCSTR szPlainMsg)
+LPSTR __cdecl pgp_encode(HANDLE context, LPCSTR szPlainMsg)
 {
 	pCNTX ptr = get_context_on_id(context); if(!ptr) return NULL;
 	pPGPDATA p = (pPGPDATA) cpp_alloc_pdata(ptr);
@@ -251,7 +251,7 @@ LPSTR __cdecl pgp_encode(int context, LPCSTR szPlainMsg)
 }
 
 
-LPSTR __cdecl pgp_decode(int context, LPCSTR szEncMsg)
+LPSTR __cdecl pgp_decode(HANDLE context, LPCSTR szEncMsg)
 {
 	pCNTX ptr = get_context_on_id(context);
 	if(!ptr) return NULL;
@@ -276,7 +276,13 @@ LPSTR __cdecl pgp_decode(int context, LPCSTR szEncMsg)
 }
 
 
-int __cdecl pgp_set_key(int context, LPCSTR RemoteKey)
+int __cdecl pgp_set_priv_key(LPCSTR LocalKey)
+{
+        return pgp_set_key(hPGPPRIV,LocalKey);
+}
+
+
+int __cdecl pgp_set_key(HANDLE context, LPCSTR RemoteKey)
 {
 	pCNTX ptr = get_context_on_id(context); if(!ptr) return 0;
 	pPGPDATA p = (pPGPDATA) cpp_alloc_pdata(ptr);
@@ -291,7 +297,7 @@ int __cdecl pgp_set_key(int context, LPCSTR RemoteKey)
 }
 
 
-int __cdecl pgp_set_keyid(int context, PVOID RemoteKeyID)
+int __cdecl pgp_set_keyid(HANDLE context, PVOID RemoteKeyID)
 {
     	pCNTX ptr = get_context_on_id(context); if(!ptr) return 0;
 	pPGPDATA p = (pPGPDATA) cpp_alloc_pdata(ptr);

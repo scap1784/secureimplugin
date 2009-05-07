@@ -4,7 +4,7 @@ const unsigned char IV[] = "PSKhell@MIRANDA!";
 
 
 // generate KeyA pair, return public key as ASCII
-LPSTR __cdecl cpp_init_keya(int context, int features) {
+LPSTR __cdecl cpp_init_keya(HANDLE context, int features) {
 
 	pCNTX ptr = get_context_on_id(context); if(!ptr) return NULL;
 	pSIMDATA p = (pSIMDATA) cpp_alloc_pdata(ptr);
@@ -68,7 +68,7 @@ LPSTR __cdecl cpp_init_keya(int context, int features) {
 
 
 // store KeyB
-int __cdecl cpp_init_keyb(int context, LPCSTR key) {
+int __cdecl cpp_init_keyb(HANDLE context, LPCSTR key) {
 
 	pCNTX ptr = get_context_on_id(context); if(!ptr) return 0;
 	pSIMDATA p = (pSIMDATA) cpp_alloc_pdata(ptr);
@@ -139,7 +139,7 @@ int __cdecl cpp_init_keyb(int context, LPCSTR key) {
 
 
 // calculate secret key, return true or false
-int __cdecl cpp_calc_keyx(int context) {
+int __cdecl cpp_calc_keyx(HANDLE context) {
 
 	pCNTX ptr = get_context_on_id(context); if(!ptr) return 0;
 	pSIMDATA p = (pSIMDATA) cpp_alloc_pdata(ptr);
@@ -176,7 +176,8 @@ int __cdecl cpp_calc_keyx(int context) {
 
 
 // create pre-shared key from password
-int __cdecl cpp_init_keyp(int context, LPCSTR password) {
+int __cdecl cpp_init_keyp(HANDLE context, LPCSTR password) {
+
 	pCNTX ptr = get_context_on_id(context); if(!ptr) return 0;
 	pSIMDATA p = (pSIMDATA) cpp_alloc_pdata(ptr);
 

@@ -590,6 +590,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\cpp_rsam.h"
+				>
+			</File>
+			<File
+				RelativePath=".\cpp_rsau.h"
+				>
+			</File>
+			<File
 				RelativePath="cryptopp.h"
 				>
 			</File>

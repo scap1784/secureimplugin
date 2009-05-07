@@ -230,7 +230,7 @@ LPSTR __cdecl gpg_decrypt(pCNTX ptr, LPCSTR szEncMsg)
 }
 
 
-LPSTR __cdecl gpg_encode(int context, LPCSTR szPlainMsg)
+LPSTR __cdecl gpg_encode(HANDLE context, LPCSTR szPlainMsg)
 {
 	pCNTX ptr = get_context_on_id(context); if(!ptr) return NULL;
 	pGPGDATA p = (pGPGDATA) cpp_alloc_pdata(ptr);
@@ -251,7 +251,7 @@ LPSTR __cdecl gpg_encode(int context, LPCSTR szPlainMsg)
 }
 
 
-LPSTR __cdecl gpg_decode(int context, LPCSTR szEncMsg)
+LPSTR __cdecl gpg_decode(HANDLE context, LPCSTR szEncMsg)
 {
 	pCNTX ptr = get_context_on_id(context);
 	if(!ptr) return NULL;
@@ -276,7 +276,7 @@ LPSTR __cdecl gpg_decode(int context, LPCSTR szEncMsg)
 }
 
 
-int __cdecl gpg_set_key(int context, LPCSTR RemoteKey)
+int __cdecl gpg_set_key(HANDLE context, LPCSTR RemoteKey)
 {
 /*    pCNTX ptr = get_context_on_id(context);
     if(!ptr) return 0;
@@ -294,7 +294,7 @@ int __cdecl gpg_set_key(int context, LPCSTR RemoteKey)
 }
 
 
-int __cdecl gpg_set_keyid(int context, LPCSTR RemoteKeyID)
+int __cdecl gpg_set_keyid(HANDLE context, LPCSTR RemoteKeyID)
 {
 	pCNTX ptr = get_context_on_id(context); if(!ptr) return 0;
 	pGPGDATA p = (pGPGDATA) cpp_alloc_pdata(ptr);
