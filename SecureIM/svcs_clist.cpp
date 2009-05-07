@@ -142,6 +142,7 @@ int __cdecl onRebuildContactMenu(WPARAM wParam,LPARAM lParam) {
 //	BOOL isRSAAES = isContactRSAAES(hContact);
 	BOOL isSecured = isContactSecured(hContact)&SECURED;
 	BOOL isChat = isChatRoom(hContact);
+	BOOL isMiranda = isClientMiranda(hContact);
 
 	// hide all menu bars
 	mi.flags = CMIM_FLAGS | CMIF_NOTOFFLINE | CMIF_HIDDEN;
@@ -150,9 +151,8 @@ int __cdecl onRebuildContactMenu(WPARAM wParam,LPARAM lParam) {
 			CallService(MS_CLIST_MODIFYMENUITEM,(WPARAM)g_hMenu[i],(LPARAM)&mi);
 	}
 
-	if ( isSecureProto && !isChat &&
-	    (ptr->mode==MODE_NATIVE || ptr->mode==MODE_RSAAES) &&
-	    isClientMiranda(hContact) /*&& !getMetaContact(hContact)*/ ) {
+	if ( isSecureProto && !isChat && isMiranda && 
+	    (ptr->mode==MODE_NATIVE || ptr->mode==MODE_RSAAES) ) {
 		// Native/RSAAES
 		mi.flags = CMIM_FLAGS | CMIF_NOTOFFLINE | CMIM_ICON;
 		if( !isSecured ) {
@@ -197,7 +197,7 @@ int __cdecl onRebuildContactMenu(WPARAM wParam,LPARAM lParam) {
 			}
 		}
 	}
-	if( isSecureProto && !isChat ) {
+	if( isSecureProto && !isChat && isMiranda ) {
 		// set mode menu
 		if( bMCM && !bMC &&
 	            ( !isSecured || ptr->mode==MODE_PGP || ptr->mode==MODE_GPG ) ) {
