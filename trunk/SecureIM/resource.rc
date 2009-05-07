@@ -47,7 +47,7 @@ BEGIN
     CONTROL         "Enable Secure File Transfer",IDC_SFT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,152,145,10
     CONTROL         "Always show status icons in contact list",IDC_ASI,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,162,145,10
-    CONTROL         "Miranda Client Detection",IDC_MCD,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,172,145,10
+    CONTROL         "Context Menu only for ""Miranda"" clients",IDC_MCD,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,172,145,10
     CONTROL         "Status in Context Menu",IDC_SCM,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,182,145,10
     CONTROL         "Disable encryption for game plugins",IDC_DGP,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,192,145,10
     CONTROL         "Always secured if possible",IDC_AIP,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,202,145,10
