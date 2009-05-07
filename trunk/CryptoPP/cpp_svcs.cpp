@@ -156,7 +156,7 @@ LPSTR __cdecl cpp_decrypt(pCNTX ptr, LPCSTR szEncMsg) {
 
 
 // encode message from ANSI into UTF8 if need
-LPSTR __cdecl cpp_encodeA(int context, LPCSTR msg) {
+LPSTR __cdecl cpp_encodeA(HANDLE context, LPCSTR msg) {
 
 	pCNTX ptr = get_context_on_id(context);
 	if(!ptr) return NULL;
@@ -184,7 +184,7 @@ LPSTR __cdecl cpp_encodeA(int context, LPCSTR msg) {
 
 
 // encode message from UTF8
-LPSTR __cdecl cpp_encodeU(int context, LPCSTR msg) {
+LPSTR __cdecl cpp_encodeU(HANDLE context, LPCSTR msg) {
 
 	pCNTX ptr = get_context_on_id(context);
 	if(!ptr) return NULL;
@@ -212,7 +212,7 @@ LPSTR __cdecl cpp_encodeU(int context, LPCSTR msg) {
 
 
 // encode message from UNICODE into UTF8 if need
-LPSTR __cdecl cpp_encodeW(int context, LPWSTR msg) {
+LPSTR __cdecl cpp_encodeW(HANDLE context, LPWSTR msg) {
 
 	pCNTX ptr = get_context_on_id(context);
 	if(!ptr) return NULL;
@@ -239,7 +239,7 @@ LPSTR __cdecl cpp_encodeW(int context, LPWSTR msg) {
 
 
 // decode message from UTF8 if need, return ANSIzUCS2z
-LPSTR __cdecl cpp_decode(int context, LPCSTR szEncMsg) {
+LPSTR __cdecl cpp_decode(HANDLE context, LPCSTR szEncMsg) {
 
 	pCNTX ptr = get_context_on_id(context);
 	if(!ptr) return NULL;
@@ -275,7 +275,7 @@ LPSTR __cdecl cpp_decode(int context, LPCSTR szEncMsg) {
 
 
 // decode message return UTF8z
-LPSTR __cdecl cpp_decodeU(int context, LPCSTR szEncMsg) {
+LPSTR __cdecl cpp_decodeU(HANDLE context, LPCSTR szEncMsg) {
 
 	pCNTX ptr = get_context_on_id(context);
 	if(!ptr) return NULL;
@@ -304,7 +304,7 @@ LPSTR __cdecl cpp_decodeU(int context, LPCSTR szEncMsg) {
 }
 
 
-int __cdecl cpp_encrypt_file(int context,LPCSTR file_in,LPCSTR file_out) {
+int __cdecl cpp_encrypt_file(HANDLE context,LPCSTR file_in,LPCSTR file_out) {
 
 	pCNTX ptr = get_context_on_id(context);
 	if(!ptr) return 0;
@@ -323,7 +323,7 @@ int __cdecl cpp_encrypt_file(int context,LPCSTR file_in,LPCSTR file_out) {
 }
 
 
-int __cdecl cpp_decrypt_file(int context,LPCSTR file_in,LPCSTR file_out) {
+int __cdecl cpp_decrypt_file(HANDLE context,LPCSTR file_in,LPCSTR file_out) {
 
 	pCNTX ptr = get_context_on_id(context);
 	if(!ptr) return 0;

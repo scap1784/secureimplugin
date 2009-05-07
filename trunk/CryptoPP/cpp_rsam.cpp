@@ -4,62 +4,6 @@
 
 #define RAND_SIZE 32
 
-string tlv(int,const string&);
-string tlv(int,const char*);
-string tlv(int,int);
-string& un_tlv(string&,int&,string&);
-string& un_tlv(string&,int&,int&);
-void 	un_tlv(PBYTE,int,int&,string&);
-
-string sign(PBYTE,int);
-string sign(string&);
-
-string sign128(PBYTE,int);
-string sign256(PBYTE,int);
-
-Integer BinaryToInteger(const string&);
-string	IntegerToBinary(const Integer&);
-
-AutoSeededRandomPool& GlobalRNG();
-
-void	GenerateRSAKey(unsigned int,string&,string&);
-string	RSAEncryptString(const RSA::PublicKey&,const string&);
-string	RSADecryptString(const string&,const string&);
-string	RSASignString(const string&,const string&);
-BOOL	RSAVerifyString(const RSA::PublicKey&,const string&,const string&);
-
-///////////////////////////////////////////////////////////////////////////
-
-int __cdecl rsa_gen_keypair(short);
-int __cdecl rsa_get_keypair(short,PBYTE,int*,PBYTE,int*);
-int __cdecl rsa_get_keyhash(short,PBYTE,int*,PBYTE,int*);
-int __cdecl rsa_set_keypair(short,PBYTE,int,PBYTE,int);
-int __cdecl rsa_set_pubkey(int,PBYTE,int);
-void __cdecl rsa_set_timeout(int);
-int __cdecl rsa_get_state(int);
-int __cdecl rsa_connect(int);
-int __cdecl rsa_disconnect(int);
-LPSTR __cdecl rsa_recv(int,LPCSTR);
-int __cdecl rsa_send(int,LPCSTR);
-int __cdecl rsa_encrypt_file(int,LPCSTR,LPCSTR);
-int __cdecl rsa_decrypt_file(int,LPCSTR,LPCSTR);
-
-void inject_msg(int,int,const string&);
-string encode_msg(short,pRSADATA,string&);
-string decode_msg(pRSADATA,string&);
-string encode_rsa(short,pRSADATA,pRSAPRIV,string&);
-string decode_rsa(pRSADATA,pRSAPRIV,string&);
-string gen_aes_key_iv(short,pRSADATA,pRSAPRIV);
-void init_pub(pRSADATA,string&);
-void null_msg(int,int,int);
-
-void rsa_free(pRSADATA);
-void clear_queue(pRSADATA);
-
-unsigned __stdcall sttConnectThread(LPVOID);
-
-///////////////////////////////////////////////////////////////////////////
-
 RSA_EXPORT exp = {
     rsa_gen_keypair,
     rsa_get_keypair,
@@ -70,6 +14,7 @@ RSA_EXPORT exp = {
     rsa_get_state,
     rsa_connect,
     rsa_disconnect,
+    rsa_disabled,
     rsa_recv,
     rsa_send,
     rsa_encrypt_file,
@@ -214,7 +159,7 @@ int __cdecl rsa_set_keypair(short mode, PBYTE privKey, int privKeyLen, PBYTE pub
 }
 
 
-int __cdecl rsa_set_pubkey(int context, PBYTE pubKey, int pubKeyLen) {
+int __cdecl rsa_set_pubkey(HANDLE context, PBYTE pubKey, int pubKeyLen) {
 #if defined(_DEBUG) || defined(NETLIB_LOG)
 	Sent_NetLog("rsa_set_pubkey: %s", pubKey);
 #endif
@@ -238,7 +183,7 @@ void __cdecl rsa_set_timeout(int t) {
 }
 
 
-int __cdecl rsa_get_state(int context) {
+int __cdecl rsa_get_state(HANDLE context) {
 
 	pCNTX ptr = get_context_on_id(context);	if(!ptr) return 0;
 	pRSADATA p = (pRSADATA) cpp_alloc_pdata(ptr);
@@ -246,7 +191,7 @@ int __cdecl rsa_get_state(int context) {
 	return p->state;
 }
 
-int __cdecl rsa_connect(int context) {
+int __cdecl rsa_connect(HANDLE context) {
 #if defined(_DEBUG) || defined(NETLIB_LOG)
 	Sent_NetLog("rsa_connect: %08x", context);
 #endif
@@ -268,21 +213,14 @@ int __cdecl rsa_connect(int context) {
 }
 
 
-int __cdecl rsa_disconnect(int context) {
+int __cdecl rsa_disconnect(HANDLE context) {
 #if defined(_DEBUG) || defined(NETLIB_LOG)
 	Sent_NetLog("rsa_disconnect: %08x", context);
 #endif
-	pCNTX ptr = get_context_on_id(abs(context)); if(!ptr) return 0;
+	pCNTX ptr = get_context_on_id(context); if(!ptr) return 0;
 	pRSADATA p = (pRSADATA) cpp_alloc_pdata(ptr); 
 
 	rsa_free( p ); // удалим трэд и очередь сообщений
-	if( context<0 ) { // просто послать разрыв по причине "disabled"
-		p->state = 0;
-		inject_msg(-context,0xFF,null);
-//		imp->rsa_notify(-context,-8); // соединение разорвано по причине "disabled"
-		return 1;
-	}
-
 	if( !p->state ) return 1;
 
 	PBYTE buffer=(PBYTE) alloca(RAND_SIZE);
@@ -296,8 +234,23 @@ int __cdecl rsa_disconnect(int context) {
 }
 
 
+int __cdecl rsa_disabled(HANDLE context) {
+#if defined(_DEBUG) || defined(NETLIB_LOG)
+	Sent_NetLog("rsa_disabled: %08x", context);
+#endif
+	pCNTX ptr = get_context_on_id(context); if(!ptr) return 0;
+	pRSADATA p = (pRSADATA) cpp_alloc_pdata(ptr); 
+
+	rsa_free( p ); // удалим трэд и очередь сообщений
+	p->state = 0;
+	inject_msg(context,0xFF,null);
+//	imp->rsa_notify(-context,-8); // соединение разорвано по причине "disabled"
+	return 1;
+}
+
+
 /*
-LPSTR __cdecl rsa_recv(int context, LPCSTR msg) {
+LPSTR __cdecl rsa_recv(HANDLE context, LPCSTR msg) {
 
 #if defined(_DEBUG) || defined(NETLIB_LOG)
 	Sent_NetLog("rsa_recv: %s", msg);
@@ -542,7 +495,7 @@ LPSTR __cdecl rsa_recv(int context, LPCSTR msg) {
 	return 0;
 }
 */
-LPSTR __cdecl rsa_recv(int context, LPCSTR msg) {
+LPSTR __cdecl rsa_recv(HANDLE context, LPCSTR msg) {
 
 #if defined(_DEBUG) || defined(NETLIB_LOG)
 	Sent_NetLog("rsa_recv: %s", msg);
@@ -690,7 +643,7 @@ LPSTR __cdecl rsa_recv(int context, LPCSTR msg) {
 	return 0;
 }
 
-int __cdecl rsa_send(int context, LPCSTR msg) {
+int __cdecl rsa_send(HANDLE context, LPCSTR msg) {
 
 	pCNTX ptr = get_context_on_id(context);	if(!ptr) return 0;
 	pRSADATA p = (pRSADATA) cpp_alloc_pdata(ptr); if(p->state!=0 && p->state!=7) return 0;
@@ -709,7 +662,7 @@ int __cdecl rsa_send(int context, LPCSTR msg) {
 }
 
 
-void inject_msg(int context, int type, const string& msg) {
+void inject_msg(HANDLE context, int type, const string& msg) {
 #if defined(_DEBUG) || defined(NETLIB_LOG)
 	Sent_NetLog("inject_msg(%02x): %s", type, msg.c_str());
 #endif
@@ -829,7 +782,7 @@ void init_pub(pRSADATA p, string& pub) {
 }
 
 
-void null_msg(int context, int type, int status) {
+void null_msg(HANDLE context, int type, int status) {
 #if defined(_DEBUG) || defined(NETLIB_LOG)
 	Sent_NetLog("null_msg: %02x", status);
 #endif
@@ -838,7 +791,7 @@ void null_msg(int context, int type, int status) {
 }
 
 
-void rsa_timeout(int context, pRSADATA p) {
+void rsa_timeout(HANDLE context, pRSADATA p) {
 #if defined(_DEBUG) || defined(NETLIB_LOG)
 	Sent_NetLog("rsa_timeout");
 #endif
@@ -848,7 +801,7 @@ void rsa_timeout(int context, pRSADATA p) {
 }
 
 
-int __cdecl rsa_encrypt_file(int context,LPCSTR file_in,LPCSTR file_out) {
+int __cdecl rsa_encrypt_file(HANDLE context,LPCSTR file_in,LPCSTR file_out) {
 
 	pCNTX ptr = get_context_on_id(context);	if(!ptr) return 0;
 	pRSADATA p = (pRSADATA) cpp_alloc_pdata(ptr); if(p->state!=7) return 0;
@@ -865,7 +818,7 @@ int __cdecl rsa_encrypt_file(int context,LPCSTR file_in,LPCSTR file_out) {
 }
 
 
-int __cdecl rsa_decrypt_file(int context,LPCSTR file_in,LPCSTR file_out) {
+int __cdecl rsa_decrypt_file(HANDLE context,LPCSTR file_in,LPCSTR file_out) {
 
 	pCNTX ptr = get_context_on_id(context);	if(!ptr) return 0;
 	pRSADATA p = (pRSADATA) cpp_alloc_pdata(ptr); if(p->state!=7) return 0;
@@ -882,7 +835,7 @@ int __cdecl rsa_decrypt_file(int context,LPCSTR file_in,LPCSTR file_out) {
 }
 
 
-int __cdecl rsa_recv_thread(int context, string& msg) {
+int __cdecl rsa_recv_thread(HANDLE context, string& msg) {
 
 #if defined(_DEBUG) || defined(NETLIB_LOG)
 	Sent_NetLog("rsa_recv_thread: %s", msg.c_str());
@@ -1068,7 +1021,7 @@ void rsa_free( pRSADATA p ) {
 // establish RSA/AES thread
 unsigned __stdcall sttConnectThread( LPVOID arg ) {
 
-	int context = (int) arg;
+	HANDLE context = (HANDLE) arg;
 
 	pCNTX ptr = get_context_on_id(context);	if(!ptr) return 0;
 	pRSADATA p = (pRSADATA) cpp_alloc_pdata(ptr);

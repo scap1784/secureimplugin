@@ -259,7 +259,7 @@ BEGIN
         END
         POPUP "Public key"
         BEGIN
-            MENUITEM "View key", ID_GETPUBL
+            MENUITEM "View SHA1 of key", ID_GETPUBL
             MENUITEM "Delete key", ID_DELPUBL
         END
     END
@@ -280,7 +280,7 @@ IDM_CLIST12 MENU
 BEGIN
     POPUP ""
     BEGIN
-            MENUITEM "View public key", ID_GETPUBL
+            MENUITEM "View SHA1 of public key", ID_GETPUBL
             MENUITEM "Delete public key", ID_DELPUBL
     END
 END

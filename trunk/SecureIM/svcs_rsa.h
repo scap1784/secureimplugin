@@ -7,9 +7,9 @@ extern pRSA_EXPORT exp;
 extern RSA_IMPORT imp;
 extern BOOL rsa_2048, rsa_4096;
 
-int __cdecl rsa_inject(int,LPCSTR);
-int __cdecl rsa_check_pub(int,PBYTE,int,PBYTE,int);
-void __cdecl rsa_notify(int,int);
+int __cdecl rsa_inject(HANDLE,LPCSTR);
+int __cdecl rsa_check_pub(HANDLE,PBYTE,int,PBYTE,int);
+void __cdecl rsa_notify(HANDLE,int);
 
 unsigned __stdcall sttGenerateRSA(LPVOID);
 BYTE loadRSAkey(pUinKey);

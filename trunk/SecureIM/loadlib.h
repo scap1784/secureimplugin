@@ -6,64 +6,65 @@
 
 BOOL loadlib(void);
 
-typedef int   (__cdecl * _cpp_create_context) (int);
-typedef void  (__cdecl * _cpp_delete_context) (int);
-typedef void  (__cdecl * _cpp_reset_context) (int);
-typedef LPSTR (__cdecl * _cpp_init_keya) (int,int);
-typedef int   (__cdecl * _cpp_init_keyb) (int,LPCSTR);
-typedef int   (__cdecl * _cpp_calc_keyx) (int);
-typedef int   (__cdecl * _cpp_init_keyp) (int,LPCSTR);
-typedef LPSTR (__cdecl * _cpp_encodeA) (int,LPCSTR);
-typedef LPSTR (__cdecl * _cpp_encodeW) (int,LPWSTR);
-typedef LPSTR (__cdecl * _cpp_encodeU) (int,LPCSTR);
-typedef LPSTR (__cdecl * _cpp_decode) (int,LPCSTR);
-typedef LPSTR (__cdecl * _cpp_decodeU) (int,LPCSTR);
-typedef int   (__cdecl * _cpp_encrypt_file) (int,LPCSTR,LPCSTR);
-typedef int   (__cdecl * _cpp_decrypt_file) (int,LPCSTR,LPCSTR);
-typedef int   (__cdecl * _cpp_get_features) (int);
-typedef int   (__cdecl * _cpp_get_error) (int);
-typedef int   (__cdecl * _cpp_get_version) (void);
-typedef int   (__cdecl * _cpp_size_keyx) (void);
-typedef void  (__cdecl * _cpp_get_keyx) (int,BYTE*);
-typedef void  (__cdecl * _cpp_set_keyx) (int,BYTE*);
-typedef int   (__cdecl * _cpp_size_keyp) (void);
-typedef void  (__cdecl * _cpp_get_keyp) (int,BYTE*);
-typedef void  (__cdecl * _cpp_set_keyp) (int,BYTE*);
-typedef int   (__cdecl * _cpp_keya) (int);
-typedef int   (__cdecl * _cpp_keyb) (int);
-typedef int   (__cdecl * _cpp_keyx) (int);
-typedef int   (__cdecl * _cpp_keyp) (int);
+typedef HANDLE (__cdecl * _cpp_create_context) (int);
+typedef void   (__cdecl * _cpp_delete_context) (HANDLE);
+typedef void   (__cdecl * _cpp_reset_context) (HANDLE);
+typedef LPSTR  (__cdecl * _cpp_init_keya) (HANDLE,int);
+typedef int    (__cdecl * _cpp_init_keyb) (HANDLE,LPCSTR);
+typedef int    (__cdecl * _cpp_calc_keyx) (HANDLE);
+typedef int    (__cdecl * _cpp_init_keyp) (HANDLE,LPCSTR);
+typedef LPSTR  (__cdecl * _cpp_encodeA) (HANDLE,LPCSTR);
+typedef LPSTR  (__cdecl * _cpp_encodeW) (HANDLE,LPWSTR);
+typedef LPSTR  (__cdecl * _cpp_encodeU) (HANDLE,LPCSTR);
+typedef LPSTR  (__cdecl * _cpp_decode) (HANDLE,LPCSTR);
+typedef LPSTR  (__cdecl * _cpp_decodeU) (HANDLE,LPCSTR);
+typedef int    (__cdecl * _cpp_encrypt_file) (HANDLE,LPCSTR,LPCSTR);
+typedef int    (__cdecl * _cpp_decrypt_file) (HANDLE,LPCSTR,LPCSTR);
+typedef int    (__cdecl * _cpp_get_features) (HANDLE);
+typedef int    (__cdecl * _cpp_get_error) (HANDLE);
+typedef int    (__cdecl * _cpp_get_version) (void);
+typedef int    (__cdecl * _cpp_size_keyx) (void);
+typedef void   (__cdecl * _cpp_get_keyx) (HANDLE,BYTE*);
+typedef void   (__cdecl * _cpp_set_keyx) (HANDLE,BYTE*);
+typedef int    (__cdecl * _cpp_size_keyp) (void);
+typedef void   (__cdecl * _cpp_get_keyp) (HANDLE,BYTE*);
+typedef void   (__cdecl * _cpp_set_keyp) (HANDLE,BYTE*);
+typedef int    (__cdecl * _cpp_keya) (HANDLE);
+typedef int    (__cdecl * _cpp_keyb) (HANDLE);
+typedef int    (__cdecl * _cpp_keyx) (HANDLE);
+typedef int    (__cdecl * _cpp_keyp) (HANDLE);
 
-typedef int   (__cdecl * _pgp_init) (void);
-typedef int   (__cdecl * _pgp_done) (void);
-typedef int   (__cdecl * _pgp_open_keyrings) (LPSTR,LPSTR);
-typedef int   (__cdecl * _pgp_close_keyrings) (void);
-typedef int   (__cdecl * _pgp_get_version) (void);
-typedef LPSTR (__cdecl * _pgp_get_error) (void);
-typedef int   (__cdecl * _pgp_set_key) (int,LPCSTR);
-typedef int   (__cdecl * _pgp_set_keyid) (int,PVOID);
-typedef int   (__cdecl * _pgp_size_keyid) (void);
-typedef PVOID (__cdecl * _pgp_select_keyid) (HWND,LPSTR);
-typedef LPSTR (__cdecl * _pgp_encode) (int,LPCSTR);
-typedef LPSTR (__cdecl * _pgp_decode) (int,LPCSTR);
+typedef int    (__cdecl * _pgp_init) (void);
+typedef int    (__cdecl * _pgp_done) (void);
+typedef int    (__cdecl * _pgp_open_keyrings) (LPSTR,LPSTR);
+typedef int    (__cdecl * _pgp_close_keyrings) (void);
+typedef int    (__cdecl * _pgp_get_version) (void);
+typedef LPSTR  (__cdecl * _pgp_get_error) (void);
+typedef int    (__cdecl * _pgp_set_priv_key) (LPCSTR);
+typedef int    (__cdecl * _pgp_set_key) (HANDLE,LPCSTR);
+typedef int    (__cdecl * _pgp_set_keyid) (HANDLE,PVOID);
+typedef int    (__cdecl * _pgp_size_keyid) (void);
+typedef PVOID  (__cdecl * _pgp_select_keyid) (HWND,LPSTR);
+typedef LPSTR  (__cdecl * _pgp_encode) (HANDLE,LPCSTR);
+typedef LPSTR  (__cdecl * _pgp_decode) (HANDLE,LPCSTR);
 
-typedef int   (__cdecl * _gpg_init) (void);
-typedef int   (__cdecl * _gpg_done) (void);
-typedef int   (__cdecl * _gpg_open_keyrings) (LPSTR,LPSTR);
-typedef int   (__cdecl * _gpg_close_keyrings) (void);
-typedef void  (__cdecl * _gpg_set_log) (LPCSTR);
-typedef void  (__cdecl * _gpg_set_tmp) (LPCSTR);
-typedef LPSTR (__cdecl * _gpg_get_error) (void);
-typedef int   (__cdecl * _gpg_set_keyid) (int,LPCSTR);
-typedef int   (__cdecl * _gpg_size_keyid) (void);
-typedef int   (__cdecl * _gpg_select_keyid) (HWND,LPSTR);
-typedef LPSTR (__cdecl * _gpg_encode) (int,LPCSTR);
-typedef LPSTR (__cdecl * _gpg_decode) (int,LPCSTR);
-typedef LPSTR (__cdecl * _gpg_get_passphrases) (void);
-typedef void  (__cdecl * _gpg_set_passphrases) (LPCSTR);
+typedef int    (__cdecl * _gpg_init) (void);
+typedef int    (__cdecl * _gpg_done) (void);
+typedef int    (__cdecl * _gpg_open_keyrings) (LPSTR,LPSTR);
+typedef int    (__cdecl * _gpg_close_keyrings) (void);
+typedef void   (__cdecl * _gpg_set_log) (LPCSTR);
+typedef void   (__cdecl * _gpg_set_tmp) (LPCSTR);
+typedef LPSTR  (__cdecl * _gpg_get_error) (void);
+typedef int    (__cdecl * _gpg_set_keyid) (HANDLE,LPCSTR);
+typedef int    (__cdecl * _gpg_size_keyid) (void);
+typedef int    (__cdecl * _gpg_select_keyid) (HWND,LPSTR);
+typedef LPSTR  (__cdecl * _gpg_encode) (HANDLE,LPCSTR);
+typedef LPSTR  (__cdecl * _gpg_decode) (HANDLE,LPCSTR);
+typedef LPSTR  (__cdecl * _gpg_get_passphrases) (void);
+typedef void   (__cdecl * _gpg_set_passphrases) (LPCSTR);
 
-typedef int   (__cdecl * _rsa_init) (pRSA_EXPORT*,pRSA_IMPORT);
-typedef int   (__cdecl * _rsa_done) (void);
+typedef int    (__cdecl * _rsa_init) (pRSA_EXPORT*,pRSA_IMPORT);
+typedef int    (__cdecl * _rsa_done) (void);
 
 
 typedef struct {
@@ -102,6 +103,7 @@ typedef struct {
 	_pgp_get_error		pgp_ge;
 	_pgp_set_keyid		pgp_ski;
 	_pgp_set_key		pgp_sk;
+	_pgp_set_priv_key	pgp_spk;
 	_pgp_size_keyid		pgp_szki;
 	_pgp_select_keyid	pgp_slki;
 	_pgp_encode		pgp_eu;
@@ -159,7 +161,8 @@ extern CRYPTOPP_INFO cpp;
 #define pgp_close_keyrings	cpp.pgp_ck
 #define pgp_get_version		cpp.pgp_gv
 #define pgp_get_error		cpp.pgp_ge
-#define pgp_set_key			cpp.pgp_sk
+#define pgp_set_priv_key	cpp.pgp_spk
+#define pgp_set_key		cpp.pgp_sk
 #define pgp_set_keyid		cpp.pgp_ski
 #define pgp_size_keyid		cpp.pgp_szki
 #define	pgp_select_keyid	cpp.pgp_slki

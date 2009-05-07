@@ -1435,7 +1435,7 @@ void ApplyPGPSettings(HWND hDlg) {
 	char *priv = myDBGetString(0,szModuleName,"tpgpPrivKey");
 	if(priv) {
    	    bPGPprivkey = true;
-	    pgp_set_key(-1,priv);
+	    pgp_set_priv_key(priv);
 		myDBWriteStringEncode(0,szModuleName,"pgpPrivKey",priv);
 		mir_free(priv);
   		DBDeleteContactSetting(0,szModuleName,"tpgpPrivKey");

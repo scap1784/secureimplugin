@@ -176,15 +176,16 @@ typedef struct {
     int (__cdecl *rsa_get_keypair)(short,PBYTE,int*,PBYTE,int*);	// возвращает пару ключей для указанной длины
     int (__cdecl *rsa_get_keyhash)(short,PBYTE,int*,PBYTE,int*);	// возвращает hash пары ключей для указанной длины
     int (__cdecl *rsa_set_keypair)(short,PBYTE,int,PBYTE,int);		// устанавливает ключи, указанной длины
-    int (__cdecl *rsa_set_pubkey)(int,PBYTE,int);			// загружает паблик ключ для указанного контекста
+    int (__cdecl *rsa_set_pubkey)(HANDLE,PBYTE,int);			// загружает паблик ключ для указанного контекста
     void (__cdecl *rsa_set_timeout)(int);				// установить таймаут для установки секюрного соединения
-    int (__cdecl *rsa_get_state)(int);					// получить статус указанного контекста
-    int (__cdecl *rsa_connect)(int);					// запускает процесс установки содинения с указанным контекстом
-    int (__cdecl *rsa_disconnect)(int);					// разрывает соединение
-    LPSTR (__cdecl *rsa_recv)(int,LPCSTR);				// необходимо передавать сюда все входящие протокольные сообщения
-    int   (__cdecl *rsa_send)(int,LPCSTR);				// вызываем для отправки сообщения клиенту
-    int (__cdecl *rsa_encrypt_file)(int,LPCSTR,LPCSTR);
-    int (__cdecl *rsa_decrypt_file)(int,LPCSTR,LPCSTR);
+    int (__cdecl *rsa_get_state)(HANDLE);				// получить статус указанного контекста
+    int (__cdecl *rsa_connect)(HANDLE);					// запускает процесс установки содинения с указанным контекстом
+    int (__cdecl *rsa_disconnect)(HANDLE);				// разрывает соединение с указанным контекстом
+    int (__cdecl *rsa_disabled)(HANDLE);				// разрывает соединение по причине "disabled"
+    LPSTR (__cdecl *rsa_recv)(HANDLE,LPCSTR);				// необходимо передавать сюда все входящие протокольные сообщения
+    int   (__cdecl *rsa_send)(HANDLE,LPCSTR);				// вызываем для отправки сообщения клиенту
+    int (__cdecl *rsa_encrypt_file)(HANDLE,LPCSTR,LPCSTR);
+    int (__cdecl *rsa_decrypt_file)(HANDLE,LPCSTR,LPCSTR);
     LPSTR  (__cdecl *utf8encode)(LPCWSTR);
     LPWSTR (__cdecl *utf8decode)(LPCSTR);
     int (__cdecl *is_7bit_string)(LPCSTR);
@@ -193,9 +194,9 @@ typedef struct {
 typedef RSA_EXPORT* pRSA_EXPORT;
 
 typedef struct {
-    int  (__cdecl *rsa_inject)(int,LPCSTR);			// вставляет сообщение в очередь на отправку
-    int  (__cdecl *rsa_check_pub)(int,PBYTE,int,PBYTE,int);	// проверяет интерактивно SHA и сохраняет ключ, если все нормально
-    void (__cdecl *rsa_notify)(int,int);			// нотификация о смене состояния
+    int  (__cdecl *rsa_inject)(HANDLE,LPCSTR);			// вставляет сообщение в очередь на отправку
+    int  (__cdecl *rsa_check_pub)(HANDLE,PBYTE,int,PBYTE,int);	// проверяет интерактивно SHA и сохраняет ключ, если все нормально
+    void (__cdecl *rsa_notify)(HANDLE,int);			// нотификация о смене состояния
 } RSA_IMPORT;
 typedef RSA_IMPORT* pRSA_IMPORT;
 

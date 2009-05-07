@@ -11,7 +11,7 @@ RSA_IMPORT imp = {
 BOOL rsa_2048=0, rsa_4096=0;
 
 
-int __cdecl rsa_inject(int context, LPCSTR msg) {
+int __cdecl rsa_inject(HANDLE context, LPCSTR msg) {
 	pUinKey ptr = getUinCtx(context); if(!ptr) return 0;
 #if defined(_DEBUG) || defined(NETLIB_LOG)
 	Sent_NetLog("rsa_inject: '%s'", msg);
@@ -29,7 +29,7 @@ int __cdecl rsa_inject(int context, LPCSTR msg) {
 
 #define MSGSIZE 1024
 
-int __cdecl rsa_check_pub(int context, PBYTE pub, int pubLen, PBYTE sig, int sigLen) {
+int __cdecl rsa_check_pub(HANDLE context, PBYTE pub, int pubLen, PBYTE sig, int sigLen) {
 	int v=0;
 	pUinKey ptr = getUinCtx(context); if(!ptr) return 0;
 	LPSTR cnm = (LPSTR) mir_alloc(NAMSIZE); getContactNameA(ptr->hContact,cnm);
@@ -73,7 +73,7 @@ int __cdecl rsa_check_pub(int context, PBYTE pub, int pubLen, PBYTE sig, int sig
 }
 
 
-void __cdecl rsa_notify(int context, int state) {
+void __cdecl rsa_notify(HANDLE context, int state) {
 	pUinKey ptr = getUinCtx(context); if(!ptr) return;
 	LPCSTR msg=NULL;
 #if defined(_DEBUG) || defined(NETLIB_LOG)

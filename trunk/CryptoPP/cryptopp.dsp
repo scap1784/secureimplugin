@@ -186,6 +186,14 @@ SOURCE=.\commonheaders.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\cpp_rsam.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\cpp_rsau.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\cryptopp.h
 # End Source File
 # Begin Source File

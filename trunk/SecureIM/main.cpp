@@ -240,7 +240,7 @@ int __cdecl onModulesLoaded(WPARAM wParam,LPARAM lParam) {
    	    if(priv) {
 	   	    bPGPprivkey = true;
 		    if(bPGPloaded)
-			pgp_set_key(-1,priv);
+			pgp_set_priv_key(priv);
 	   	    mir_free(priv);
 	    }// if(priv)
             if(bPGPloaded && bUseKeyrings) {

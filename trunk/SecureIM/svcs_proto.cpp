@@ -147,7 +147,7 @@ INT_PTR __cdecl onRecvMsg(WPARAM wParam, LPARAM lParam) {
 	    }
 	    else {
 		createRSAcntx(ptr);
-		exp->rsa_disconnect(-ptr->cntx);
+		exp->rsa_disabled(ptr->cntx);
 		deleteRSAcntx(ptr);
 	    }
 	    SAFE_FREE(ptr->msgSplitted);
@@ -701,7 +701,7 @@ INT_PTR __cdecl onSendMsg(WPARAM wParam, LPARAM lParam) {
 		// SecureIM connection with this contact is disabled
 		if( stid==STATUS_DISABLED ) {
 			if( ptr->cntx ) {
-				exp->rsa_disconnect(-ptr->cntx);
+				exp->rsa_disabled(ptr->cntx);
 				deleteRSAcntx(ptr);
 			}
 			if( ssig==SiG_NONE ) {
