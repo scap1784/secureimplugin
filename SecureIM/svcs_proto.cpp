@@ -997,9 +997,15 @@ INT_PTR __cdecl onSendFile(WPARAM wParam, LPARAM lParam) {
 			mir_free(file[i]);
 			file[i]=file_out;
 		}
-		SAFE_FREE(ptr->fileSend);
-		if(i) {
-		    ptr->fileSend = (char **)mir_alloc(sizeof(char*)*(i+1));
+		if( ptr->fileSend ) { // очистим сохраненный список
+			for(int j=0;ptr->fileSend[j];j++) {
+				mir_free(ptr->fileSend[j]);
+			}
+			SAFE_FREE(ptr->fileSend);
+		}
+		if( i ) { // скопируем новый список
+			ptr->fileSend = (char **) mir_alloc(sizeof(char*)*(i+1));
+			memset(ptr->fileSend,0,sizeof(char*)*(i+1));
 			for(i=0;file[i];i++) {
 				ptr->fileSend[i] = mir_strdup(file[i]);
 			}
@@ -1008,6 +1014,24 @@ INT_PTR __cdecl onSendFile(WPARAM wParam, LPARAM lParam) {
 	return CallService(PSS_FILE, wParam, lParam);
 }
 
+
+/*
+typedef struct {
+	size_t cbSize;
+	HANDLE hContact;
+	int sending;	//true if sending, false if receiving
+	char **files;
+	int totalFiles;
+	int currentFileNumber;
+	unsigned long totalBytes;
+	unsigned long totalProgress;
+	char *workingDir;
+	char *currentFile;
+	unsigned long currentFileSize;
+	unsigned long currentFileProgress;
+	unsigned long currentFileTime;  //as seconds since 1970
+} PROTOFILETRANSFERSTATUS;
+*/
 
 int __cdecl onProtoAck(WPARAM wParam,LPARAM lParam) {
 
@@ -1022,33 +1046,32 @@ int __cdecl onProtoAck(WPARAM wParam,LPARAM lParam) {
 		switch(ack->result) {
 //		case ACKRESULT_FILERESUME:
 		case ACKRESULT_DATA: {
-			if (!f->sending) {
+			if( !f->sending ) {
 				ptr->finFileRecv = (f->currentFileSize == f->currentFileProgress);
-				if(!ptr->lastFileRecv) ptr->lastFileRecv = mir_strdup(f->currentFile);
+				if( !ptr->lastFileRecv ) ptr->lastFileRecv = mir_strdup(f->currentFile);
 			}
-			else if (f->sending) {
+			else
+			if( f->sending ) {
 				ptr->finFileSend = (f->currentFileSize == f->currentFileProgress);
-				if(!ptr->lastFileSend) ptr->lastFileSend = mir_strdup(f->currentFile);
+				if( !ptr->lastFileSend ) ptr->lastFileSend = mir_strdup(f->currentFile);
 			}
 		} break;
 //		case ACKRESULT_INITIALISING:
 		case ACKRESULT_DENIED:
 		case ACKRESULT_FAILED: {
-			if (ptr->lastFileRecv) {
+			if( ptr->lastFileRecv ) {
 				if (strstr(ptr->lastFileRecv,".AESHELL")) mir_unlink(ptr->lastFileRecv);
 				SAFE_FREE(ptr->lastFileRecv);
 			}
-			if (ptr->lastFileSend) {
+			if( ptr->lastFileSend ) {
 				if (strstr(ptr->lastFileSend,".AESHELL")) mir_unlink(ptr->lastFileSend);
 				SAFE_FREE(ptr->lastFileSend);
 			}
-			if (ptr->fileSend) {
+			if( ptr->fileSend ) {
 				char **file=ptr->fileSend;
-        			for(int i=0;file[i];i++) {
-					if(file[i]) { // from SSS
-						if (strstr(file[i],".AESHELL")) mir_unlink(file[i]);
-						mir_free(file[i]);
-					}
+        			for(int j=0;file[j];j++) {
+					if( strstr(file[j],".AESHELL") ) mir_unlink(file[j]);
+					mir_free(file[j]);
 				}
 				SAFE_FREE(ptr->fileSend);
 			}
@@ -1056,26 +1079,27 @@ int __cdecl onProtoAck(WPARAM wParam,LPARAM lParam) {
 		} break;
 		case ACKRESULT_NEXTFILE:
 		case ACKRESULT_SUCCESS: {
-			if (ptr->finFileRecv && ptr->lastFileRecv) {
-				if (strstr(ptr->lastFileRecv,".AESHELL")) {
+			if( ptr->finFileRecv && ptr->lastFileRecv ) {
+				if( strstr(ptr->lastFileRecv,".AESHELL") ) {
+					char buf[MAX_PATH];
 					LPSTR file_out=mir_strdup(ptr->lastFileRecv);
 					LPSTR pos=strrchr(file_out,'.'); //find last .
-					if (pos) *pos='\0'; //remove aes from name
-					if(isFileExist(file_out)) {
-						char ext[32]; ext[0]='\0';
+					if (pos) *pos='\0'; //remove AESHELL from name
+
+					if( isFileExist(file_out) ) {
+						buf[0]='\0';
 						LPSTR p=strrchr(file_out,'.');
 						LPSTR x=strrchr(file_out,'\\');
 						if(p>x) {
-							strcpy(ext,p);
+							strcpy(buf,p);
 							pos=p;
 						}
 						for(int i=1;i<10000;i++) {
-							sprintf(pos," (%d)%s",i,ext);
-							if(!isFileExist(file_out)) break;
+							sprintf(pos," (%d)%s",i,buf);
+							if( !isFileExist(file_out) ) break;
 						}
 					}
 
-					char buf[MAX_PATH];
 					sprintf(buf,"%s\n%s",Translate(sim012),file_out);
 					showPopUp(buf,NULL,g_hPOP[POP_PU_MSR],2);
 
@@ -1091,8 +1115,8 @@ int __cdecl onProtoAck(WPARAM wParam,LPARAM lParam) {
 				SAFE_FREE(ptr->lastFileRecv);
 				ptr->finFileRecv = false;
 			}
-			if (ptr->finFileSend && ptr->lastFileSend) {
-				if (strstr(ptr->lastFileSend,".AESHELL")) mir_unlink(ptr->lastFileSend);
+			if( ptr->finFileSend && ptr->lastFileSend ) {
+				if( strstr(ptr->lastFileSend,".AESHELL") ) mir_unlink(ptr->lastFileSend);
 				SAFE_FREE(ptr->lastFileSend);
 				ptr->finFileSend = false;
 			}

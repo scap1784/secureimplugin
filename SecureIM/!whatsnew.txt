@@ -1,4 +1,7 @@
 
+Verison 1.0.12.3 [14-05-2009]
+
+
 Verison 1.0.12.2 [07-05-2009]
 
 [*] some memory leak fixed
