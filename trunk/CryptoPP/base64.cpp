@@ -1,6 +1,15 @@
 #include "commonheaders.h"
 
 
+string base64encode(const string buf) {
+	string out;
+	char *base64 = base64encode(buf.data(), buf.length());
+	out.assign(base64);
+	free(base64);
+	return out;
+}
+
+
 char *base64encode(const char *inBuffer, const int count) {
 
 	int srcIndex = 0, destIndex = 0, remainder = count % 3;
@@ -28,6 +37,26 @@ char *base64encode(const char *inBuffer, const int count) {
 	outBuffer[destIndex] = '\0';
 
 	return outBuffer;
+}
+
+
+string base64decode(const string buf) {
+	string out;
+	int len = buf.length();
+	char *plain = base64decode(buf.data(), &len);
+	out.assign(plain,len);
+	free(plain);
+	return out;
+}
+
+
+string base64decode(const char *buf) {
+	string out;
+	int len = strlen(buf);
+	char *plain = base64decode(buf, &len);
+	out.assign(plain,len);
+	free(plain);
+	return out;
 }
 
 

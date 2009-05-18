@@ -4,6 +4,7 @@
 #include <queue>
 #include <deque>
 #include <list>
+#include <map>
 
 //#pragma warning(push)
 // 4231: nonstandard extension used : 'extern' before template explicit instantiation
@@ -69,13 +70,13 @@ typedef CNTX* pCNTX;
 #define MODE_PGP			0x0002
 #define MODE_GPG			0x0004
 #define MODE_GPG_ANSI			0x0008
-#define MODE_RSA_PRIV			0x0010
+#define MODE_PRIV_KEY			0x0010
 #define MODE_RSA_2048			0x0020
 #define MODE_RSA_4096			0x0040
 #define MODE_RSA			MODE_RSA_4096
 #define MODE_RSA_ONLY			0x0080
 #define MODE_RSA_ZLIB			0x0100
-#define MODE_PRIV_KEY			0x0200
+#define MODE_RSA_BER 			0x0200
 
 #define DATA_GZIP			1
 
@@ -110,6 +111,7 @@ typedef GPGDATA* pGPGDATA;
 typedef struct __RSAPRIV {
 	string	priv_k;	// private key string
 	string	priv_s;	// hash(priv_k)
+	RSA::PrivateKey priv; // private key
 	string	pub_k;	// public key string
 	string	pub_s;	// hash(pub_k)
 } RSAPRIV;
@@ -175,10 +177,12 @@ typedef struct {
     int (__cdecl *rsa_gen_keypair)(short);				// генерит RSA-ключи для указанной длины (либо тока 2048, либо 2048 и 4096)
     int (__cdecl *rsa_get_keypair)(short,PBYTE,int*,PBYTE,int*);	// возвращает пару ключей для указанной длины
     int (__cdecl *rsa_get_keyhash)(short,PBYTE,int*,PBYTE,int*);	// возвращает hash пары ключей для указанной длины
-    int (__cdecl *rsa_set_keypair)(short,PBYTE,int,PBYTE,int);		// устанавливает ключи, указанной длины
+    int (__cdecl *rsa_set_keypair)(short,PBYTE,int);			// устанавливает ключи, указанной длины
+    int (__cdecl *rsa_get_pubkey)(HANDLE,PBYTE,int*);			// возвращает паблик ключ из указанного контекста
     int (__cdecl *rsa_set_pubkey)(HANDLE,PBYTE,int);			// загружает паблик ключ для указанного контекста
     void (__cdecl *rsa_set_timeout)(int);				// установить таймаут для установки секюрного соединения
     int (__cdecl *rsa_get_state)(HANDLE);				// получить статус указанного контекста
+    int (__cdecl *rsa_get_hash)(PBYTE,int,PBYTE,int*);			// вычисляет SHA1(key)
     int (__cdecl *rsa_connect)(HANDLE);					// запускает процесс установки содинения с указанным контекстом
     int (__cdecl *rsa_disconnect)(HANDLE);				// разрывает соединение с указанным контекстом
     int (__cdecl *rsa_disabled)(HANDLE);				// разрывает соединение по причине "disabled"
@@ -190,6 +194,10 @@ typedef struct {
     LPWSTR (__cdecl *utf8decode)(LPCSTR);
     int (__cdecl *is_7bit_string)(LPCSTR);
     int (__cdecl *is_utf8_string)(LPCSTR);
+    int (__cdecl *rsa_export_keypair)(short,LPSTR,LPSTR,LPSTR);		// export private key
+    int (__cdecl *rsa_import_keypair)(short,LPSTR,LPSTR);		// import & activate private key
+    int (__cdecl *rsa_export_pubkey)(HANDLE,LPSTR);			// export public key from context
+    int (__cdecl *rsa_import_pubkey)(HANDLE,LPSTR);			// import public key into context
 } RSA_EXPORT;
 typedef RSA_EXPORT* pRSA_EXPORT;
 

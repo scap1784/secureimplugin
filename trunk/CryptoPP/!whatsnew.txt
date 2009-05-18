@@ -1,4 +1,12 @@
 
+Verison 1.0.4.3 [18-05-2009]
+
+[*] memory leak fixes
+[+] rsa_get_hash
+[*] new format private key
+[+] functions for export/import keys
+
+
 Verison 1.0.4.2 [07-05-2009]
 
 [*] serious memory corrupting fixed

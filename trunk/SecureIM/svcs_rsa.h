@@ -5,7 +5,7 @@
 
 extern pRSA_EXPORT exp;
 extern RSA_IMPORT imp;
-extern BOOL rsa_2048, rsa_4096;
+extern BOOL rsa_4096;
 
 int __cdecl rsa_inject(HANDLE,LPCSTR);
 int __cdecl rsa_check_pub(HANDLE,PBYTE,int,PBYTE,int);

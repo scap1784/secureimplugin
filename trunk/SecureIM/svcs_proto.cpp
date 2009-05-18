@@ -1005,10 +1005,10 @@ INT_PTR __cdecl onSendFile(WPARAM wParam, LPARAM lParam) {
 		}
 		if( i ) { // скопируем новый список
 			ptr->fileSend = (char **) mir_alloc(sizeof(char*)*(i+1));
-			memset(ptr->fileSend,0,sizeof(char*)*(i+1));
 			for(i=0;file[i];i++) {
 				ptr->fileSend[i] = mir_strdup(file[i]);
 			}
+			ptr->fileSend[i] = NULL;
 		}
 	}
 	return CallService(PSS_FILE, wParam, lParam);

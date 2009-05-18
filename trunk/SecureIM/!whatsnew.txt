@@ -1,5 +1,12 @@
 
-Verison 1.0.12.3 [14-05-2009]
+Verison 1.0.12.3 [18-05-2009]
+
+[*] fixed crash on filetransfer
+[*] advanced messages for replaced RSA keys
+[+] show SHA1 for all public keys
+[*] new format private key
+[+] export/import public keys
+[+] export/import my private key
 
 
 Verison 1.0.12.2 [07-05-2009]

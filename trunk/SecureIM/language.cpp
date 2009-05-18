@@ -27,6 +27,10 @@ LPCSTR sim108 = "SecureIM can't load PGP/GPG key! Check PGP/GPG settings!";
 LPCSTR sim109 = "SecureIM can't encrypt message! Check trust of PGP/GPG key!";
 LPCSTR sim110 = "Can't Send Encrypted Message !\nDo you want to send your message ?\nIt will be unencrypted !";
 LPCSTR sim111 = "Can't change mode! Secure connection established!";
+LPCSTR sim112 = "Can't export RSA private key!";
+LPCSTR sim113 = "Can't import RSA private key!";
+LPCSTR sim114 = "Can't export RSA public key!";
+LPCSTR sim115 = "Can't import RSA public key!";
 
 //Options
 LPCSTR sim201 = "General";
@@ -58,7 +62,8 @@ LPCSTR sim229 = "UTF8";
 LPCSTR sim230 = "Mode";
 LPCSTR sim231[] = { "Native", "PGP", "GPG", "RSA/AES", "RSA" };
 LPCSTR sim232[] = { "Disabled", "Enabled", "Always try" };
-LPCSTR sim233= "PUB";
+LPCSTR sim233 = "PUB";
+LPCSTR sim234 = "SHA1";
 
 //Context Menu
 LPCSTR sim301 = "Create SecureIM connection";
@@ -92,6 +97,8 @@ LPCSTR sim508 = "Session closed by other side when status \"disabled\"";
 LPCSTR sim510 = "Session closed on error: %02x";
 LPCSTR sim520 = "SecureIM received RSA Public Key from \"%s\"\n\nSHA1: %s\n\nDo you Accept this Key ?";
 LPCSTR sim521 = "SecureIM auto accepted RSA Public key from: %s uin: %s SHA1: %s";
+LPCSTR sim522 = "SecureIM received NEW RSA Public Key from \"%s\"\n\nNew SHA1: %s\n\nOld SHA1: %s\n\nDo you Replace this Key ?";
+LPCSTR sim523 = "SecureIM auto accepted NEW RSA Public key from: %s uin: %s New SHA1: %s Old SHA1: %s";
 
 
 // EOF

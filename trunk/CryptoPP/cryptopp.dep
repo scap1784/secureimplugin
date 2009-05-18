@@ -9,13 +9,14 @@
 	"..\..\include\m_protosvc.h"\
 	"..\..\include\m_stdhdr.h"\
 	"..\..\include\m_system.h"\
-	"..\..\include\m_updater.h"\
 	"..\..\include\m_utils.h"\
 	"..\..\include\newpluginapi.h"\
 	"..\..\include\statusmodes.h"\
 	".\base16.h"\
 	".\base64.h"\
 	".\commonheaders.h"\
+	".\cpp_rsam.h"\
+	".\cpp_rsau.h"\
 	".\crypto\adler32.h"\
 	".\crypto\aes.h"\
 	".\crypto\algebra.h"\
@@ -64,6 +65,7 @@
 	".\dllloader.h"\
 	".\gettime.h"\
 	".\mmi.h"\
+	".\sdk\m_updater.h"\
 	".\utf8.h"\
 	".\version.h"\
 	"d:\program files\microsoft visual studio\vc98\include\basetsd.h"\
