@@ -47,6 +47,11 @@ static const byte binToAscii64[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqr
 char *base64encode(const char *, const int);
 char *base64decode(const char *, int *);
 
+string base64encode(const string);
+string base64decode(const string);
+
+string base64decode(const char *);
+
 #define encode64(data) binToAscii64[data]
 #define decode64(data) asciiToBin64[data]
 

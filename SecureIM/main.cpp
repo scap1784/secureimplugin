@@ -200,28 +200,47 @@ int __cdecl onModulesLoaded(WPARAM wParam,LPARAM lParam) {
 	{ // RSA/AES
 		rsa_init(&exp,&imp);
 
-		DBVARIANT dbv1, dbv2;
-		dbv1.type = dbv2.type = DBVT_BLOB;
+		DBVARIANT dbv;
+		dbv.type = DBVT_BLOB;
 
-		if( DBGetContactSetting(0,szModuleName,"rsa_priv_2048",&dbv1) == 0 ) {
-			if( DBGetContactSetting(0,szModuleName,"rsa_pub_2048",&dbv2) == 0 ) {
-				exp->rsa_set_keypair(CPP_MODE_RSA_2048,dbv1.pbVal,dbv1.cpbVal,dbv2.pbVal,dbv2.cpbVal);
-				rsa_2048=1;
-				DBFreeVariant(&dbv2);
-			}
-			DBFreeVariant(&dbv1);
+		if( DBGetContactSetting(0,szModuleName,"rsa_priv",&dbv) == 0 ) {
+			exp->rsa_set_keypair(CPP_MODE_RSA_4096,dbv.pbVal,dbv.cpbVal);
+			DBFreeVariant(&dbv);
+			rsa_4096=1;
 		}
+		else
+		if( DBGetContactSetting(0,szModuleName,"rsa_priv_4096",&dbv) == 0 ) {
+			exp->rsa_set_keypair(CPP_MODE_RSA_4096|CPP_MODE_RSA_BER,dbv.pbVal,dbv.cpbVal);
+			DBFreeVariant(&dbv);
 
-		if( DBGetContactSetting(0,szModuleName,"rsa_priv_4096",&dbv1) == 0 ) {
-			if( DBGetContactSetting(0,szModuleName,"rsa_pub_4096",&dbv2) == 0 ) {
-				exp->rsa_set_keypair(CPP_MODE_RSA_4096,dbv1.pbVal,dbv1.cpbVal,dbv2.pbVal,dbv2.cpbVal);
-				rsa_4096=1;
-				DBFreeVariant(&dbv2);
-			}
-			DBFreeVariant(&dbv1);
-		}
+			char priv_key[4096]; int priv_len;
+			char pub_key[4096]; int pub_len;
 
-		if( !rsa_2048 || !rsa_4096 ) {
+			DBCONTACTWRITESETTING cws;
+			cws.szModule = szModuleName;
+			cws.value.type = DBVT_BLOB;
+
+			exp->rsa_get_keypair(CPP_MODE_RSA_4096,(PBYTE)&priv_key,&priv_len,(PBYTE)&pub_key,&pub_len);
+
+			cws.szSetting = "rsa_priv";
+			cws.value.pbVal = (PBYTE)&priv_key;
+			cws.value.cpbVal = priv_len;
+			CallService(MS_DB_CONTACT_WRITESETTING, (WPARAM)0, (LPARAM)&cws);
+
+			cws.szSetting = "rsa_pub";
+			cws.value.pbVal = (PBYTE)&pub_key;
+			cws.value.cpbVal = pub_len;
+			CallService(MS_DB_CONTACT_WRITESETTING, (WPARAM)0, (LPARAM)&cws);
+
+			DBDeleteContactSetting(0, szModuleName, "rsa_priv_2048");
+			DBDeleteContactSetting(0, szModuleName, "rsa_pub_2048");
+//			DBDeleteContactSetting(0, szModuleName, "rsa_priv_4096");
+//			DBDeleteContactSetting(0, szModuleName, "rsa_pub_4096");
+
+			rsa_4096=1;
+		}	
+
+		if( !rsa_4096 ) {
 			unsigned int tID;
 			CloseHandle( (HANDLE) _beginthreadex(NULL, 0, sttGenerateRSA, NULL, 0, &tID) );
 		}

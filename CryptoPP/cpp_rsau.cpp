@@ -1,5 +1,46 @@
 #include "commonheaders.h"
 
+const string padding = "PADDING!PADDING!PADDING!PADDING!"; // 256 bit
+
+
+string pad256(string& str) {
+	string out = str;
+	int pad = out.length() % 32;
+	if( pad ) { // надо выровнять на 256 бит
+	    if( pad>3 ) {
+		out += tlv(0,padding.substr(0,32-3-pad));
+	    }
+	    else {
+	    	if( pad==3 ) out += string("\0\0\0");
+	    	else
+	    	if( pad==2 ) out += string("\0\0");
+	    	else         out += string("\0");
+	    }
+	}
+	return out;
+}
+
+
+string& add_delim(string& str, const string& del, int len) {
+	string val;
+	for( u_int i=0; i<str.length(); i+=len ) {
+		val += str.substr(i,len) + del;
+	}
+	str = val;
+	return str;
+}
+
+
+string& del_delim(string& str, const string& del) {
+	string val;
+	for( u_int i=0; i<str.length(); i++ ) {
+		if( del.find(str[i]) == string::npos )
+			val += str[i];
+	}
+	str = val;
+	return str;
+}
+
 
 string tlv(int t, const string& v) {
 	string b;
@@ -52,14 +93,21 @@ string& un_tlv(string& b, int& t, int& v) {
 }
 
 
-void un_tlv(PBYTE b, int l, int& t, string& v) {
-	string s;
-	s.assign((char*)b,l);
-	un_tlv(s,t,v);
+int str2int(string& s) {
+	int v = 0;
+	if( s.length()<=sizeof(int) )
+		s.copy((char*)&v,s.length());
+	return v;
 }
 
 
-string sign(PBYTE b, int l)
+string hash(string& b)
+{
+	return hash((PBYTE)b.data(),b.length());
+}
+
+
+string hash(PBYTE b, int l)
 {
 	BYTE h[RSA_KEYSIZE];
 	RSA_CalculateDigest(h, b, l);
@@ -68,23 +116,19 @@ string sign(PBYTE b, int l)
 }
 
 
-string sign(string& b)
+string hash128(string& b)
 {
-	return sign((PBYTE)b.data(),b.length());
+	return hash128((PBYTE)b.data(),b.length());
 }
 
-/*
-string sign128(PBYTE b, int l)
-{
-	Weak::MD5 md5;
-	SecByteBlock h(md5.DigestSize());
-	md5.CalculateDigest(h, b, l);
-	string s; s.assign((char*)h.data(),h.size());
-	return s;
-}
-*/
 
-string sign128(PBYTE b, int l)
+string hash128(LPSTR b)
+{
+	return hash128((PBYTE)b,strlen(b));
+}
+
+
+string hash128(PBYTE b, int l)
 {
 	BYTE h[RIPEMD128::DIGESTSIZE];
 	RIPEMD128().CalculateDigest(h, b, l);
@@ -93,10 +137,24 @@ string sign128(PBYTE b, int l)
 }
 
 
-string sign256(PBYTE b, int l)
+string hash256(string& b)
 {
-	BYTE h[SHA256::DIGESTSIZE];
-	SHA256().CalculateDigest(h, b, l);
+	return hash256((PBYTE)b.data(),b.length());
+}
+
+
+string hash256(LPSTR b)
+{
+	return hash256((PBYTE)b,strlen(b));
+}
+
+
+string hash256(PBYTE b, int l)
+{
+//	BYTE h[SHA256::DIGESTSIZE];
+//	SHA256().CalculateDigest(h, b, l);
+	BYTE h[RIPEMD256::DIGESTSIZE];
+	RIPEMD256().CalculateDigest(h, b, l);
 	string s; s.assign((char*)&h,sizeof(h));
 	return s;
 }
@@ -159,10 +217,9 @@ string RSAEncryptString(const RSA::PublicKey& pubkey, const string& plaintext)
 }
 
 
-string RSADecryptString(const string& privkey, const string& ciphertext)
+string RSADecryptString(const RSA::PrivateKey& privkey, const string& ciphertext)
 {
-	StringSource privsrc(privkey, true, NULL);
-	RSAES_PKCS1v15_Decryptor priv(privsrc);
+	RSAES_PKCS1v15_Decryptor priv(privkey);
 
 	string result;
 	try {
@@ -175,10 +232,9 @@ string RSADecryptString(const string& privkey, const string& ciphertext)
 }
 
 
-string RSASignString(const string& privkey, const string& plaintext)
+string RSASignString(const RSA::PrivateKey& privkey, const string& plaintext)
 {
-	StringSource privsrc(privkey, true, NULL);
-	RSASSA_PKCS1v15_SHA_Signer priv(privsrc);
+	RSASSA_PKCS1v15_SHA_Signer priv(privkey);
 
 	string result;
 	try {

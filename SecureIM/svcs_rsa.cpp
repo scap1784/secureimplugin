@@ -8,7 +8,7 @@ RSA_IMPORT imp = {
     rsa_notify
 };
 
-BOOL rsa_2048=0, rsa_4096=0;
+BOOL rsa_4096=0;
 
 
 int __cdecl rsa_inject(HANDLE context, LPCSTR msg) {
@@ -30,27 +30,39 @@ int __cdecl rsa_inject(HANDLE context, LPCSTR msg) {
 #define MSGSIZE 1024
 
 int __cdecl rsa_check_pub(HANDLE context, PBYTE pub, int pubLen, PBYTE sig, int sigLen) {
-	int v=0;
+	int v=0, k=0;
 	pUinKey ptr = getUinCtx(context); if(!ptr) return 0;
 	LPSTR cnm = (LPSTR) mir_alloc(NAMSIZE); getContactNameA(ptr->hContact,cnm);
 	LPSTR uin = (LPSTR) mir_alloc(KEYSIZE); getContactUinA(ptr->hContact,uin);
 	LPSTR msg = (LPSTR) mir_alloc(MSGSIZE);
 	LPSTR sha = mir_strdup(to_hex(sig,sigLen));
+	LPSTR sha_old = NULL;
 #if defined(_DEBUG) || defined(NETLIB_LOG)
 	Sent_NetLog("rsa_check_pub: %s %s %s", cnm, uin, sha);
 #endif
+	DBVARIANT dbv;
+	dbv.type = DBVT_BLOB;
+	if( DBGetContactSetting(ptr->hContact,szModuleName,"rsa_pub",&dbv) == 0 ) {
+		k = 1;
+		PBYTE buf = (PBYTE) alloca(sigLen); int len;
+		exp->rsa_get_hash((PBYTE)dbv.pbVal,dbv.cpbVal,(PBYTE)buf,&len);
+		sha_old = mir_strdup(to_hex(buf,len));
+		DBFreeVariant(&dbv);
+	}
 	if( bAAK ) {
-		mir_snprintf(msg,MSGSIZE,Translate(sim521),cnm,uin,sha);
+		if( k )	mir_snprintf(msg,MSGSIZE,Translate(sim523),cnm,uin,sha,sha_old);
+		else	mir_snprintf(msg,MSGSIZE,Translate(sim521),cnm,uin,sha);
 		showPopUpKRmsg(ptr->hContact,msg);
 		HistoryLog(ptr->hContact,msg);
-		v=1;
+		v = 1;
 #if defined(_DEBUG) || defined(NETLIB_LOG)
 		Sent_NetLog("rsa_check_pub: auto accepted");
 #endif
 	}
 	else {
-		mir_snprintf(msg,MSGSIZE,Translate(sim520),cnm,sha);
-		v=(msgbox(0,msg,szModuleName,MB_YESNO|MB_ICONQUESTION)==IDYES);
+		if( k ) mir_snprintf(msg,MSGSIZE,Translate(sim522),cnm,sha,sha_old);
+		else	mir_snprintf(msg,MSGSIZE,Translate(sim520),cnm,sha);
+		v = (msgbox(0,msg,szModuleName,MB_YESNO|MB_ICONQUESTION)==IDYES);
 #if defined(_DEBUG) || defined(NETLIB_LOG)
 		Sent_NetLog("rsa_check_pub: manual accepted %d",v);
 #endif
@@ -69,6 +81,7 @@ int __cdecl rsa_check_pub(HANDLE context, PBYTE pub, int pubLen, PBYTE sig, int 
 	mir_free(uin);
 	mir_free(msg);
 	mir_free(sha);
+	SAFE_FREE(sha_old);
 	return v;
 }
 
@@ -143,32 +156,24 @@ unsigned __stdcall sttGenerateRSA( LPVOID param ) {
 	char priv_key[4096]; int priv_len;
 	char pub_key[4096]; int pub_len;
 
-	exp->rsa_gen_keypair(CPP_MODE_RSA_2048|CPP_MODE_RSA_4096);
+	exp->rsa_gen_keypair(CPP_MODE_RSA_4096);
 
 	DBCONTACTWRITESETTING cws;
 	cws.szModule = szModuleName;
 	cws.value.type = DBVT_BLOB;
 
-	exp->rsa_get_keypair(CPP_MODE_RSA_2048,(PBYTE)&priv_key,&priv_len,(PBYTE)&pub_key,&pub_len);
-	cws.szSetting = "rsa_priv_2048";
-	cws.value.pbVal = (PBYTE)&priv_key;
-	cws.value.cpbVal = priv_len;
-	CallService(MS_DB_CONTACT_WRITESETTING, (WPARAM)0, (LPARAM)&cws);
-	cws.szSetting = "rsa_pub_2048";
-	cws.value.pbVal = (PBYTE)&pub_key;
-	cws.value.cpbVal = pub_len;
-	CallService(MS_DB_CONTACT_WRITESETTING, (WPARAM)0, (LPARAM)&cws);
-	rsa_2048=1;
-
 	exp->rsa_get_keypair(CPP_MODE_RSA_4096,(PBYTE)&priv_key,&priv_len,(PBYTE)&pub_key,&pub_len);
-	cws.szSetting = "rsa_priv_4096";
+
+	cws.szSetting = "rsa_priv";
 	cws.value.pbVal = (PBYTE)&priv_key;
 	cws.value.cpbVal = priv_len;
 	CallService(MS_DB_CONTACT_WRITESETTING, (WPARAM)0, (LPARAM)&cws);
-	cws.szSetting = "rsa_pub_4096";
+
+	cws.szSetting = "rsa_pub";
 	cws.value.pbVal = (PBYTE)&pub_key;
 	cws.value.cpbVal = pub_len;
 	CallService(MS_DB_CONTACT_WRITESETTING, (WPARAM)0, (LPARAM)&cws);
+
 	rsa_4096=1;
 
 	return 0;

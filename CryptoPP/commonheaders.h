@@ -106,7 +106,6 @@ extern PLUGININFOEX pluginInfoEx;
 extern MUUID interfaces[];
 
 extern HANDLE hPGPPRIV;
-extern HANDLE hRSA2048;
 extern HANDLE hRSA4096;
 
 extern CRITICAL_SECTION localQueueMutex;

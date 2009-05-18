@@ -33,6 +33,8 @@
 #define ID_UPDATE_GLIST                 119
 #define ID_GETPUBL                      120
 #define ID_DELPUBL                      121
+#define ID_EXPPUBL                      122
+#define ID_IMPPUBL                      123
 
 #define ID_SIM_NATIVE			130
 #define ID_SIM_PGP                      131
@@ -56,6 +58,7 @@
 #define IDD_TAB_MESSAGES                506
 #define IDD_POPUP                       507
 #define IDD_PSK				508
+#define IDD_PASSPHRASE			509
 
 #define IDC_STD_USERLIST                1001
 #define IDC_TIMEOUT                     1002
@@ -111,6 +114,10 @@
 #define IDC_AAK                         1052
 #define IDC_MCM                         1053
 #define IDC_RSA_COPY                    1054
+#define IDC_RSA_EXP                     1055
+#define IDC_RSA_EXPPRIV                 1056
+#define IDC_RSA_IMPPRIV                 1057
+#define IDC_PASSPHRASE			1058
 
 #define IDC_NO_PGP                      1100
 #define IDC_PGP                         1101

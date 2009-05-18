@@ -1,6 +1,8 @@
 #include "commonheaders.h"
 
-#define PSKSIZE 4096
+#define PSKSIZE (4096+1)
+#define RSASIZE (4096+1)
+
 BOOL bChangeSortOrder = false;
 const char *szAdvancedIcons[] = {"None", "Email", "Protocol", "SMS", "Advanced 1", "Advanced 2", "Web", "Client", "VisMode", "Advanced 6", "Advanced 7", 0};
 
@@ -255,8 +257,8 @@ BOOL CALLBACK DlgProcOptionsGeneral(HWND hDlg, UINT wMsg, WPARAM wParam, LPARAM 
 		  ListView_SetImageList(hLV, hSmall, LVSIL_SMALL);
 		  ListView_SetImageList(hLV, hLarge, LVSIL_NORMAL);
 
-		  static const char *szColHdr[] = { sim203, sim204, sim230, sim205, "", 0 };
-		  static int iColWidth[] = { 150, 110, 60, 55, 35 };
+		  static const char *szColHdr[] = { sim203, sim204, sim230, sim205, "", sim234, 0 };
+		  static int iColWidth[] = { 150, 110, 60, 55, 35, 330 };
 		  LVCOLUMN lvc;
 		  lvc.mask = LVCF_FMT | LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM;
 		  lvc.fmt = LVCFMT_LEFT;
@@ -325,14 +327,13 @@ BOOL CALLBACK DlgProcOptionsGeneral(HWND hDlg, UINT wMsg, WPARAM wParam, LPARAM 
 				idx = ListView_GetSelectionMark(hLV);
 				ptr = (pUinKey) getListViewParam(hLV,idx);
 		  		if(ptr) {
-					char *buffer = (char*)mir_alloc(PSKSIZE+1);
+					LPSTR buffer = (LPSTR)alloca(PSKSIZE+1);
 					getContactName(ptr->hContact, buffer);
 					int res = DialogBoxParam(g_hInst,MAKEINTRESOURCE(IDD_PSK),NULL,(DLGPROC)DlgProcSetPSK,(LPARAM)buffer);
 					if(res == IDOK) {
 					    setListViewPSK(hLV,idx,1);
 					    DBWriteContactSettingString(ptr->hContact,szModuleName,"tPSK",buffer);
 					}
-					mir_free(buffer);
 				}
 			}
 			break;
@@ -353,6 +354,53 @@ BOOL CALLBACK DlgProcOptionsGeneral(HWND hDlg, UINT wMsg, WPARAM wParam, LPARAM 
 		  		if(ptr) {
 					setListViewPUB(hLV,idx,0);
 				}
+		  	}
+		  	break;
+
+		  	case ID_EXPPUBL: {
+		  		idx = ListView_GetSelectionMark(hLV);
+		  		ptr = (pUinKey) getListViewParam(hLV,idx);
+		  		if(ptr) {
+		  			if( !ptr->keyLoaded ) {
+		  				createRSAcntx(ptr);
+		  				loadRSAkey(ptr);
+		  			}
+		  			if( ptr->keyLoaded ) {
+		  				LPSTR buffer = (LPSTR) alloca(RSASIZE);
+		  				exp->rsa_export_pubkey(ptr->cntx,buffer);
+						if( !SaveExportRSAKeyDlg(hDlg,buffer,0) )
+							msgbox(hDlg,sim114,szModuleName,MB_OK|MB_ICONEXCLAMATION);
+		  			}
+				}
+				return TRUE;
+		  	}
+		  	break;
+
+		  	case ID_IMPPUBL: {
+		  		idx = ListView_GetSelectionMark(hLV);
+		  		ptr = (pUinKey) getListViewParam(hLV,idx);
+		  		if(ptr) {
+		  			createRSAcntx(ptr);
+		  			LPSTR pub = (LPSTR) alloca(RSASIZE);
+		  			if( !LoadImportRSAKeyDlg(hDlg,pub,0) ) return TRUE;
+		  			if( exp->rsa_import_pubkey(ptr->cntx,pub) ) {
+		  				int len;
+		  			 	exp->rsa_get_pubkey(ptr->cntx,(PBYTE)pub,&len);
+
+						DBCONTACTWRITESETTING cws;
+						cws.szModule = szModuleName;
+						cws.szSetting = "rsa_pub";
+						cws.value.type = DBVT_BLOB;
+						cws.value.pbVal = (PBYTE)pub;
+						cws.value.cpbVal = len;
+						CallService(MS_DB_CONTACT_WRITESETTING, (WPARAM)ptr->hContact, (LPARAM)&cws);
+
+						setListViewPUB(hLV,idx,1);
+		  			}
+		  			else
+						msgbox(hDlg,sim115,szModuleName,MB_OK|MB_ICONEXCLAMATION);
+				}
+				return TRUE;
 		  	}
 		  	break;
 
@@ -462,6 +510,7 @@ BOOL CALLBACK DlgProcOptionsGeneral(HWND hDlg, UINT wMsg, WPARAM wParam, LPARAM 
 							hMenu = LoadMenu(g_hInst, MAKEINTRESOURCE((ptr->tmode==MODE_NATIVE)?IDM_CLIST01:IDM_CLIST11));
 							break;
 						case 4: // PSK/PUB
+						case 5: // SHA1
 							hMenu = LoadMenu(g_hInst, MAKEINTRESOURCE((ptr->tmode==MODE_NATIVE)?IDM_CLIST02:IDM_CLIST12));
 							break;
 						default: // full menu
@@ -474,8 +523,10 @@ BOOL CALLBACK DlgProcOptionsGeneral(HWND hDlg, UINT wMsg, WPARAM wParam, LPARAM 
 						}
 						else
 						if( ptr->tmode==MODE_RSAAES ) {
-							EnableMenuItem(hMenu, ID_GETPUBL, MF_GRAYED );
-							if( !hasKey(ptr) ) EnableMenuItem(hMenu, ID_DELPUBL, MF_GRAYED );
+							if( !hasKey(ptr) ) {
+								EnableMenuItem(hMenu, ID_EXPPUBL, MF_GRAYED );
+								EnableMenuItem(hMenu, ID_DELPUBL, MF_GRAYED );
+						 	}
 						}
 					}
 					if( !hMenu )
@@ -548,9 +599,45 @@ BOOL CALLBACK DlgProcOptionsProto(HWND hDlg, UINT wMsg, WPARAM wParam, LPARAM lP
 		case WM_COMMAND: {
 			switch(LOWORD(wParam)) {
 		  	case IDC_RSA_COPY: {
-		  		char txt[128];
+				char txt[128];
 				GetDlgItemText(hDlg, IDC_RSA_SHA, txt, sizeof(txt));
 		  	        CopyToClipboard(hDlg,txt);
+		  	        return TRUE;
+		  	} break;
+			case IDC_RSA_EXP: {
+		  		LPSTR pub = (LPSTR) alloca(RSASIZE);
+		  		exp->rsa_export_keypair(CPP_MODE_RSA,NULL,pub,NULL);
+				if( !SaveExportRSAKeyDlg(hDlg,pub,0) )
+					msgbox(hDlg,sim114,szModuleName,MB_OK|MB_ICONEXCLAMATION);
+		  	        return TRUE;
+		  	} break;
+		  	case IDC_RSA_EXPPRIV: {
+				LPSTR passphrase = (LPSTR) alloca(RSASIZE);
+				int res = DialogBoxParam(g_hInst,MAKEINTRESOURCE(IDD_PASSPHRASE),NULL,(DLGPROC)DlgProcSetPassphrase,(LPARAM)passphrase);
+				if( res==IDOK ) {
+		  			LPSTR priv = (LPSTR) alloca(RSASIZE);
+		  			exp->rsa_export_keypair(CPP_MODE_RSA,priv,NULL,passphrase);
+					if( !SaveExportRSAKeyDlg(hDlg,priv,1) )
+						msgbox(hDlg,sim112,szModuleName,MB_OK|MB_ICONEXCLAMATION);
+				}
+		  	        return TRUE;
+		  	} break;
+		  	case IDC_RSA_IMPPRIV: {
+  				LPSTR priv = (LPSTR) alloca(RSASIZE);
+				if( !LoadImportRSAKeyDlg(hDlg,priv,1) ) return TRUE;
+				//
+				LPSTR passphrase = (LPSTR) alloca(RSASIZE);
+				int res = DialogBoxParam(g_hInst,MAKEINTRESOURCE(IDD_PASSPHRASE),NULL,(DLGPROC)DlgProcSetPassphrase,(LPARAM)passphrase);
+				if( res==IDOK ) {
+	  				if( !exp->rsa_import_keypair(CPP_MODE_RSA,priv,passphrase) ) {
+						msgbox(hDlg,sim113,szModuleName,MB_OK|MB_ICONEXCLAMATION);
+	  				}
+	  				else {
+	  					// обновить SHA1 значение
+						RefreshProtoDlg(hDlg);
+					}
+	  			}
+		  	        return TRUE;
 		  	} break;
 			case IDC_SPLITON:
 			case IDC_SPLITOFF: {
@@ -944,16 +1031,16 @@ BOOL CALLBACK DlgProcSetPSK(HWND hDlg,UINT uMsg,WPARAM wParam,LPARAM lParam) {
 	switch(uMsg) {
 	case WM_INITDIALOG: {
 		TranslateDialogDefault(hDlg);
-		SendDlgItemMessage(hDlg,IDC_EDIT1,EM_LIMITTEXT,PSKSIZE,0);
+		SendDlgItemMessage(hDlg,IDC_EDIT1,EM_LIMITTEXT,PSKSIZE-1,0);
 		if( bCoreUnicode )	SetDlgItemTextW(hDlg,IDC_EDIT2,(LPWSTR)lParam);
-		else				SetDlgItemTextA(hDlg,IDC_EDIT2,(LPCSTR)lParam);
+		else			SetDlgItemTextA(hDlg,IDC_EDIT2,(LPCSTR)lParam);
 		buffer = (LPSTR)lParam;
 		return (TRUE);
 	}
 	case WM_COMMAND: {
 		switch(LOWORD(wParam)) {
 		case IDOK: {
-			int len = GetDlgItemTextA(hDlg,IDC_EDIT1,buffer,PSKSIZE+1);
+			int len = GetDlgItemTextA(hDlg,IDC_EDIT1,buffer,PSKSIZE);
 			if(len<8) {
 				msgbox1(hDlg,sim211,szModuleName,MB_OK|MB_ICONEXCLAMATION);
 				return TRUE;
@@ -961,6 +1048,36 @@ BOOL CALLBACK DlgProcSetPSK(HWND hDlg,UINT uMsg,WPARAM wParam,LPARAM lParam) {
 			else {
 				EndDialog(hDlg,IDOK);
 			}
+		}
+		break;
+		case IDCANCEL: {
+			EndDialog(hDlg,IDCANCEL);
+		}
+		break;
+		}
+	}
+	break;
+	default:
+		return (FALSE);
+	}
+	return (TRUE);
+}
+
+
+BOOL CALLBACK DlgProcSetPassphrase(HWND hDlg,UINT uMsg,WPARAM wParam,LPARAM lParam) {
+	static char *buffer;
+	switch(uMsg) {
+	case WM_INITDIALOG: {
+		TranslateDialogDefault(hDlg);
+		SendDlgItemMessage(hDlg,IDC_PASSPHRASE,EM_LIMITTEXT,RSASIZE-1,0);
+		buffer = (LPSTR)lParam;
+		return (TRUE);
+	}
+	case WM_COMMAND: {
+		switch(LOWORD(wParam)) {
+		case IDOK: {
+			GetDlgItemTextA(hDlg,IDC_PASSPHRASE,buffer,RSASIZE);
+			EndDialog(hDlg,IDOK);
 		}
 		break;
 		case IDCANCEL: {
@@ -1102,7 +1219,7 @@ void RefreshProtoDlg(HWND hDlg) {
 	EnableWindow(GetDlgItem(hDlg,IDC_SPLITON), false);
 	EnableWindow(GetDlgItem(hDlg,IDC_SPLITOFF), false);
 
-	BYTE sha[32]; int len; exp->rsa_get_keyhash(CPP_MODE_RSA,NULL,NULL,(PBYTE)&sha,&len);
+	BYTE sha[64]; int len; exp->rsa_get_keyhash(CPP_MODE_RSA,NULL,NULL,(PBYTE)&sha,&len);
 	LPSTR txt = mir_strdup(to_hex(sha,len));
 	SetDlgItemText(hDlg, IDC_RSA_SHA, txt);
 	mir_free(txt);
@@ -1566,6 +1683,24 @@ void setListViewPUB(HWND hLV, UINT iItem, UINT iStatus) {
 	char str[128];
 	strncpy(str, (iStatus)?Translate(sim233):"-", sizeof(str));
 	LV_SetItemTextA(hLV, iItem, 4, str);
+
+	LPSTR sha = NULL;
+	if( iStatus ) {
+		DBVARIANT dbv;
+		dbv.type = DBVT_BLOB;
+		pUinKey ptr = (pUinKey) getListViewParam(hLV, iItem);
+		if( DBGetContactSetting(ptr->hContact,szModuleName,"rsa_pub",&dbv) == 0 ) {
+			int len;
+			exp->rsa_get_hash((PBYTE)dbv.pbVal,dbv.cpbVal,(PBYTE)str,&len);
+			sha = mir_strdup(to_hex((PBYTE)str,len));
+			DBFreeVariant(&dbv);
+		}
+	}
+	if( sha ) {
+		LV_SetItemTextA(hLV, iItem, 5, sha);
+		mir_free(sha);
+	}
+	else	LV_SetItemTextA(hLV, iItem, 5, "");
 }
 
 
@@ -1665,8 +1800,7 @@ void ListView_Sort(HWND hLV, LPARAM lParamSort) {
 
 BOOL ShowSelectKeyDlg(HWND hParent, LPSTR KeyPath)
 {
-   OPENFILENAME ofn;
-   ZeroMemory(&ofn, sizeof(ofn));
+   OPENFILENAME ofn; memset(&ofn, 0, sizeof(ofn));
    ofn.lStructSize = sizeof(ofn);
    ofn.hwndOwner = hParent;
    ofn.nMaxFile = MAX_PATH;
@@ -1728,6 +1862,59 @@ LPSTR LoadKeys(LPCSTR file,BOOL priv) {
 	}*/
 	fclose(f);
 	return keys;
+}
+
+
+BOOL SaveExportRSAKeyDlg(HWND hParent, LPSTR key, BOOL priv)
+{
+   char szFile[MAX_PATH] = "rsa_pub.asc"; 
+   if( priv ) strcpy(szFile,"rsa_priv.asc");
+
+   OPENFILENAME ofn; memset(&ofn, 0, sizeof(ofn));
+   ofn.lStructSize = sizeof(ofn);
+   ofn.hwndOwner = hParent;
+   ofn.nMaxFile = MAX_PATH;
+   ofn.Flags = OFN_EXPLORER | OFN_FILEMUSTEXIST | OFN_NONETWORKBUTTON;
+   ofn.lpstrFile = szFile;
+   ofn.lpstrFilter = "ASC files\0*.asc\0All files (*.*)\0*.*\0";
+   ofn.lpstrTitle = (priv)?"Save Private Key File":"Save Public Key File";
+   if (!GetSaveFileName(&ofn)) return FALSE;
+
+   FILE *f=fopen(szFile,"wb");
+   if( !f ) return FALSE;
+   fwrite(key,strlen(key),1,f);
+   fclose(f);
+
+   return TRUE;
+}
+
+
+BOOL LoadImportRSAKeyDlg(HWND hParent, LPSTR key, BOOL priv)
+{
+   char szFile[MAX_PATH] = "rsa_pub.asc"; 
+   if( priv ) strcpy(szFile,"rsa_priv.asc");
+
+   OPENFILENAME ofn; memset(&ofn, 0, sizeof(ofn));
+   ofn.lStructSize = sizeof(ofn);
+   ofn.hwndOwner = hParent;
+   ofn.nMaxFile = MAX_PATH;
+   ofn.Flags = OFN_EXPLORER | OFN_CREATEPROMPT | OFN_OVERWRITEPROMPT | OFN_NOREADONLYRETURN;
+   ofn.lpstrFile = szFile;
+   ofn.lpstrFilter = "ASC files\0*.asc\0All files (*.*)\0*.*\0";
+   ofn.lpstrTitle = (priv)?"Load Private Key File":"Load Public Key File";
+   if (!GetOpenFileName(&ofn)) return FALSE;
+
+   FILE *f=fopen(szFile,"rb");
+   if( !f ) return FALSE;
+
+   fseek(f,0,SEEK_END);
+   int flen = ftell(f); if(flen>RSASIZE) { fclose(f); return FALSE; }
+   fseek(f,0,SEEK_SET);
+
+   fread(key,flen,1,f);
+   fclose(f);
+
+   return TRUE;
 }
 
 
