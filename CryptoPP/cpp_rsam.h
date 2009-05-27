@@ -34,7 +34,9 @@ void init_pub(pRSADATA,string&);
 void null_msg(HANDLE,int,int);
 
 void rsa_timeout(HANDLE,pRSADATA);
-void rsa_free(pRSADATA);
+void rsa_alloc(pCNTX);
+void rsa_free(pCNTX);
+void rsa_free_thread(pRSADATA);
 void clear_queue(pRSADATA);
 
 

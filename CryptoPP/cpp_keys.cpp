@@ -196,40 +196,4 @@ int __cdecl cpp_init_keyp(HANDLE context, LPCSTR password) {
 }
 
 
-// free memory from keys
-void cpp_free_keys(pCNTX ptr) {
-
-	SAFE_FREE(ptr->tmp);
-	cpp_alloc_pdata(ptr);
-	if( ptr->mode & MODE_PGP ) {
-		pPGPDATA p = (pPGPDATA) ptr->pdata;
-		SAFE_FREE(p->pgpKeyID);
-		SAFE_FREE(p->pgpKey);
-		SAFE_FREE(ptr->pdata);
-	}
-	else
-	if( ptr->mode & MODE_GPG ) {
-		pGPGDATA p = (pGPGDATA) ptr->pdata;
-		SAFE_FREE(p->gpgKeyID);
-		SAFE_FREE(ptr->pdata);
-	}
-	else
-	if( ptr->mode & MODE_RSA ) {
-		pRSADATA p = (pRSADATA) ptr->pdata;
-		rsa_free(p); // удалим трэд и очередь
-		SAFE_DELETE(p->queue);
-		SAFE_DELETE(ptr->pdata);
-	}
-	else {
-		pSIMDATA p = (pSIMDATA) ptr->pdata;
-		SAFE_FREE(p->PubA);
-		SAFE_FREE(p->KeyA);
-		SAFE_FREE(p->KeyB);
-		SAFE_FREE(p->KeyX);
-		SAFE_FREE(p->KeyP);
-		SAFE_DELETE(p->dh);
-		SAFE_FREE(ptr->pdata);
-	}
-}
-
 // EOF

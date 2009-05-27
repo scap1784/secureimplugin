@@ -274,9 +274,9 @@ int __cdecl rsa_disconnect(HANDLE context) {
 	Sent_NetLog("rsa_disconnect: %08x", context);
 #endif
 	pCNTX ptr = get_context_on_id(context); if(!ptr) return 0;
-	pRSADATA p = (pRSADATA) cpp_alloc_pdata(ptr); 
+	rsa_free( ptr ); // удалим трэд и очередь сообщений
 
-	rsa_free( p ); // удалим трэд и очередь сообщений
+	pRSADATA p = (pRSADATA) cpp_alloc_pdata(ptr); 
 	if( !p->state ) return 1;
 
 	PBYTE buffer=(PBYTE) alloca(RAND_SIZE);
@@ -295,9 +295,9 @@ int __cdecl rsa_disabled(HANDLE context) {
 	Sent_NetLog("rsa_disabled: %08x", context);
 #endif
 	pCNTX ptr = get_context_on_id(context); if(!ptr) return 0;
-	pRSADATA p = (pRSADATA) cpp_alloc_pdata(ptr); 
+	rsa_free( ptr ); // удалим трэд и очередь сообщений
 
-	rsa_free( p ); // удалим трэд и очередь сообщений
+	pRSADATA p = (pRSADATA) cpp_alloc_pdata(ptr); 
 	p->state = 0;
 	inject_msg(context,0xFF,null);
 //	imp->rsa_notify(-context,-8); // соединение разорвано по причине "disabled"
@@ -329,8 +329,8 @@ LPSTR __cdecl rsa_recv(HANDLE context, LPCSTR msg) {
 	if( type>0x10 && type<0xE0 )  // проверим тип сообщения (когда соединение еще не установлено)
 	    if( p->state==0 || p->state!=(type>>4) ) { // неверное состояние
 		// шлем перерывание сессии
-		rsa_free( p ); // удалим трэд и очередь сообщений
 		p->state=0; p->time=0;
+		rsa_free( ptr ); // удалим трэд и очередь сообщений
 		null_msg(context,0x00,-1); // сессия разорвана по ошибке, неверный тип сообщения
 		return 0;
 	    }
@@ -385,7 +385,7 @@ LPSTR __cdecl rsa_recv(HANDLE context, LPCSTR msg) {
 		GlobalRNG().GenerateBlock(buffer,RAND_SIZE);
         	inject_msg(context,0x60,encode_msg(0,p,hash(buffer,RAND_SIZE)));
 		p->state=7; p->time=0;
-		rsa_free( p ); // удалим трэд и очередь сообщений
+		rsa_free_thread( p ); // удалим трэд и очередь сообщений
 		imp->rsa_notify(context,1);	// заебися, криптосессия установлена
 	} break;
 
@@ -398,7 +398,7 @@ LPSTR __cdecl rsa_recv(HANDLE context, LPCSTR msg) {
 			return 0;
 		}
 		p->state=7; p->time=0;
-		rsa_free( p ); // удалим трэд и очередь сообщений
+		rsa_free_thread( p ); // удалим трэд и очередь сообщений
 		imp->rsa_notify(context,1);	// заебися, криптосессия установлена
 	} break;
 
@@ -430,18 +430,18 @@ LPSTR __cdecl rsa_recv(HANDLE context, LPCSTR msg) {
 
 	case 0xF0: // разрыв соединения вручную
 	{
-		rsa_free( p ); // удалим трэд и очередь сообщений
 		if( p->state != 7 ) return 0;
 		string msg = decode_msg(p,data);
 		if( !msg.length() ) return 0;
 		p->state=0;
+		rsa_free( ptr ); // удалим трэд и очередь сообщений
 		imp->rsa_notify(context,-4); // соединение разорвано вручную другой стороной
 	} break;
 
 	case 0xFF: // разрыв соединения по причине "disabled"
 	{
-		rsa_free( p ); // удалим трэд и очередь сообщений
 		p->state=0;
+		rsa_free( ptr ); // удалим трэд и очередь сообщений
 		imp->rsa_notify(context,-8); // соединение разорвано по причине "disabled"
 	} break;
 
@@ -842,16 +842,28 @@ int __cdecl rsa_recv_thread(HANDLE context, string& msg) {
 }
 
 
-void clear_queue( pRSADATA p ) {
-	EnterCriticalSection(&localQueueMutex);
-	while( p->queue && !p->queue->empty() ) {
-       		p->queue->pop();
-	}
-	LeaveCriticalSection(&localQueueMutex);
+void rsa_alloc( pCNTX ptr ) {
+	pRSADATA p = new RSADATA;
+	p->state = 0;
+	p->time = 0;
+	p->thread = p->event = NULL;
+	p->thread_exit = 0;
+	p->queue = new STRINGQUEUE;
+	ptr->pdata = (PBYTE) p;
 }
 
 
-void rsa_free( pRSADATA p ) {
+void rsa_free( pCNTX ptr ) {
+	pRSADATA p = (pRSADATA) ptr->pdata;
+	if( p && p->event ) {
+		p->thread_exit = 2; // отпускаем поток в свободное плавание
+		SetEvent( p->event );
+		rsa_alloc(ptr);
+	}
+}
+
+
+void rsa_free_thread( pRSADATA p ) {
 	if( p->event ) {
 		p->thread_exit = 1;
 		SetEvent( p->event );
@@ -864,6 +876,15 @@ void rsa_free( pRSADATA p ) {
 	}
 	p->time = 0;
 	clear_queue( p );
+}
+
+
+void clear_queue( pRSADATA p ) {
+	EnterCriticalSection(&localQueueMutex);
+	while( p->queue && !p->queue->empty() ) {
+       		p->queue->pop();
+	}
+	LeaveCriticalSection(&localQueueMutex);
 }
 
 
@@ -880,9 +901,18 @@ unsigned __stdcall sttConnectThread( LPVOID arg ) {
 		Sent_NetLog("sttConnectThread: WaitForSingleObject");
 #endif
 		WaitForSingleObject(p->event, INFINITE); // dwMsec rc==WAIT_TIMEOUT
-		if( p->thread_exit ) return 0;
+		if( p->thread_exit == 1 ) return 0;
+		if( p->thread_exit == 2 ) {
+			// мы в свободном плавании - освободим память и завершим трэд
+			CloseHandle( p->thread );
+			CloseHandle( p->event );
+			SAFE_DELETE(p->queue);
+			SAFE_DELETE(p);
+			return 0;
+		}
 		// дождались сообщения в очереди
-		while( p->queue && !p->queue->empty() ) { // обработаем сообщения из очереди
+		while( !p->thread_exit && p->queue && !p->queue->empty() ) {
+			// обработаем сообщения из очереди
 			if( rsa_recv_thread(context, p->queue->front()) == -1 ) {
 				// очистить очередь
 				clear_queue(p);
