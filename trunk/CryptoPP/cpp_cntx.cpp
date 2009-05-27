@@ -99,13 +99,7 @@ PBYTE cpp_alloc_pdata(pCNTX ptr) {
 	    }
 	    else
 	    if( ptr->mode & MODE_RSA ) {
-			pRSADATA p = new RSADATA;
-			p->state = 0;
-			p->time = 0;
-			p->thread = p->event = NULL;
-			p->thread_exit = 0;
-			p->queue = new STRINGQUEUE;
-			ptr->pdata = (PBYTE) p;
+			rsa_alloc(ptr);
 	    }
 	    else {
 			ptr->pdata = (PBYTE) malloc(sizeof(SIMDATA));
@@ -113,6 +107,41 @@ PBYTE cpp_alloc_pdata(pCNTX ptr) {
 	    }
 	}
 	return ptr->pdata;
+}
+
+
+// free memory from keys
+void cpp_free_keys(pCNTX ptr) {
+
+	SAFE_FREE(ptr->tmp);
+	cpp_alloc_pdata(ptr);
+	if( ptr->mode & MODE_PGP ) {
+		pPGPDATA p = (pPGPDATA) ptr->pdata;
+		SAFE_FREE(p->pgpKeyID);
+		SAFE_FREE(p->pgpKey);
+		SAFE_FREE(ptr->pdata);
+	}
+	else
+	if( ptr->mode & MODE_GPG ) {
+		pGPGDATA p = (pGPGDATA) ptr->pdata;
+		SAFE_FREE(p->gpgKeyID);
+		SAFE_FREE(ptr->pdata);
+	}
+	else
+	if( ptr->mode & MODE_RSA ) {
+		rsa_free(ptr);
+		SAFE_DELETE(ptr->pdata);
+	}
+	else {
+		pSIMDATA p = (pSIMDATA) ptr->pdata;
+		SAFE_FREE(p->PubA);
+		SAFE_FREE(p->KeyA);
+		SAFE_FREE(p->KeyB);
+		SAFE_FREE(p->KeyX);
+		SAFE_FREE(p->KeyP);
+		SAFE_DELETE(p->dh);
+		SAFE_FREE(ptr->pdata);
+	}
 }
 
 
