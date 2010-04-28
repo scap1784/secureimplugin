@@ -1,4 +1,9 @@
 
+Verison 1.0.12.4 [28-04-2010]
+
+[*] fix bug with advanced icon set to "NONE" && enable extaicons plugin
+
+
 Verison 1.0.12.3 [18-05-2009]
 
 [*] fixed crash on filetransfer

@@ -78,7 +78,7 @@ IconExtraColumn mode2iec(int mode) {
 void ShowStatusIcon(HANDLE hContact,int mode) {
 
 	HANDLE hMC = getMetaContact(hContact);
-	if( bADV ) { // обновить иконки в clist
+	if( bADV || g_hCLIcon ) { // обновить иконки в clist
 		if( mode!= -1 ) {
 			IconExtraColumn iec=mode2iec(mode);
 			if( g_hCLIcon ) {

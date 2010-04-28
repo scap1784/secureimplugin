@@ -82,7 +82,7 @@ int __cdecl onExtraImageListRebuilding(WPARAM, LPARAM) {
 #if defined(_DEBUG) || defined(NETLIB_LOG)
 	Sent_NetLog("onExtraImageListRebuilding");
 #endif
-	if( bADV && ServiceExists(MS_CLIST_EXTRA_ADD_ICON) ) {
+	if( (bADV || g_hCLIcon) && ServiceExists(MS_CLIST_EXTRA_ADD_ICON) ) {
 		RefreshContactListIcons();
 	}
 	return 0;
@@ -91,7 +91,7 @@ int __cdecl onExtraImageListRebuilding(WPARAM, LPARAM) {
 
 int __cdecl onExtraImageApplying(WPARAM wParam, LPARAM) {
 
-	if( bADV && ServiceExists(MS_CLIST_EXTRA_SET_ICON) && isSecureProtocol((HANDLE)wParam) ) {
+	if( (bADV || g_hCLIcon) && ServiceExists(MS_CLIST_EXTRA_SET_ICON) && isSecureProtocol((HANDLE)wParam) ) {
 		IconExtraColumn iec = mode2iec(isContactSecured((HANDLE)wParam));
 		if( g_hCLIcon ) {
 			ExtraIcon_SetIcon(g_hCLIcon, (HANDLE)wParam, iec.hImage);
