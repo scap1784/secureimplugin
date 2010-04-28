@@ -385,7 +385,7 @@ BOOL CALLBACK DlgProcOptionsGeneral(HWND hDlg, UINT wMsg, WPARAM wParam, LPARAM 
 		  			if( !LoadImportRSAKeyDlg(hDlg,pub,0) ) return TRUE;
 		  			if( exp->rsa_import_pubkey(ptr->cntx,pub) ) {
 		  				int len;
-		  			 	exp->rsa_get_pubkey(ptr->cntx,(PBYTE)pub,&len);
+		  				exp->rsa_get_pubkey(ptr->cntx,(PBYTE)pub,&len);
 
 						DBCONTACTWRITESETTING cws;
 						cws.szModule = szModuleName;
@@ -1065,7 +1065,7 @@ BOOL CALLBACK DlgProcSetPSK(HWND hDlg,UINT uMsg,WPARAM wParam,LPARAM lParam) {
 
 
 BOOL CALLBACK DlgProcSetPassphrase(HWND hDlg,UINT uMsg,WPARAM wParam,LPARAM lParam) {
-	static char *buffer;
+	static LPSTR buffer;
 	switch(uMsg) {
 	case WM_INITDIALOG: {
 		TranslateDialogDefault(hDlg);
@@ -1076,6 +1076,7 @@ BOOL CALLBACK DlgProcSetPassphrase(HWND hDlg,UINT uMsg,WPARAM wParam,LPARAM lPar
 	case WM_COMMAND: {
 		switch(LOWORD(wParam)) {
 		case IDOK: {
+//			memset(buffer,0,RSASIZE);
 			GetDlgItemTextA(hDlg,IDC_PASSPHRASE,buffer,RSASIZE);
 			EndDialog(hDlg,IDOK);
 		}
