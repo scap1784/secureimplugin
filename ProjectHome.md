@@ -1,0 +1,1 @@
+SecureIM plugin for Miranda IM
